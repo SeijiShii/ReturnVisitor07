@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="82dp"
+        android:background="@drawable/gray_border_round"
+        android:layout_margin="2dp">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+        <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/personText"
+                android:gravity="center"
+                style="@style/MiddleTextView"/>
+
+        <RelativeLayout
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:id="@+id/personVisitMenuButton">
+
+            <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_centerInParent="true"
+                    android:background="@mipmap/three_dots"/>
+
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+        <Switch
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/seenSwitch"
+                android:gravity="center"
+                android:text="@string/seen"/>
+
+        <Switch
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/rvSwitch"
+                android:gravity="center"
+                android:text="@string/is_rv"/>
+
+        <Switch
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/studySwitch"
+                android:gravity="center"
+                android:text="@string/is_study"/>
+
+    </LinearLayout>
+
+</LinearLayout>

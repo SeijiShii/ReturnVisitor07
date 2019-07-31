@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/overlay"
+    android:background="#80000000">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_margin="25dp"
+        android:background="@color/whiteSmoke"
+        android:id="@+id/dialogOuterFrame"
+        android:layout_centerInParent="true"
+        android:elevation="5dp">
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:id="@+id/dialogTitleTextView"
+                style="@style/LargeTextView"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:gravity="center_vertical|start"
+                android:textColor="@color/darkSlateGray"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/lightGray"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:id="@+id/contentOuterFrame">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/dialogScrollView">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="300dp"
+                    android:id="@+id/dialogContentFrame1"/>
+
+            </ScrollView>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/dialogContentFrame2"/>
+
+        </FrameLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_alignParentEnd="true">
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="3dp"
+                    android:text="@string/cancel"
+                    android:id="@+id/cancelButton"
+                    style="@style/SeaGreenButton"/>
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="3dp"
+                    android:text="@string/ok"
+                    android:id="@+id/okButton"
+                    style="@style/BrownButton"/>
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="3dp"
+                    android:text="@string/close"
+                    android:id="@+id/closeButton"
+                    style="@style/BrownButton"/>
+
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

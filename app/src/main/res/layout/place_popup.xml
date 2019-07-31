@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+        android:id="@+id/popupOverlay">
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+        <LinearLayout
+                android:layout_width="300dp"
+                android:layout_height="180dp"
+                android:orientation="vertical"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentBottom="true">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/whitesmoke_round"
+                    android:orientation="vertical"
+                    android:id="@+id/popupFrame"
+                    android:padding="10dp">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal">
+
+                    <Button
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:id="@+id/recordHouseButton"
+                            android:text="@string/record_house"
+                            style="@style/BrownButton"/>
+
+                    <Button
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:id="@+id/recordHousingComplexButton"
+                            android:text="@string/record_housing_complex"
+                            style="@style/BrownButton"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:orientation="horizontal">
+
+                    <Button
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:id="@+id/recordPlaceButton"
+                            android:text="@string/record_place"
+                            style="@style/BrownButton"/>
+
+                    <Button
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:id="@+id/closeButton"
+                            android:text="@string/close"
+                            style="@style/SeaGreenButton"/>
+
+                </LinearLayout>
+
+
+
+
+
+            </LinearLayout>
+
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp">
+
+                <View android:layout_width="30dp"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true"
+                      android:background="@drawable/whitesmoke_triangle"
+                        android:rotation="180"/>
+
+            </RelativeLayout>
+
+            <View
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"/>
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+</LinearLayout>

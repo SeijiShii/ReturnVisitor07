@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+        android:background="@color/whiteSmoke">
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:id="@+id/recordPlaceTitle"
+            android:text="@string/record_visit"
+            style="@style/LargeTextView"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:gravity="center_vertical|start"
+            android:textColor="@color/darkSlateGray"/>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/lightGray"/>
+
+    <EditText
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:textSize="14sp"
+            android:hint="@string/address"
+            android:id="@+id/addressText"
+            android:background="@drawable/gray_border_round"
+            android:layout_margin="3dp"
+            android:gravity="start|top"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/gray_border_round"
+            android:layout_margin="3dp">
+
+        <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="15sp"
+                android:id="@+id/dateText"/>
+
+        <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="15sp"
+                android:id="@+id/timeText"/>
+
+    </LinearLayout>
+
+    <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:id="@+id/personVisitContainer"
+                    android:layout_margin="3dp"/>
+
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_margin="3dp">
+
+                <Button
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        style="@style/BrownButton"
+                        android:id="@+id/addPersonButton"
+                        android:layout_alignParentRight="true"
+                        android:text="@string/add_person"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp">
+
+                <work.ckogyo.returnvisitor.views.Rater
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/interestRater"
+                        android:layout_centerInParent="true"/>
+
+            </RelativeLayout>
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:textSize="15sp"
+                    android:gravity="center"
+                    android:id="@+id/interestStatementText"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:id="@+id/deleteButtonRow">
+
+        <Button
+                android:layout_width="200dp"
+                android:layout_height="40dp"
+                android:layout_centerInParent="true"
+                style="@style/BrownButton"
+                android:text="@string/delete_visit"
+                android:id="@+id/deleteButton"/>
+
+    </RelativeLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+        <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                style="@style/SeaGreenButton"
+                android:text="@string/cancel"
+                android:id="@+id/cancelButton"
+                android:layout_margin="5dp"/>
+
+        <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                style="@style/BrownButton"
+                android:text="@string/ok"
+                android:id="@+id/okButton"
+                android:layout_margin="5dp"/>
+    </LinearLayout>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="10dp"/>
+
+</LinearLayout>
