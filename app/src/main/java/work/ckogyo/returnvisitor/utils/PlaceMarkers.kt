@@ -11,7 +11,7 @@ import work.ckogyo.returnvisitor.models.Visit
 class PlaceMarkers(private val googleMap: GoogleMap) {
 
     companion object {
-        val markerIds = arrayOf(
+        private val markerIds = arrayOf(
             R.mipmap.gray_pin,
             R.mipmap.red_pin,
             R.mipmap.purple_pin,
@@ -53,6 +53,11 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
             }
         }
         return null
+    }
+
+    fun refreshMarker(place: Place) {
+        remove(place)
+        addMarker(place)
     }
 
 

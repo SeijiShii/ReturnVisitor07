@@ -66,10 +66,11 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
         val handler = Handler()
         FirebaseHelper.loadVisitsOfPlace(mainActivity!!.dbRef.userDocument, place){
-            handler.post {
 
-                visitsToPlace.clear()
-                visitsToPlace.addAll(it)
+            visitsToPlace.clear()
+            visitsToPlace.addAll(it)
+
+            handler.post {
 
                 visitListContent.removeAllViews()
                 for (visit in it) {

@@ -95,7 +95,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onRefreshPlaceInPlaceDialog(place: Place) {
-
+        placeMarkers.refreshMarker(place)
     }
 
     private fun loadPlaces(onLoaded: () -> Unit) {

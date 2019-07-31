@@ -12,14 +12,15 @@ class FirebaseHelper {
 
             val visitsToPlace = ArrayList<Visit>()
 
-            userDoc.collection(visitsKey).whereEqualTo(placeIdKey, place.id).addSnapshotListener { snapshot, e ->
+            userDoc.collection(visitsKey).whereEqualTo(placeIdKey, place.id).get().addOnSuccessListener {
+
                 var docCount = 0
-                if (e == null && snapshot != null) {
-                    docCount += snapshot.documents.size
-                    for (doc in snapshot.documents) {
+                if (it != null) {
+                    docCount += it.documents.size
+                    for (doc in it.documents) {
                         val v = Visit()
-                        v.fromHashMap(doc.data as HashMap<String, Any>, userDoc, place) {
-                            visitsToPlace.add(it)
+                        v.fromHashMap(doc.data as HashMap<String, Any>, userDoc, place) {it2 ->
+                            visitsToPlace.add(it2)
                             docCount--
                         }
                     }
@@ -31,6 +32,8 @@ class FirebaseHelper {
                     }
                     onFinished(visitsToPlace)
                 }
+            }.addOnFailureListener {
+                onFinished(visitsToPlace)
             }
         }
     }

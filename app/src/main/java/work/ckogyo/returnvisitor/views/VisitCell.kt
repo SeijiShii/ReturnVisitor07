@@ -62,7 +62,7 @@ class VisitCell(context: Context, private val visit: Visit) :HeightAnimationView
             .setMessage(context.resources.getString(R.string.delete_visit_confirm, visit.toDateTimeString(context)))
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.delete){_, _ ->
-                animateHeight{
+                collapseToHeight0{
                     (parent as? ViewGroup)?.removeView(this)
                 }
                 onDeleteVisitConfirmed?.invoke(visit)
