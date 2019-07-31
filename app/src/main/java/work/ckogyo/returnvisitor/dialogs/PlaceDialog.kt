@@ -19,6 +19,8 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     private val mainActivity: MainActivity?
     get() = context as? MainActivity
 
+    private val handler = Handler()
+
     private val visitsToPlace = ArrayList<Visit>()
 
     override fun onOkClick() {}
@@ -26,6 +28,9 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     var onRefreshPlace: ((Place) -> Unit)? = null
 
     var onClose: ((Place, OnFinishEditParam) -> Unit)? = null
+
+    var onEditVisitInvoked: ((Visit) -> Unit)? = null
+    var onRecordNewVisitInvoked: ((Place) -> Unit)? = null
 
     override fun inflateContentView(): View {
         return View.inflate(context, R.layout.place_dialog, null)
@@ -51,6 +56,15 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             showMenuPopup()
         }
 
+        recordVisitButton.setOnClickListener {
+            close()
+            onRecordNewVisitInvoked?.invoke(place)
+        }
+
+        recordNotHomeButton.setOnClickListener {
+            addNotHomeVisit()
+        }
+
         refreshColorMark()
 
         initVisitList()
@@ -64,8 +78,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
         mainActivity?: return
 
-        val handler = Handler()
-        FirebaseHelper.loadVisitsOfPlace(mainActivity!!.dbRef.userDocument, place){
+        mainActivity!!.db.loadVisitsOfPlace(place){
 
             visitsToPlace.clear()
             visitsToPlace.addAll(it)
@@ -73,29 +86,34 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             handler.post {
 
                 visitListContent.removeAllViews()
-                for (visit in it) {
-                    val visitCell = VisitCell(context!!, visit)
-                    visitCell.onClickEditVisit = this::onClickEditVisitInCell
-                    visitCell.onDeleteVisitConfirmed = this::onDeleteConfirmedInCell
-                    visitListContent.addView(visitCell)
+                for (visit in visitsToPlace) {
+                    addVisitCell(visit)
                 }
             }
         }
     }
 
-    private fun onClickEditVisitInCell(visit: Visit) {
+    private fun addVisitCell(visit: Visit) {
+        val visitCell = VisitCell(context!!, visit)
+        visitCell.onClickEditVisit = this::onClickEditVisitInCell
+        visitCell.onDeleteVisitConfirmed = this::onDeleteConfirmedInCell
+        visitListContent.addView(visitCell)
+    }
 
+    private fun onClickEditVisitInCell(visit: Visit) {
+        close()
+        onEditVisitInvoked?.invoke(visit)
     }
 
     private fun onDeleteConfirmedInCell(visit: Visit) {
 
         mainActivity?:return
 
-        mainActivity!!.dbRef.userDocument.collection(visitsKey).document(visit.id).delete()
+        mainActivity!!.db.deleteVisit(visit)
         visitsToPlace.remove(visit)
         place.refreshRatingByVisits(visitsToPlace)
 
-        mainActivity!!.dbRef.userDocument.collection(placesKey).document(place.id).set(place.hashMap)
+        mainActivity!!.db.setPlace(place)
         onRefreshPlace?.invoke(place)
 
         refreshColorMark()
@@ -120,11 +138,41 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             .setMessage(R.string.delete_place_confirm)
             .setNegativeButton(R.string.cancel, null).
                 setPositiveButton(R.string.delete){_, _ ->
-                    mainActivity?.dbRef?.userDocument?.collection(placesKey)?.document(place.id)?.delete()
-                        ?.addOnSuccessListener {
+                    mainActivity?.db?.deletePlace(place){
+                        if (it) {
                             onClose?.invoke(place, OnFinishEditParam.Deleted)
                         }
+                    }
+                    mainActivity?.db?.deleteVisitsToPlace(place)
                     close()
                 }.create().show()
+    }
+
+    private fun addNotHomeVisit() {
+
+        mainActivity?:return
+
+        mainActivity!!.db.loadLatestVisitToPlace(place){
+
+            val visit = if (it == null) {
+                val v = Visit()
+                v.place = place
+                v
+            } else {
+                Visit(it)
+            }
+
+            visit.turnToNotHome()
+
+            visitsToPlace.add(visit)
+            place.refreshRatingByVisits(visitsToPlace)
+
+            mainActivity!!.db.setVisit(visit)
+
+            handler.post {
+                refreshColorMark()
+                addVisitCell(visit)
+            }
+        }
     }
 }

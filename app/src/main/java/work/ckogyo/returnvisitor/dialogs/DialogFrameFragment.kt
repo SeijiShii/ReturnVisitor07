@@ -46,6 +46,11 @@ abstract class DialogFrameFragment : Fragment() {
         if (allowScroll) {
             dialogContentFrame1.addView(contentView)
             dialogContentFrame2.visibility = View.GONE
+            if (allowResize) {
+                dialogContentFrame1.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            } else {
+                dialogContentFrame1.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            }
         } else {
             dialogContentFrame2.addView(contentView)
             dialogScrollView.visibility = View.GONE

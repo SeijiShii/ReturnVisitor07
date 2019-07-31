@@ -82,6 +82,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     val dialog = PlaceDialog(place)
                     dialog.onClose = this::onClosePlaceDialog
                     dialog.onRefreshPlace = this::onRefreshPlaceInPlaceDialog
+                    dialog.onEditVisitInvoked = this::onEditVisitInvokedInPlaceDialog
+                    dialog.onRecordNewVisitInvoked = this::onRecordNewVisitInvokedInPlaceDialog
                     mainActivity?.showDialog(dialog)
                 }
             }
@@ -94,6 +96,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun onRecordNewVisitInvokedInPlaceDialog(place: Place) {
+        mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
+    }
+
+    private fun onEditVisitInvokedInPlaceDialog(visit: Visit) {
+        mainActivity?.showRecordVisitFragmentForEdit(visit, this::onFinishEditVisit)
+    }
+
     private fun onRefreshPlaceInPlaceDialog(place: Place) {
         placeMarkers.refreshMarker(place)
     }
@@ -103,21 +113,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mainActivity?:return
 
         places.clear()
-        mainActivity!!.dbRef.userDocument.collection(placesKey).get()
-            .addOnSuccessListener {
-                for (doc in it) {
-                    val map = doc.data
-                    map?: continue
-                    val place = Place()
-                    place.initFromHashMap(map as HashMap<String, Any>)
-                    places.add(place)
-                }
-                onLoaded()
-            }
-            .addOnFailureListener {
-
-            }
-
+        mainActivity!!.db.loadPlaces {
+            places.addAll(it)
+            onLoaded()
+        }
     }
 
     private fun onClosePlaceDialog(place: Place, param: OnFinishEditParam) {
@@ -132,7 +131,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onClickButtonInPlacePopup(place: Place) {
-        mainActivity?.showRecordVisitFragmentForNewPlace(place, this::onFinishEditVisit)
+        mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
     }
 
     override fun onResume() {
@@ -198,27 +197,38 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 val handler = Handler()
 
-                val visitsToPlace = ArrayList<Visit>()
-
-                FirebaseHelper.loadVisitsOfPlace(mainActivity!!.dbRef.userDocument, visit.place){
-                    visitsToPlace.addAll(it)
-                    visitsToPlace.add(visit)
-                    visit.place.refreshRatingByVisits(visitsToPlace)
-                    mainActivity!!.dbRef.userDocument.collection(placesKey)
-                        .document(visit.place.id).set(visit.place.hashMap)
+                mainActivity!!.db.loadVisitsOfPlace(visit.place){
+                    it.add(visit)
+                    visit.place.refreshRatingByVisits(it)
+                    mainActivity!!.db.setPlace(visit.place)
                     handler.post {
                         placeMarkers.addMarker(visit.place)
                     }
                 }
 
-                mainActivity!!.dbRef.userDocument.collection(visitsKey).document(visit.id).set(visit.hashMap)
+                mainActivity!!.db.setVisit(visit)
 
                 for (person in visit.persons) {
-                    mainActivity!!.dbRef.userDocument.collection(personsKey).document(person.id).set(person.hashMap)
+                    mainActivity!!.db.setPerson(person)
                 }
             }
             OnFinishEditParam.Deleted -> {
 
+                mainActivity?:return
+
+                val handler = Handler()
+
+                val place = visit.place
+                mainActivity!!.db.deleteVisit(visit)
+                mainActivity!!.db.loadVisitsOfPlace(place){
+                    it.remove(visit)
+                    place.refreshRatingByVisits(it)
+                    mainActivity!!.db.setPlace(place)
+
+                    handler.post {
+                        placeMarkers.refreshMarker(place)
+                    }
+                }
             }
         }
     }

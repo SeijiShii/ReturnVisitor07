@@ -40,7 +40,7 @@ class PersonVisit : BaseDataModel {
 //        isStudy = map[isStudyKey].toString().toBoolean()
 //    }
 
-    fun initFromHashMap(map: HashMap<String, Any>, userDocument: DocumentReference, onFinish: (pv: PersonVisit) -> Unit) {
+    fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDBWrapper, onFinish: (pv: PersonVisit) -> Unit) {
 
         super.initFromHashMap(map)
 
@@ -49,10 +49,9 @@ class PersonVisit : BaseDataModel {
         isStudy = map[isStudyKey].toString().toBoolean()
 
         val personId = map[personIdKey].toString()
-        userDocument.collection(personsKey).document(personId).addSnapshotListener { snapshot, exception ->
-            person = Person()
-            if (exception == null && snapshot != null) {
-                person.initFromHashMap(snapshot.data as HashMap<String, Any>)
+        db.loadPersonById(personId){
+            if (it != null) {
+                person = it
             }
             onFinish(this)
         }

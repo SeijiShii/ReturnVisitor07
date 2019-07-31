@@ -29,7 +29,27 @@ class Visit : BaseDataModel {
 
     constructor() : super(idPrefix)
 
-    fun fromHashMap(map: HashMap<String, Any>, userDoc: DocumentReference, place2: Place? = null, onFinish: (Visit) -> Unit) {
+    constructor(lastVisit:Visit): this() {
+
+        place = lastVisit.place
+        rating = lastVisit.rating
+
+        for (pv in lastVisit.personVisits) {
+            val pv2 = pv.clone()
+            personVisits.add(pv2)
+        }
+    }
+
+    fun turnToNotHome(){
+        rating = Rating.NotHome
+        for (pv in personVisits) {
+            pv.seen = false
+            pv.isRv = false
+            pv.isStudy = false
+        }
+    }
+
+    fun fromHashMap(map: HashMap<String, Any>, db: FirebaseDBWrapper, place2: Place? = null, onFinish: (Visit) -> Unit) {
 
         super.initFromHashMap(map)
 
@@ -40,9 +60,11 @@ class Visit : BaseDataModel {
 
         val pvMapList = map[personVisitsKey] as ArrayList<HashMap<String, Any>>
         var pvCount = pvMapList.size
+        personVisits.clear()
         for (pvm in pvMapList) {
             val pv = PersonVisit()
-            pv.initFromHashMap(pvm, userDoc) {
+            pv.initFromHashMap(pvm, db) {
+                personVisits.add(it)
                 pvCount--
             }
         }
@@ -54,17 +76,9 @@ class Visit : BaseDataModel {
             place = place2
             placeLoaded = true
         } else {
-            userDoc.collection(placesKey).document(placeId).addSnapshotListener { snapshot, ex ->
-                if (ex == null) {
-                    if (snapshot != null) {
-                        place = Place()
-                        val map2 = snapshot.data as? HashMap<String, Any>
-                        if (map2 != null) {
-                            place.initFromHashMap(map2)
-                        }
-                    }
-                } else {
-                    Log.d(debugTag, ex.message)
+            db.loadPlaceById(placeId){
+                if (it != null) {
+                    place = it
                 }
                 placeLoaded = true
             }
@@ -118,6 +132,11 @@ class Visit : BaseDataModel {
         for(pv in personVisits) {
             cloned.personVisits.add(pv.clone())
         }
+
+        cloned.dateTime = dateTime.clone() as Calendar
+
+        cloned.place = place
+        cloned.rating = rating
 
         return cloned
     }

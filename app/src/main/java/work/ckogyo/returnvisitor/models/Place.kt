@@ -132,6 +132,11 @@ class Place : BaseDataModel{
             return
         }
 
+        if (visitsToPlace.size == 1) {
+            rating = visitsToPlace[0].rating
+            return
+        }
+
         val visits = visitsToPlace.sortedByDescending { v -> v.dateTime.timeInMillis }
 
         for (v in visits) {

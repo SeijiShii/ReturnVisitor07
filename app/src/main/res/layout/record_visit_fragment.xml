@@ -107,6 +107,17 @@
                     android:gravity="center"
                     android:id="@+id/interestStatementText"/>
 
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:textSize="15sp"
+                    android:padding="5dp"
+                    android:hint="@string/note"
+                    android:gravity="start|top"
+                    android:layout_margin="3dp"
+                    android:background="@drawable/gray_border_round"
+                    android:id="@+id/descriptionText"/>
+
         </LinearLayout>
 
     </ScrollView>

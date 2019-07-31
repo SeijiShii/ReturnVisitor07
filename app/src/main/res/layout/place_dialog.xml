@@ -61,7 +61,32 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:id="@+id/visitListContent"/>
+
     </ScrollView>
 
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+        <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                style="@style/SeaGreenButton"
+                android:text="@string/record_not_home"
+                android:id="@+id/recordNotHomeButton"
+                android:layout_margin="5dp"/>
+
+        <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                style="@style/BrownButton"
+                android:text="@string/record_visit"
+                android:id="@+id/recordVisitButton"
+                android:layout_margin="5dp"/>
+
+    </LinearLayout>
 
 </LinearLayout>

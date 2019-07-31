@@ -31,27 +31,11 @@ import work.ckogyo.returnvisitor.utils.*
 
 class MainActivity : AppCompatActivity() {
 
-//    val db = RVDB()
-//    private lateinit var db: FirebaseFirestore
-//    private val userDocument: CollectionReference?
-//    get() {
-//
-//    }
 
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
 
-    class FirebaseDB(private val auth: FirebaseAuth) {
-        private val db = FirebaseFirestore.getInstance()
-
-        val userDocument: DocumentReference
-        get(){
-            auth.currentUser?:throw Exception("No user logged in.")
-            val uid = auth.currentUser!!.uid
-            return db.collection(uid).document(uid)
-        }
-    }
-    lateinit var dbRef: FirebaseDB
+    lateinit var db: FirebaseDBWrapper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +47,7 @@ class MainActivity : AppCompatActivity() {
 
         initGoogleSignIn()
 
-        dbRef = FirebaseDB(auth)
+        db = FirebaseDBWrapper(auth)
     }
 
     private fun initGoogleSignIn() {
@@ -102,22 +86,32 @@ class MainActivity : AppCompatActivity() {
     private fun showMapFragment() {
         val transaction = supportFragmentManager.beginTransaction()
         val mapFragment = MapFragment()
-        transaction.addToBackStack(null)
+//        transaction.addToBackStack(null)
         transaction.replace(R.id.fragmentContainer, mapFragment, MapFragment::class.java.simpleName)
         transaction.commit()
     }
 
-    fun showRecordVisitFragmentForNewPlace(place: Place, onFinishEditVisit: (Visit, OnFinishEditParam) -> Unit) {
+    fun showRecordVisitFragmentForNew(place: Place, onFinishEditVisit: (Visit, OnFinishEditParam) -> Unit) {
         val transaction = supportFragmentManager.beginTransaction()
         val rvFragment = RecordVisitFragment()
         rvFragment.visit.place = place
         rvFragment.onFinishEdit = onFinishEditVisit
+        rvFragment.mode = EditMode.Add
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
         transaction.commit()
     }
 
-
+    fun showRecordVisitFragmentForEdit(visit: Visit, onFinishEditVisit: (Visit, OnFinishEditParam) -> Unit) {
+        val transaction = supportFragmentManager.beginTransaction()
+        val rvFragment = RecordVisitFragment()
+        rvFragment.visit = visit
+        rvFragment.onFinishEdit = onFinishEditVisit
+        rvFragment.mode = EditMode.Edit
+        transaction.addToBackStack(null)
+        transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
+        transaction.commit()
+    }
 
     fun checkPermissionAndEnableMyLocation(googleMap: GoogleMap?) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED

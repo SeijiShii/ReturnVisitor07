@@ -9,6 +9,7 @@ import androidx.core.content.res.ResourcesCompat
 import kotlinx.android.synthetic.main.visit_cell.view.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.utils.confirmDeleteVisit
 import work.ckogyo.returnvisitor.utils.ratingToColorButtonResId
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
@@ -47,7 +48,12 @@ class VisitCell(context: Context, private val visit: Visit) :HeightAnimationView
                     onClickEditVisit?.invoke(visit)
                 }
                 R.id.delete_visit -> {
-                    confirmDeleteVisit()
+                    confirmDeleteVisit(context, visit){
+                        collapseToHeight0{
+                            (parent as? ViewGroup)?.removeView(this)
+                            onDeleteVisitConfirmed?.invoke(visit)
+                        }
+                    }
                 }
             }
             return@setOnMenuItemClickListener true
@@ -55,18 +61,5 @@ class VisitCell(context: Context, private val visit: Visit) :HeightAnimationView
         popup.show()
     }
 
-    private fun confirmDeleteVisit() {
 
-        AlertDialog.Builder(context)
-            .setTitle(R.string.delete_visit)
-            .setMessage(context.resources.getString(R.string.delete_visit_confirm, visit.toDateTimeString(context)))
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.delete){_, _ ->
-                collapseToHeight0{
-                    (parent as? ViewGroup)?.removeView(this)
-                }
-                onDeleteVisitConfirmed?.invoke(visit)
-            }
-            .show()
-    }
 }

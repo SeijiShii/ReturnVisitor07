@@ -72,4 +72,9 @@ class Rater : LinearLayout {
         }
     }
 
+    fun refresh(index: Int) {
+        currIndex = index
+        refreshButtons()
+    }
+
 }

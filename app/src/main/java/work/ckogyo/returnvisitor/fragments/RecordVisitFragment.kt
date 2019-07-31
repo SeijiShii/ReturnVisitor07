@@ -21,6 +21,7 @@ import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.EditMode
 import work.ckogyo.returnvisitor.utils.OnFinishEditParam
+import work.ckogyo.returnvisitor.utils.confirmDeleteVisit
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.views.PersonVisitCell
 import java.text.SimpleDateFormat
@@ -42,18 +43,13 @@ class RecordVisitFragment : Fragment(),
         field = value.clone()
     }
 
-//    var place: Place = Place()
-//    set(value) {
-//        field = value.clone()
-//    }
-
     var mode = EditMode.Add
 
     private val interestTextIds = arrayOf(
         R.string.none,
         R.string.negative,
         R.string.for_next_covering,
-        R.string.busy,
+        R.string.not_home,
         R.string.fair,
         R.string.interested,
         R.string.strongly_interested
@@ -86,18 +82,23 @@ class RecordVisitFragment : Fragment(),
         }
 
         okButton.setOnClickListener {
+
+            visit.description = descriptionText.text.toString()
+
             onFinishEdit?.invoke(visit, OnFinishEditParam.Done)
             mainActivity?.supportFragmentManager?.popBackStack()
         }
 
         deleteButton.setOnClickListener {
-            // TODO: deleteButton.setOnClickListener
-            // TODO: Delete Confirm
-            onFinishEdit?.invoke(visit, OnFinishEditParam.Deleted)
-            mainActivity?.supportFragmentManager?.popBackStack()
+            confirmDeleteVisit(context!!, visit) {
+                onFinishEdit?.invoke(visit, OnFinishEditParam.Deleted)
+                mainActivity?.supportFragmentManager?.popBackStack()
+            }
         }
 
         requestAddressIfNeeded()
+
+        interestRater.refresh(visit.rating.ordinal)
         interestRater.onClickButton = {
             visit.rating = Visit.Rating.values()[it]
             interestStatementText.setText(interestTextIds[it])
@@ -105,6 +106,19 @@ class RecordVisitFragment : Fragment(),
 
         initDateTimeTexts()
         refreshDateTimeTexts()
+
+        initPVCells()
+
+        descriptionText.setText(visit.description)
+    }
+
+    private fun initPVCells() {
+
+        personVisitContainer.removeAllViews()
+        for (pv in visit.personVisits) {
+            val pvCell = PersonVisitCell(pv, context!!)
+            personVisitContainer.addView(pvCell)
+        }
     }
 
     private fun onOkInAddPersonDialog(person: Person) {
@@ -118,17 +132,20 @@ class RecordVisitFragment : Fragment(),
 
     private fun requestAddressIfNeeded() {
 
-        val handler = Handler()
-        thread {
-            if(visit.place.address.isEmpty()) {
+        if(visit.place.address.isNotEmpty()) {
+            addressText.setText(visit.place.address)
+        } else {
+            val handler = Handler()
+            thread {
                 val geocoder = Geocoder(context!!, Locale.getDefault())
                 val addressList = geocoder.getFromLocation(visit.place.latLng.latitude, visit.place.latLng.longitude, 1)
                 if (addressList.isNotEmpty()) {
                     visit.place.address = addressList[0].getAddressLine(0)
                 }
-            }
-            handler.post {
-                addressText.setText(visit.place.address)
+
+                handler.post {
+                    addressText.setText(visit.place.address)
+                }
             }
         }
     }
