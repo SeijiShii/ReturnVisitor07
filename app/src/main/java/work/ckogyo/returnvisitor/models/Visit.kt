@@ -31,6 +31,8 @@ class Visit : BaseDataModel {
 
     fun fromHashMap(map: HashMap<String, Any>, userDoc: DocumentReference, place2: Place? = null, onFinish: (Visit) -> Unit) {
 
+        super.initFromHashMap(map)
+
         rating = Rating.valueOf(map[ratingKey].toString())
 
         dateTime = Calendar.getInstance()
@@ -40,7 +42,7 @@ class Visit : BaseDataModel {
         var pvCount = pvMapList.size
         for (pvm in pvMapList) {
             val pv = PersonVisit()
-            pv.fromHashMap(pvm, userDoc) {
+            pv.initFromHashMap(pvm, userDoc) {
                 pvCount--
             }
         }
@@ -55,9 +57,10 @@ class Visit : BaseDataModel {
             userDoc.collection(placesKey).document(placeId).addSnapshotListener { snapshot, ex ->
                 if (ex == null) {
                     if (snapshot != null) {
+                        place = Place()
                         val map2 = snapshot.data as? HashMap<String, Any>
                         if (map2 != null) {
-                            place = Place(map2)
+                            place.initFromHashMap(map2)
                         }
                     }
                 } else {

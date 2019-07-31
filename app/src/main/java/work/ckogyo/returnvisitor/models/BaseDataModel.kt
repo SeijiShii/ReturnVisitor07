@@ -23,7 +23,13 @@ abstract class BaseDataModel(){
         description = o.optString(descriptionKey)
     }
 
-    constructor(map: HashMap<String, Any>):this() {
+//    constructor(map: HashMap<String, Any>):this() {
+//        id = map[idKey].toString()
+//        name = map[nameKey].toString()
+//        description = map[descriptionKey].toString()
+//    }
+
+    open fun initFromHashMap(map: HashMap<String, Any>){
         id = map[idKey].toString()
         name = map[nameKey].toString()
         description = map[descriptionKey].toString()

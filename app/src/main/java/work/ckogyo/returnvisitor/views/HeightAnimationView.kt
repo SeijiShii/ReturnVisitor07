@@ -53,15 +53,20 @@ abstract class HeightAnimationView(context: Context): FrameLayout(context){
 
     protected fun animateHeight(onHeightAnimationEnd: ((HeightAnimationView) -> Unit)? = null){
 
-        val origin: Int = measuredHeight
-
         val target = if (isExtracted){
             extractHeight
         } else {
             collapseHeight
         }
 
-        val animator = ValueAnimator.ofInt(origin, target)
+        animateHeight(target, onHeightAnimationEnd)
+    }
+
+    private fun animateHeight(targetHeight: Int, onHeightAnimationEnd: ((HeightAnimationView) -> Unit)? = null){
+
+        val origin: Int = measuredHeight
+
+        val animator = ValueAnimator.ofInt(origin, targetHeight)
         animator.addUpdateListener {
             val animatedHeight = it.animatedValue as Int
             layoutParams.height = animatedHeight
@@ -74,7 +79,7 @@ abstract class HeightAnimationView(context: Context): FrameLayout(context){
             override fun onAnimationRepeat(animation: Animator?) {}
 
             override fun onAnimationEnd(animation: Animator?) {
-                onRefreshHeight(target)
+                onRefreshHeight(targetHeight)
                 onHeightAnimationEnd?.invoke(this@HeightAnimationView)
             }
 
@@ -83,8 +88,12 @@ abstract class HeightAnimationView(context: Context): FrameLayout(context){
             override fun onAnimationStart(animation: Animator?) {}
         })
 
-        animator.duration = abs(origin - target).toLong() / 10
+        animator.duration = abs(origin - targetHeight).toLong() / 10
         animator.start()
+    }
+
+    fun collapseToHeight0(onHeightAnimationEnd: ((HeightAnimationView) -> Unit)? = null) {
+        animateHeight(0, onHeightAnimationEnd)
     }
 
 }

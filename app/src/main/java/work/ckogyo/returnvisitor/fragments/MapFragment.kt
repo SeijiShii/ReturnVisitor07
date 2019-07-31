@@ -19,7 +19,6 @@ import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
-import kotlin.concurrent.thread
 
 
 class MapFragment : Fragment(), OnMapReadyCallback {
@@ -82,6 +81,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 if (place != null) {
                     val dialog = PlaceDialog(place)
                     dialog.onClose = this::onClosePlaceDialog
+                    dialog.onRefreshPlace = this::onRefreshPlaceInPlaceDialog
                     mainActivity?.showDialog(dialog)
                 }
             }
@@ -92,6 +92,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         loadPlaces{
             showPlacePins()
         }
+    }
+
+    private fun onRefreshPlaceInPlaceDialog(place: Place) {
 
     }
 
@@ -105,7 +108,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 for (doc in it) {
                     val map = doc.data
                     map?: continue
-                    val place = Place(map as HashMap<String, Any>)
+                    val place = Place()
+                    place.initFromHashMap(map as HashMap<String, Any>)
                     places.add(place)
                 }
                 onLoaded()

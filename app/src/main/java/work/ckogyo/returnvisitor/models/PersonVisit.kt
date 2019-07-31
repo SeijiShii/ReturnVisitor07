@@ -40,7 +40,9 @@ class PersonVisit : BaseDataModel {
 //        isStudy = map[isStudyKey].toString().toBoolean()
 //    }
 
-    fun fromHashMap(map: HashMap<String, Any>, userDocument: DocumentReference, onFinish: (pv: PersonVisit) -> Unit) {
+    fun initFromHashMap(map: HashMap<String, Any>, userDocument: DocumentReference, onFinish: (pv: PersonVisit) -> Unit) {
+
+        super.initFromHashMap(map)
 
         seen = map[seenKey].toString().toBoolean()
         isRv = map[isRVKey].toString().toBoolean()
@@ -48,10 +50,9 @@ class PersonVisit : BaseDataModel {
 
         val personId = map[personIdKey].toString()
         userDocument.collection(personsKey).document(personId).addSnapshotListener { snapshot, exception ->
-            person = if (exception == null && snapshot != null) {
-                Person(snapshot.data as HashMap<String, Any>)
-            } else {
-                Person()
+            person = Person()
+            if (exception == null && snapshot != null) {
+                person.initFromHashMap(snapshot.data as HashMap<String, Any>)
             }
             onFinish(this)
         }

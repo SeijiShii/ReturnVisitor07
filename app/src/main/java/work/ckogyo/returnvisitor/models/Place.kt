@@ -26,17 +26,26 @@ class Place : BaseDataModel{
         }
     }
 
-    constructor(map: HashMap<String, Any>):super(map) {
+//    constructor(map: HashMap<String, Any>):super(map) {
+//
+//        address = map[addressKey].toString()
+//        latLng = LatLng(map[latitudeKey].toString().toDouble(), map[longitudeKey].toString().toDouble())
+//        category = Category.valueOf(map[categoryKey].toString())
+//        rating = Visit.Rating.valueOf(map[ratingKey].toString())
+//
+////        val visitsMapList = map[visitsKey] as ArrayList<HashMap<String, Any>>
+////        for (vm in visitsMapList) {
+////            visits.add(Visit(vm))
+////        }
+//    }
+
+    override fun initFromHashMap(map: HashMap<String, Any>) {
+        super.initFromHashMap(map)
 
         address = map[addressKey].toString()
         latLng = LatLng(map[latitudeKey].toString().toDouble(), map[longitudeKey].toString().toDouble())
         category = Category.valueOf(map[categoryKey].toString())
         rating = Visit.Rating.valueOf(map[ratingKey].toString())
-
-//        val visitsMapList = map[visitsKey] as ArrayList<HashMap<String, Any>>
-//        for (vm in visitsMapList) {
-//            visits.add(Visit(vm))
-//        }
     }
 
 //    fun addOrUpdateVisit(visit: Visit) {
@@ -117,6 +126,11 @@ class Place : BaseDataModel{
     }
 
     fun refreshRatingByVisits(visitsToPlace: ArrayList<Visit>) {
+
+        if (visitsToPlace.isEmpty()) {
+            rating = Visit.Rating.None
+            return
+        }
 
         val visits = visitsToPlace.sortedByDescending { v -> v.dateTime.timeInMillis }
 

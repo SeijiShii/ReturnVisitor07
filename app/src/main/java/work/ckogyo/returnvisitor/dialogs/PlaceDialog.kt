@@ -19,7 +19,11 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     private val mainActivity: MainActivity?
     get() = context as? MainActivity
 
+    private val visitsToPlace = ArrayList<Visit>()
+
     override fun onOkClick() {}
+
+    var onRefreshPlace: ((Place) -> Unit)? = null
 
     var onClose: ((Place, OnFinishEditParam) -> Unit)? = null
 
@@ -47,9 +51,13 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             showMenuPopup()
         }
 
-        colorMark.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place.rating), null))
+        refreshColorMark()
 
         initVisitList()
+    }
+
+    private fun refreshColorMark() {
+        colorMark.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place.rating), null))
     }
 
     private fun initVisitList() {
@@ -59,13 +67,37 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
         val handler = Handler()
         FirebaseHelper.loadVisitsOfPlace(mainActivity!!.dbRef.userDocument, place){
             handler.post {
+
+                visitsToPlace.clear()
+                visitsToPlace.addAll(it)
+
                 visitListContent.removeAllViews()
                 for (visit in it) {
                     val visitCell = VisitCell(context!!, visit)
+                    visitCell.onClickEditVisit = this::onClickEditVisitInCell
+                    visitCell.onDeleteVisitConfirmed = this::onDeleteConfirmedInCell
                     visitListContent.addView(visitCell)
                 }
             }
         }
+    }
+
+    private fun onClickEditVisitInCell(visit: Visit) {
+
+    }
+
+    private fun onDeleteConfirmedInCell(visit: Visit) {
+
+        mainActivity?:return
+
+        mainActivity!!.dbRef.userDocument.collection(visitsKey).document(visit.id).delete()
+        visitsToPlace.remove(visit)
+        place.refreshRatingByVisits(visitsToPlace)
+
+        mainActivity!!.dbRef.userDocument.collection(placesKey).document(place.id).set(place.hashMap)
+        onRefreshPlace?.invoke(place)
+
+        refreshColorMark()
     }
 
     private fun showMenuPopup() {

@@ -2,6 +2,7 @@ package work.ckogyo.returnvisitor.views
 
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
@@ -61,9 +62,11 @@ class VisitCell(context: Context, private val visit: Visit) :HeightAnimationView
             .setMessage(context.resources.getString(R.string.delete_visit_confirm, visit.toDateTimeString(context)))
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.delete){_, _ ->
+                animateHeight{
+                    (parent as? ViewGroup)?.removeView(this)
+                }
                 onDeleteVisitConfirmed?.invoke(visit)
             }
             .show()
-
     }
 }
