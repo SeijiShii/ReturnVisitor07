@@ -60,6 +60,12 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
         addMarker(place)
     }
 
+    fun clear() {
+        for (marker in markers) {
+            marker.remove()
+        }
+        markers.clear()
+    }
 
 
 }

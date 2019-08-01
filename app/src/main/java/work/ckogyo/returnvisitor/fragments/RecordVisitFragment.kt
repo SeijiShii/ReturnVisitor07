@@ -36,7 +36,7 @@ class RecordVisitFragment : Fragment(),
     private val mainActivity: MainActivity?
     get() = context as? MainActivity
 
-    var onFinishEdit: ((Visit, OnFinishEditParam) -> Unit)? = null
+    var onFinishEdit: ((Visit, EditMode, OnFinishEditParam) -> Unit)? = null
 
     var visit: Visit = Visit()
     set(value) {
@@ -77,7 +77,7 @@ class RecordVisitFragment : Fragment(),
         }
 
         cancelButton.setOnClickListener {
-            onFinishEdit?.invoke(visit, OnFinishEditParam.Canceled)
+            onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Canceled)
             mainActivity?.supportFragmentManager?.popBackStack()
         }
 
@@ -85,13 +85,13 @@ class RecordVisitFragment : Fragment(),
 
             visit.description = descriptionText.text.toString()
 
-            onFinishEdit?.invoke(visit, OnFinishEditParam.Done)
+            onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Done)
             mainActivity?.supportFragmentManager?.popBackStack()
         }
 
         deleteButton.setOnClickListener {
             confirmDeleteVisit(context!!, visit) {
-                onFinishEdit?.invoke(visit, OnFinishEditParam.Deleted)
+                onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Deleted)
                 mainActivity?.supportFragmentManager?.popBackStack()
             }
         }

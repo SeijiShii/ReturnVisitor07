@@ -21,41 +21,6 @@
             android:layout_height="1px"
             android:background="@color/lightGray"/>
 
-    <EditText
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:textSize="14sp"
-            android:hint="@string/address"
-            android:id="@+id/addressText"
-            android:background="@drawable/gray_border_round"
-            android:layout_margin="3dp"
-            android:gravity="start|top"/>
-
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:orientation="horizontal"
-            android:background="@drawable/gray_border_round"
-            android:layout_margin="3dp">
-
-        <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:textSize="15sp"
-                android:id="@+id/dateText"/>
-
-        <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:textSize="15sp"
-                android:id="@+id/timeText"/>
-
-    </LinearLayout>
-
     <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -65,6 +30,41 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:textSize="14sp"
+                    android:hint="@string/address"
+                    android:id="@+id/addressText"
+                    android:background="@drawable/gray_border_round"
+                    android:layout_margin="3dp"
+                    android:gravity="start|top"/>
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:background="@drawable/gray_border_round"
+                    android:layout_margin="3dp">
+
+                <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:textSize="15sp"
+                        android:id="@+id/dateText"/>
+
+                <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:textSize="15sp"
+                        android:id="@+id/timeText"/>
+
+            </LinearLayout>
 
             <LinearLayout
                     android:layout_width="match_parent"
@@ -118,24 +118,25 @@
                     android:background="@drawable/gray_border_round"
                     android:id="@+id/descriptionText"/>
 
+            <!-- Delete Button Row -->
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/deleteButtonRow">
+
+                <Button
+                        android:layout_width="200dp"
+                        android:layout_height="40dp"
+                        android:layout_centerInParent="true"
+                        style="@style/BrownButton"
+                        android:text="@string/delete_visit"
+                        android:id="@+id/deleteButton"/>
+
+            </RelativeLayout>
+
         </LinearLayout>
 
     </ScrollView>
-
-    <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:id="@+id/deleteButtonRow">
-
-        <Button
-                android:layout_width="200dp"
-                android:layout_height="40dp"
-                android:layout_centerInParent="true"
-                style="@style/BrownButton"
-                android:text="@string/delete_visit"
-                android:id="@+id/deleteButton"/>
-
-    </RelativeLayout>
 
     <LinearLayout
             android:layout_width="match_parent"
