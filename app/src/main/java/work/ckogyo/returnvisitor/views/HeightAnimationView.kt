@@ -3,13 +3,19 @@ package work.ckogyo.returnvisitor.views
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import kotlin.math.abs
 
-abstract class HeightAnimationView(context: Context): FrameLayout(context){
+abstract class HeightAnimationView: FrameLayout{
+
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
+
 
     open fun onUpdateAnimation(animatedHeight: Int){}
 
@@ -30,7 +36,7 @@ abstract class HeightAnimationView(context: Context): FrameLayout(context){
 
     var isExtracted = false
 
-    fun refreshCellHeight(extracted: Boolean?){
+    open fun refreshCellHeight(extracted: Boolean? = null){
 
         if (extracted != null){
             isExtracted = extracted

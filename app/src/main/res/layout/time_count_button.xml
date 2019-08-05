@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <Button
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:id="@+id/countButton"
+            android:text="@string/start_time_count"
+            style="@style/BrownButton"/>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+        <TextView
+                android:layout_width="80dp"
+                android:layout_height="match_parent"
+                android:text="@string/started_at"
+                android:textColor="@color/darkGray"
+                android:textSize="14sp"
+                android:gravity="right|center_vertical"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"/>
+
+        <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:background="@drawable/gray_border_round"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:id="@+id/startTimeText"
+                android:text="bbbbbb"/>
+
+    </LinearLayout>
+    
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="17sp"
+            android:gravity="center"
+            android:textColor="@color/darkGray"
+            android:text="aaaaaa"/>
+
+</LinearLayout>

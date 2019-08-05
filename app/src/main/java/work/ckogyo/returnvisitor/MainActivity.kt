@@ -82,13 +82,13 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         // [END initialize_auth]
 
-        auth.addAuthStateListener {
-            if (it.currentUser != null) {
-                mapFragment.waitForMapReadyAndShowMarkers()
-            } else {
-
-            }
-        }
+//        auth.addAuthStateListener {
+//            if (it.currentUser != null) {
+//                mapFragment.waitForMapReadyAndShowMarkers()
+//            } else {
+//
+//            }
+//        }
     }
 
     override fun onStart() {

@@ -70,6 +70,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         mainActivity?.checkPermissionAndEnableMyLocation(googleMap)
 
+        googleMap.setPadding(0, context!!.toDP(50), 0, context!!.toDP(50))
+
         googleMap.setOnMapLongClickListener {
 
             val place = Place()
@@ -122,12 +124,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         markerShown = true
 
         thread {
-            while (!isMapReady) {
+            while (!isMapReady || mainActivity == null || mainActivity!!.currentUser == null) {
                 Thread.sleep(30)
             }
 
-            handler.post{
-                loadPlaces{
+            loadPlaces {
+                handler.post{
                     showPlaceMarkers()
                 }
             }
@@ -305,6 +307,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         refreshDrawer()
         refreshDrawerOverlay()
         refreshSignOutButton()
+        initTimeCountButton()
     }
 
     private fun refreshDrawer() {
@@ -422,6 +425,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 onSignOutConfirmed?.invoke()
             }.create().show()
     }
+
+    private fun initTimeCountButton(){
+        timeCountButton.refreshCellHeight()
+    }
+
 
 
 }
