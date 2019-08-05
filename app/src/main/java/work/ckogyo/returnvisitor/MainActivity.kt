@@ -34,6 +34,9 @@ import work.ckogyo.returnvisitor.utils.*
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        var isAppVisible = false
+    }
 
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -94,6 +97,13 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         refreshLoginOverlay()
+        isAppVisible = true
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        isAppVisible = false
     }
 
     private fun showMapFragment() {
