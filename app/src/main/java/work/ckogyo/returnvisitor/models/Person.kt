@@ -44,12 +44,6 @@ open class Person : BaseDataModel {
         }
     }
 
-//    constructor(map: HashMap<String, Any>): super(map) {
-//
-//        sex = Sex.valueOf(map[sexKey].toString())
-//        age = Age.valueOf(map[ageKey].toString())
-//    }
-
     override fun initFromHashMap(map: HashMap<String, Any>) {
         super.initFromHashMap(map)
 

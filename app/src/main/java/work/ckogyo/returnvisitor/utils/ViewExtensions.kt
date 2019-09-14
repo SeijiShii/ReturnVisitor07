@@ -1,5 +1,7 @@
 package work.ckogyo.returnvisitor.utils
 
+import android.animation.Animator
+import android.animation.ValueAnimator
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
@@ -7,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ScrollView
+import kotlinx.android.synthetic.main.main_activity.*
 
 fun View.getViewCapture(): Bitmap {
     this.isDrawingCacheEnabled = true
@@ -61,4 +64,41 @@ fun View.setOnClick(onClick: (View) -> Unit) {
         }
         return@setOnTouchListener true
     }
+}
+
+fun View.fadeVisibility(fadeIn: Boolean, touchListener: View.OnTouchListener? = null) {
+
+    val touchListener2 = touchListener?:View.OnTouchListener { p0, p1 -> true }
+
+    val target = if (fadeIn) {
+        this.visibility = View.VISIBLE
+        this.setOnTouchListener(touchListener2)
+        1f
+    } else {
+        this.setOnTouchListener(null)
+        0f
+    }
+
+    val animator = ValueAnimator.ofFloat(this.alpha, target)
+    animator.addUpdateListener {
+        this.alpha = it.animatedValue as Float
+        this.requestLayout()
+    }
+
+    animator.duration = 500
+    animator.addListener(object : Animator.AnimatorListener{
+        override fun onAnimationRepeat(p0: Animator?) {}
+
+        override fun onAnimationEnd(p0: Animator?) {
+            if (!fadeIn) {
+                this@fadeVisibility.visibility = View.GONE
+            }
+        }
+
+        override fun onAnimationCancel(p0: Animator?) {}
+
+        override fun onAnimationStart(p0: Animator?) {}
+    })
+    animator.start()
+
 }

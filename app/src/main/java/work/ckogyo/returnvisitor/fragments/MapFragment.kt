@@ -297,11 +297,22 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private var isDrawerOpen = false
 
+    private val onDrawerSwipeListener = object : OnSwipeListener(){
+        override fun onSwipe(v: View?, direction: Int) {
+
+            if (direction and SWIPE_TO_LEFT == SWIPE_TO_LEFT && isDrawerOpen) {
+                switchDrawer()
+            }
+        }
+    }
+
     private fun initDrawerFrame() {
 
-        drawerFrame.setOnTouchListener { _, e ->
-            return@setOnTouchListener true
-        }
+//        drawerFrame.setOnTouchListener { _, e ->
+//            return@setOnTouchListener true
+//        }
+
+        drawerFrame.setOnTouchListener(onDrawerSwipeListener)
 
         initDrawerLogoButton()
         refreshDrawer()

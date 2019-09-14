@@ -46,6 +46,9 @@ class MainActivity : AppCompatActivity() {
     val currentUser: FirebaseUser?
     get() = auth.currentUser
 
+    val isLoggedIn : Boolean
+    get() = auth.currentUser != null
+
     lateinit var db: FirebaseDBWrapper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,13 +88,6 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         // [END initialize_auth]
 
-//        auth.addAuthStateListener {
-//            if (it.currentUser != null) {
-//                mapFragment.waitForMapReadyAndShowMarkers()
-//            } else {
-//
-//            }
-//        }
     }
 
     override fun onStart() {
@@ -204,13 +200,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private fun refreshGoogleSignInButton(user: FirebaseUser?) {
-//        googleSignInButton.text = if (user != null) {
-//            getString(R.string.google_sign_out, user.displayName)
-//        } else {
-//            getString(R.string.google_sign_in)
-//        }
-//    }
 
     // [START auth_with_google]
     private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
@@ -225,16 +214,12 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(debugTag, "signInWithCredential:success")
-//                    val user = auth.currentUser
-//                    refreshGoogleSignInButton(user)
-                    fadeLoginOverlay()
+                    loginOverlay.fadeVisibility(!isLoggedIn)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(debugTag, "signInWithCredential:failure", task.exception)
-//                    refreshGoogleSignInButton(null)
                     Toast.makeText(this, R.string.google_sign_in_failed, Toast.LENGTH_SHORT).show()
                 }
-
 
                 // [START_EXCLUDE]
 //                hideProgressDialog()
@@ -257,8 +242,7 @@ class MainActivity : AppCompatActivity() {
 
         // Google sign out
         googleSignInClient.signOut().addOnCompleteListener(this) {
-//            refreshGoogleSignInButton(null)
-            fadeLoginOverlay()
+            loginOverlay.fadeVisibility(!isLoggedIn)
         }
     }
 
@@ -269,7 +253,7 @@ class MainActivity : AppCompatActivity() {
         // Google revoke access
         googleSignInClient.revokeAccess().addOnCompleteListener(this) {
 //            refreshGoogleSignInButton(null)
-            fadeLoginOverlay()
+            loginOverlay.fadeVisibility(!isLoggedIn)
         }
     }
 
@@ -283,41 +267,6 @@ class MainActivity : AppCompatActivity() {
             loginOverlay.visibility = View.GONE
             0f
         }
-    }
-
-    private fun fadeLoginOverlay() {
-
-        val loggedIn = auth.currentUser != null
-
-        val target = if (loggedIn) {
-            0f
-        } else {
-            loginOverlay.visibility = View.VISIBLE
-            1f
-        }
-
-        val animator = ValueAnimator.ofFloat(loginOverlay.alpha, target)
-        animator.addUpdateListener {
-            loginOverlay.alpha = it.animatedValue as Float
-            loginOverlay.requestLayout()
-        }
-
-        animator.duration = 500
-        animator.addListener(object :Animator.AnimatorListener{
-            override fun onAnimationRepeat(p0: Animator?) {}
-
-            override fun onAnimationEnd(p0: Animator?) {
-                if (loggedIn) {
-                    loginOverlay.visibility = View.GONE
-                }
-            }
-
-            override fun onAnimationCancel(p0: Animator?) {}
-
-            override fun onAnimationStart(p0: Animator?) {}
-        })
-        animator.start()
-
     }
 
 }
