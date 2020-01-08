@@ -317,6 +317,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         refreshDrawerOverlay()
         refreshSignOutButton()
         initTimeCountButton()
+        initWorkButton()
     }
 
     private fun refreshDrawer() {
@@ -437,6 +438,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun initTimeCountButton(){
         timeCountButton.refreshCellHeight()
+    }
+
+    private fun initWorkButton() {
+        workButton.setOnClickListener {
+            mainActivity?.showWorkFragment()
+        }
     }
 
 

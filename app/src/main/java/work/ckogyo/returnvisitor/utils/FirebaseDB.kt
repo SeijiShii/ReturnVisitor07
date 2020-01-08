@@ -8,6 +8,9 @@ import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 
 class FirebaseDB {
@@ -270,6 +273,36 @@ class FirebaseDB {
                 doc.reference.delete()
             }
         }
+    }
+
+    fun loadWorksOfDate(date: Calendar, onFinished: (ArrayList<Work>) -> Unit) {
+
+        val works = ArrayList<Work>()
+
+        if (userDoc == null) {
+            onFinished(works)
+        }
+
+        val start = cloneDateWith0Time(date)
+        val end = cloneDateWith0Time(date)
+        end.add(Calendar.DATE, 1)
+
+        userDoc!!.collection(worksKey)
+            .whereGreaterThanOrEqualTo(startKey, start.timeInMillis)
+//            .whereGreaterThanOrEqualTo(endKey, start.timeInMillis)
+            .whereLessThan(startKey, end.timeInMillis)
+//            .whereLessThan(endKey, end.timeInMillis)
+            .get().addOnSuccessListener {
+
+                for(doc in it.documents) {
+                    val work = Work()
+                    work.initFromHashMap(doc.data as HashMap<String, Any>)
+                    works.add(work)
+                    onFinished(works)
+                }
+            }.addOnFailureListener {
+                onFinished(works)
+            }
     }
 
 }

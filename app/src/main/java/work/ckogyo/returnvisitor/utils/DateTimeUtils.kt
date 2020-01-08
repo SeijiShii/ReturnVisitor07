@@ -1,7 +1,6 @@
 package work.ckogyo.returnvisitor.utils
 
 import android.content.Context
-import work.ckogyo.returnvisitor.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -57,3 +56,13 @@ fun getDateTimeText(calendar: Calendar, context: Context): String {
 //        context.getString(R.string.days_ago, days)
 //    }
 //}
+
+fun cloneDateWith0Time(date: Calendar):Calendar {
+
+    val date2 = Calendar.getInstance()
+    date2.timeInMillis = 0
+    date2.set(Calendar.YEAR, date.get(Calendar.YEAR))
+    date2.set(Calendar.MONTH, date.get(Calendar.MONTH))
+    date2.set(Calendar.DAY_OF_MONTH, date.get(Calendar.DAY_OF_MONTH))
+    return date2
+}

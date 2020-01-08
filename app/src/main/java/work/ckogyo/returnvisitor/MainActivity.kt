@@ -26,6 +26,7 @@ import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -120,6 +121,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showRecordVisitFragmentForEdit(visit: Visit, onFinishEditVisit: (Visit, EditMode, OnFinishEditParam) -> Unit) {
+
+
         val transaction = supportFragmentManager.beginTransaction()
         val rvFragment = RecordVisitFragment()
         rvFragment.visit = visit
@@ -128,6 +131,13 @@ class MainActivity : AppCompatActivity() {
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
         transaction.commit()
+    }
+
+    fun showWorkFragment() {
+        val db = FirebaseDB.instance
+        db.loadWorksOfDate(Calendar.getInstance()){
+            Log.d(debugTag, it.toString())
+        }
     }
 
     fun checkPermissionAndEnableMyLocation(googleMap: GoogleMap?) {

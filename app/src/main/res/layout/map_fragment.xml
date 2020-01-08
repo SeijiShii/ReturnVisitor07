@@ -109,6 +109,18 @@
                         android:layout_height="1dp"
                         android:background="@color/lightGray"/>
 
+                <Button
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:id="@+id/workButton"
+                        android:text="@string/work"
+                        style="@style/DarkGreenButton"/>
+
+                <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/lightGray"/>
+
             </LinearLayout>
 
         </ScrollView>
