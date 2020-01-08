@@ -23,7 +23,7 @@
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:gravity="center_vertical|start"
-                android:textColor="@color/darkSlateGray"/>
+                android:textColor="@color/colorPrimaryDark"/>
 
         <View
             android:layout_width="match_parent"
@@ -72,7 +72,7 @@
                     android:layout_margin="3dp"
                     android:text="@string/cancel"
                     android:id="@+id/cancelButton"
-                    style="@style/SeaGreenButton"/>
+                    style="@style/DarkBlueButton"/>
 
                 <Button
                     android:layout_width="100dp"
@@ -80,7 +80,7 @@
                     android:layout_margin="3dp"
                     android:text="@string/ok"
                     android:id="@+id/okButton"
-                    style="@style/BrownButton"/>
+                    style="@style/DarkGreenButton"/>
 
                 <Button
                     android:layout_width="100dp"
@@ -88,7 +88,7 @@
                     android:layout_margin="3dp"
                     android:text="@string/close"
                     android:id="@+id/closeButton"
-                    style="@style/BrownButton"/>
+                    style="@style/DarkGreenButton"/>
 
 
             </LinearLayout>

@@ -73,7 +73,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                style="@style/SeaGreenButton"
+                style="@style/DarkBlueButton"
                 android:text="@string/record_not_home"
                 android:id="@+id/recordNotHomeButton"
                 android:layout_margin="5dp"/>
@@ -82,7 +82,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                style="@style/BrownButton"
+                style="@style/DarkGreenButton"
                 android:text="@string/record_visit"
                 android:id="@+id/recordVisitButton"
                 android:layout_margin="5dp"/>

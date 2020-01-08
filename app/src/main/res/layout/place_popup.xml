@@ -37,7 +37,7 @@
                             android:layout_height="match_parent"
                             android:id="@+id/recordHouseButton"
                             android:text="@string/record_house"
-                            style="@style/BrownButton"/>
+                            style="@style/DarkGreenButton"/>
 
                     <Button
                             android:layout_width="0dp"
@@ -45,7 +45,7 @@
                             android:layout_height="match_parent"
                             android:id="@+id/recordHousingComplexButton"
                             android:text="@string/record_housing_complex"
-                            style="@style/BrownButton"/>
+                            style="@style/DarkGreenButton"/>
 
                 </LinearLayout>
 
@@ -60,7 +60,7 @@
                             android:layout_height="match_parent"
                             android:id="@+id/recordPlaceButton"
                             android:text="@string/record_place"
-                            style="@style/BrownButton"/>
+                            style="@style/DarkGreenButton"/>
 
                     <Button
                             android:layout_width="0dp"
@@ -68,7 +68,7 @@
                             android:layout_height="match_parent"
                             android:id="@+id/closeButton"
                             android:text="@string/close"
-                            style="@style/SeaGreenButton"/>
+                            style="@style/DarkBlueButton"/>
 
                 </LinearLayout>
 

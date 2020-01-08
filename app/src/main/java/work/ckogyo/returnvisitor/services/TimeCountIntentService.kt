@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import android.content.IntentFilter
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
@@ -20,24 +21,30 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
     private val timeNotifyId = 100
 
-    private var timeCounting: Boolean = false
-    private var mWork: Work? = null
+    private var work: Work? = null
 
     private var broadcastManager: LocalBroadcastManager? = null
     private var receiver: BroadcastReceiver? = null
 
-    val startCountActionToService = TimeCountIntentService::class.java.name + "_start_counting_action_to_service"
-    val restartCountActionToService =
-        TimeCountIntentService::class.java.name + "_restart_counting_action_to_service"
-    val TIME_COUNTING_ACTION_TO_ACTIVITY = TimeCountIntentService::class.java.name + "_time_counting_action_to_activity"
-    val STOP_TIME_COUNT_ACTION_TO_ACTIVITY =
-        TimeCountIntentService::class.java.name + "_stop_time_count_action_to_activity"
-    val START_TIME = TimeCountIntentService::class.java.name + "_start_time"
-    val DURATION = TimeCountIntentService::class.java.name + "_duration"
-    val COUNTING_WORK_ID = TimeCountIntentService::class.java.name + "_counting_work_id"
-    val CHANGE_START_ACTION_TO_SERVICE = TimeCountIntentService::class.java.name + "_change_start_action_to_service"
+    companion object {
+        val startCountToService = TimeCountIntentService::class.java.name + "_start_counting_to_service"
+        val restartCountToService = TimeCountIntentService::class.java.name + "_restart_counting_to_service"
+        val timeCountingToActivity = TimeCountIntentService::class.java.name + "_time_counting_to_activity"
+        val stopTimeCountingToActivity = TimeCountIntentService::class.java.name + "_stop_time_count_to_activity"
+        val startTime = TimeCountIntentService::class.java.name + "_start_time"
+        val duration = TimeCountIntentService::class.java.name + "_duration"
+        val countingWorkId = TimeCountIntentService::class.java.name + "_counting_work_id"
+        val changeStartTimeToService = TimeCountIntentService::class.java.name + "_change_start_time_to_service"
 
-    init {
+        var isTimeCounting: Boolean = false
+
+        fun stopTimeCount() {
+            isTimeCounting = false
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
         initBroadcasting()
     }
 
@@ -46,10 +53,10 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                if (intent.action == CHANGE_START_ACTION_TO_SERVICE) {
+                if (intent.action == changeStartTimeToService) {
 
-                    val startTime = intent.getLongExtra(START_TIME, mWork!!.start.timeInMillis)
-                    mWork!!.start.timeInMillis = startTime
+                    val startTime = intent.getLongExtra(startTime, work!!.start.timeInMillis)
+                    work!!.start.timeInMillis = startTime
 
 //                    WorkList.getInstance().setOrAdd(mWork)
 
@@ -58,7 +65,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
             }
         }
 
-        broadcastManager!!.registerReceiver(receiver!!, IntentFilter(CHANGE_START_ACTION_TO_SERVICE))
+        broadcastManager!!.registerReceiver(receiver!!, IntentFilter(changeStartTimeToService))
     }
 
 //    fun getWork(): Work? {
@@ -69,12 +76,14 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         if (intent != null) {
 
-            if (intent.action == startCountActionToService) {
-//                mWork = Work(Calendar.getInstance())
+            if (intent.action == startCountToService) {
+                Toast.makeText(this, "Time count started", Toast.LENGTH_SHORT).show()
+                work = Work()
+                work!!.start = Calendar.getInstance()
 //                WorkList.getInstance().setOrAdd(mWork)
 //                RVCloudSync.getInstance().requestDataSyncIfLoggedIn(this)
-            } else if (intent.action == restartCountActionToService) {
-                val workId = intent.getStringExtra(COUNTING_WORK_ID)
+            } else if (intent.action == restartCountToService) {
+                val workId = intent.getStringExtra(countingWorkId)
 //                mWork = WorkList.getInstance().getById(workId)
 //                if (mWork == null) {
 //                    stopTimeCount()
@@ -83,12 +92,12 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
             }
         }
 
-        timeCounting = true
+        isTimeCounting = true
         var minCounter = 0
 
-        initNotification(mWork!!.duration)
+        initNotification(work!!.duration)
 
-        while (timeCounting) {
+        while (isTimeCounting) {
 
             try {
                 Thread.sleep(500)
@@ -96,21 +105,21 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 //
             }
 
-            if (mWork != null) {
+            if (work != null) {
                 val timeBroadCastIntent = Intent()
-                timeBroadCastIntent.action = TIME_COUNTING_ACTION_TO_ACTIVITY
-                timeBroadCastIntent.putExtra(START_TIME, mWork!!.start.timeInMillis)
-                timeBroadCastIntent.putExtra(DURATION, mWork!!.duration)
-                timeBroadCastIntent.putExtra(COUNTING_WORK_ID, mWork!!.id)
-                mWork!!.end = Calendar.getInstance()
+                timeBroadCastIntent.action = timeCountingToActivity
+                timeBroadCastIntent.putExtra(startTime, work!!.start.timeInMillis)
+                timeBroadCastIntent.putExtra(duration, work!!.duration)
+                timeBroadCastIntent.putExtra(countingWorkId, work!!.id)
+                work!!.end = Calendar.getInstance()
                 broadcastManager!!.sendBroadcast(timeBroadCastIntent)
-                updateNotification(mWork!!.duration)
+                updateNotification(work!!.duration)
 
                 // 約1分ごとに保存するようにする
                 minCounter++
                 if (minCounter > 50) {
 
-                    mWork!!.end = Calendar.getInstance()
+                    work!!.end = Calendar.getInstance()
 
 //                    WorkList.getInstance().setOrAdd(mWork)
 //                    RVCloudSync.getInstance().requestDataSyncIfLoggedIn(this)
@@ -123,21 +132,15 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
             notificationManager!!.cancel(timeNotifyId)
         }
 
-        mWork = null
+        work = null
 
-        val stopIntent = Intent(STOP_TIME_COUNT_ACTION_TO_ACTIVITY)
+        val stopIntent = Intent(stopTimeCountingToActivity)
         broadcastManager!!.sendBroadcast(stopIntent)
 
     }
 
 
-    fun isTimeCounting(): Boolean {
-        return timeCounting
-    }
 
-    fun stopTimeCount() {
-        timeCounting = false
-    }
 
     private var notificationManager: NotificationManager? = null
     private var mBuilder: NotificationCompat.Builder? = null

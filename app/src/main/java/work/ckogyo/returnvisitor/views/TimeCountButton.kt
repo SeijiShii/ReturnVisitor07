@@ -2,18 +2,20 @@ package work.ckogyo.returnvisitor.views
 
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.util.AttributeSet
 import android.view.View
 import android.widget.TimePicker
 import kotlinx.android.synthetic.main.time_count_button.view.*
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
 import java.util.*
 
 class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener {
 
-    var isCountingTime = false
+    private var isCountingTime = false
 
     lateinit var startTime: Calendar
 
@@ -40,6 +42,9 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
             if (isCountingTime) {
                 startTime = Calendar.getInstance()
                 refreshStartTimeText()
+                startTimeCountService()
+            } else {
+                TimeCountIntentService.stopTimeCount()
             }
 
             animateHeight()
@@ -75,5 +80,11 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
 
     private fun refreshButtonText() {
         countButton.text = context.getString(if (isCountingTime) R.string.stop_time_count else R.string.start_time_count)
+    }
+
+    private fun startTimeCountService() {
+        val timeCountIntent = Intent(context, TimeCountIntentService::class.java)
+        timeCountIntent.action = TimeCountIntentService.startCountToService
+        context.startService(timeCountIntent)
     }
 }

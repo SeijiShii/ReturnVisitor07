@@ -20,15 +20,15 @@
         <item name="android:textSize">20sp</item>
     </style>
 
-    <style name="BrownButton" parent="MiddleTextView">
+    <style name="DarkGreenButton" parent="MiddleTextView">
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/saddleBrown</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
         <item name="android:background">@drawable/trans_gray_solid_round</item>
     </style>
 
-    <style name="SeaGreenButton" parent="MiddleTextView">
+    <style name="DarkBlueButton" parent="MiddleTextView">
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/lightSeaGreen</item>
+        <item name="android:textColor">@color/darkBlue</item>
         <item name="android:background">@drawable/trans_gray_solid_round</item>
     </style>
 
