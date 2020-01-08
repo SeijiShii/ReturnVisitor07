@@ -11,8 +11,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
+import work.ckogyo.returnvisitor.utils.FirebaseDB
 import work.ckogyo.returnvisitor.utils.getDurationString
 import java.util.*
 
@@ -74,14 +76,14 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
     override fun onHandleIntent(intent: Intent?) {
 
+        val db = FirebaseDB.instance
+
         if (intent != null) {
 
             if (intent.action == startCountToService) {
                 Toast.makeText(this, "Time count started", Toast.LENGTH_SHORT).show()
                 work = Work()
                 work!!.start = Calendar.getInstance()
-//                WorkList.getInstance().setOrAdd(mWork)
-//                RVCloudSync.getInstance().requestDataSyncIfLoggedIn(this)
             } else if (intent.action == restartCountToService) {
                 val workId = intent.getStringExtra(countingWorkId)
 //                mWork = WorkList.getInstance().getById(workId)
@@ -120,9 +122,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 if (minCounter > 50) {
 
                     work!!.end = Calendar.getInstance()
-
-//                    WorkList.getInstance().setOrAdd(mWork)
-//                    RVCloudSync.getInstance().requestDataSyncIfLoggedIn(this)
+                    db.setWork(work!!)
                     minCounter = 0
                 }
             }

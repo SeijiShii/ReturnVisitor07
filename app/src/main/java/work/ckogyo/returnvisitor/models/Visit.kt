@@ -1,8 +1,6 @@
 package work.ckogyo.returnvisitor.models
 
 import android.content.Context
-import android.util.Log
-import com.google.firebase.firestore.DocumentReference
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -49,14 +47,14 @@ class Visit : BaseDataModel {
         }
     }
 
-    fun fromHashMap(map: HashMap<String, Any>, db: FirebaseDBWrapper, place2: Place? = null, onFinish: (Visit) -> Unit) {
+    fun fromHashMap(map: HashMap<String, Any>, db: FirebaseDB, place2: Place? = null, onFinish: (Visit) -> Unit) {
 
         super.initFromHashMap(map)
 
         rating = Rating.valueOf(map[ratingKey].toString())
 
         dateTime = Calendar.getInstance()
-        dateTime.timeInMillis = map[dateTimeMllisKey].toString().toLong()
+        dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
 
         val pvMapList = map[personVisitsKey] as ArrayList<HashMap<String, Any>>
         var pvCount = pvMapList.size
@@ -98,7 +96,7 @@ class Visit : BaseDataModel {
             val map = super.hashMap
 
             map[ratingKey] = rating
-            map[dateTimeMllisKey] = dateTime.timeInMillis
+            map[dateTimeMillisKey] = dateTime.timeInMillis
 
             val personVisitList = ArrayList<HashMap<String, Any>>()
             for (pv in personVisits) {

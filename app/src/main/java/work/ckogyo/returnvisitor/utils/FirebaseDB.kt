@@ -7,10 +7,22 @@ import com.google.firebase.firestore.FirebaseFirestore
 import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.models.Work
 import kotlin.concurrent.thread
 
-class FirebaseDBWrapper(private val auth: FirebaseAuth) {
+class FirebaseDB {
 
+    companion object {
+        private val _instance = FirebaseDB()
+        val instance: FirebaseDB
+            get() = _instance
+
+        private lateinit var auth: FirebaseAuth
+
+        fun initialize(fAuth: FirebaseAuth) {
+            auth = fAuth
+        }
+    }
     private val db = FirebaseFirestore.getInstance()
 
     private val userDoc: DocumentReference?
@@ -205,6 +217,16 @@ class FirebaseDBWrapper(private val auth: FirebaseAuth) {
                 onFinished?.invoke(null)
             } else {
                 onFinished?.invoke(person)
+            }
+        }
+    }
+
+    fun setWork(work: Work, onFinished: ((Work?) -> Unit)? = null) {
+        set(worksKey, work.id, work.hashMap){
+            if (it == null) {
+                onFinished?.invoke(null)
+            } else {
+                onFinished?.invoke(work)
             }
         }
     }

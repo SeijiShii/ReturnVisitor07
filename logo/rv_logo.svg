@@ -49,10 +49,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
-     inkscape:cx="-260.64305"
-     inkscape:cy="762.00275"
+     inkscape:cx="62.489864"
+     inkscape:cy="304.85989"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g861"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1137"
@@ -67,7 +67,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -82,42 +82,50 @@
          id="rect836"
          height="631"
          width="180"
-         y="44"
-         x="46"
+         y="-170.66234"
+         x="740.7569"
          style="fill:#028700" />
       <rect
          id="rect838"
          height="631"
          width="180"
-         y="44"
-         x="238"
+         y="-170.66234"
+         x="932.7569"
          style="fill:#f4fff9" />
       <rect
          id="rect840"
          height="631"
          width="180"
-         y="44"
-         x="430"
-         style="fill:#ffe649" />
+         y="-170.66234"
+         x="1124.7568"
+         style="fill:#ff9302;fill-opacity:1" />
       <rect
          id="rect842"
          height="631"
          width="180"
-         y="44"
-         x="622"
+         y="-170.66234"
+         x="1316.7568"
          style="fill:#333138" />
       <rect
          id="rect844"
          height="631"
          width="180"
-         y="44"
-         x="814"
+         y="-170.66234"
+         x="1508.7568"
          style="fill:#124e78" />
       <text
          id="text846"
          font-size="12"
-         transform="translate(44,725.8984)"
-         style="font-size:12px;font-family:Helvetica;fill:#8e98a7">Coolors Exported Palette - coolors.co/028700-f4fff9-ffe649-333138-124e78</text>
+         style="font-size:12px;font-family:Helvetica;fill:#8e98a7"
+         x="738.7569"
+         y="511.23605">Coolors Exported Palette - coolors.co/028700-f4fff9-ffe649-333138-124e78</text>
+      <rect
+         id="rect836-0"
+         height="631"
+         width="180"
+         y="-180.48984"
+         x="460.45285"
+         style="fill:#015500;fill-opacity:1;stroke-width:1" />
     </g>
     <g
        id="g905"

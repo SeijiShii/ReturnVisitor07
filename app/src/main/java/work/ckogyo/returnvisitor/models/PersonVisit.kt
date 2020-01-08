@@ -1,7 +1,5 @@
 package work.ckogyo.returnvisitor.models
 
-import android.content.Context
-import com.google.firebase.firestore.DocumentReference
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.utils.*
 
@@ -40,7 +38,7 @@ class PersonVisit : BaseDataModel {
 //        isStudy = map[isStudyKey].toString().toBoolean()
 //    }
 
-    fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDBWrapper, onFinish: (pv: PersonVisit) -> Unit) {
+    fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB, onFinish: (pv: PersonVisit) -> Unit) {
 
         super.initFromHashMap(map)
 

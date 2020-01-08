@@ -150,10 +150,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun loadPlaces(onLoaded: () -> Unit) {
 
-        mainActivity?:return
+        val db = FirebaseDB.instance
 
         places.clear()
-        mainActivity!!.db.loadPlaces {
+        db.loadPlaces {
             places.addAll(it)
             onLoaded()
         }
@@ -228,7 +228,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
 
-
+        val db = FirebaseDB.instance
 
         when(param) {
             OnFinishEditParam.Canceled -> {
@@ -240,27 +240,25 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
             OnFinishEditParam.Done -> {
 
-                mainActivity?:return
-
                 placeMarkers.remove(visit.place)
 
                 places.add(visit.place)
 
                 val handler = Handler()
 
-                mainActivity!!.db.loadVisitsOfPlace(visit.place){
+                db.loadVisitsOfPlace(visit.place){
                     it.add(visit)
                     visit.place.refreshRatingByVisits(it)
-                    mainActivity!!.db.setPlace(visit.place)
+                    db.setPlace(visit.place)
                     handler.post {
                         placeMarkers.addMarker(visit.place)
                     }
                 }
 
-                mainActivity!!.db.setVisit(visit)
+                db.setVisit(visit)
 
                 for (person in visit.persons) {
-                    mainActivity!!.db.setPerson(person)
+                    db.setPerson(person)
                 }
             }
             OnFinishEditParam.Deleted -> {
@@ -272,11 +270,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 val handler = Handler()
 
                 val place = visit.place
-                mainActivity!!.db.deleteVisit(visit)
-                mainActivity!!.db.loadVisitsOfPlace(place){
+                db.deleteVisit(visit)
+                db.loadVisitsOfPlace(place){
                     it.remove(visit)
                     place.refreshRatingByVisits(it)
-                    mainActivity!!.db.setPlace(place)
+                    db.setPlace(place)
 
                     handler.post {
                         placeMarkers.refreshMarker(place)

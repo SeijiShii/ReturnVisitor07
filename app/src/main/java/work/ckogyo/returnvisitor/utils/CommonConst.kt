@@ -10,6 +10,7 @@ const val debugTag = "RETURN_VISITOR_DEBUG"
 const val placesKey = "places"
 const val personsKey = "persons"
 const val visitsKey = "visits"
+const val worksKey = "works"
 
 const val returnVisitorPrefsKey = "return_visitor_prefs"
 const val zoomLevelKey = "zoom_level"
@@ -33,9 +34,10 @@ const val seenKey = "seen"
 const val isRVKey = "is_rv"
 const val isStudyKey = "is_study"
 
-const val dateTimeMllisKey = "date_time_millis"
+const val dateTimeMillisKey = "date_time_millis"
 const val ratingKey = "rating"
 const val personIdKey = "person_id"
 const val personVisitsKey = "person_visits"
 
-
+const val startKey = "start"
+const val endKey = "end"

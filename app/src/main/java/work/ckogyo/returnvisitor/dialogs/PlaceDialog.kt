@@ -16,8 +16,8 @@ import work.ckogyo.returnvisitor.views.VisitCell
 
 class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
-    private val mainActivity: MainActivity?
-    get() = context as? MainActivity
+//    private val mainActivity: MainActivity?
+//    get() = context as? MainActivity
 
     private val handler = Handler()
 
@@ -76,9 +76,9 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun initVisitList() {
 
-        mainActivity?: return
+        val db = FirebaseDB.instance
 
-        mainActivity!!.db.loadVisitsOfPlace(place){
+        db.loadVisitsOfPlace(place){
 
             visitsToPlace.clear()
             visitsToPlace.addAll(it)
@@ -107,13 +107,13 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun onDeleteConfirmedInCell(visit: Visit) {
 
-        mainActivity?:return
+        val db = FirebaseDB.instance
 
-        mainActivity!!.db.deleteVisit(visit)
+        db.deleteVisit(visit)
         visitsToPlace.remove(visit)
         place.refreshRatingByVisits(visitsToPlace)
 
-        mainActivity!!.db.setPlace(place)
+        db.setPlace(place)
         onRefreshPlace?.invoke(place)
 
         refreshColorMark()
@@ -138,21 +138,24 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             .setMessage(R.string.delete_place_confirm)
             .setNegativeButton(R.string.cancel, null).
                 setPositiveButton(R.string.delete){_, _ ->
-                    mainActivity?.db?.deletePlace(place){
+
+                    val db = FirebaseDB.instance
+
+                    db.deletePlace(place){
                         if (it) {
                             onClose?.invoke(place, OnFinishEditParam.Deleted)
                         }
                     }
-                    mainActivity?.db?.deleteVisitsToPlace(place)
+                    db.deleteVisitsToPlace(place)
                     close()
                 }.create().show()
     }
 
     private fun addNotHomeVisit() {
 
-        mainActivity?:return
+        val db = FirebaseDB.instance
 
-        mainActivity!!.db.loadLatestVisitToPlace(place){
+        db.loadLatestVisitToPlace(place){
 
             val visit = if (it == null) {
                 val v = Visit()
@@ -167,7 +170,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             visitsToPlace.add(visit)
             place.refreshRatingByVisits(visitsToPlace)
 
-            mainActivity!!.db.setVisit(visit)
+            db.setVisit(visit)
 
             handler.post {
                 refreshColorMark()

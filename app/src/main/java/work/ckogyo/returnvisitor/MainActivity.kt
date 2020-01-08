@@ -1,8 +1,6 @@
 package work.ckogyo.returnvisitor
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -21,9 +19,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.main_activity.*
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.fragments.MapFragment
@@ -49,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     val isLoggedIn : Boolean
     get() = auth.currentUser != null
 
-    lateinit var db: FirebaseDBWrapper
+//    lateinit var db: FirebaseDB
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,8 +57,9 @@ class MainActivity : AppCompatActivity() {
         showMapFragment()
 
         initGoogleSignIn()
+        FirebaseDB.initialize(auth)
 
-        db = FirebaseDBWrapper(auth)
+//        db = FirebaseDB(auth)
 
     }
 
