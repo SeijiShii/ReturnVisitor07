@@ -6,14 +6,13 @@
     android:background="@color/whiteSmokeTrans">
 
     <TextView
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:text="WorkFragment"/>
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="WorkFragment"/>
 
-    <work.ckogyo.returnvisitor.views.LazyLoadPager
+    <view class="androidx.appcompat.app.AlertController$RecycleListView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:id="@+id/workPager"/>
+        android:layout_weight="1"/>
 
 </LinearLayout>
