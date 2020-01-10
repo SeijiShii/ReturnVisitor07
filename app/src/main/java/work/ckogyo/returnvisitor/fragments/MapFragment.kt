@@ -442,6 +442,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun initWorkButton() {
         workButton.setOnClickListener {
+            switchDrawer()
             mainActivity?.showWorkFragment()
         }
     }

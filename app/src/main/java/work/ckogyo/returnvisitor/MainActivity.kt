@@ -137,7 +137,13 @@ class MainActivity : AppCompatActivity() {
     fun showWorkFragment() {
         val db = FirebaseDB.instance
         GlobalScope.launch {
-            val works = db.loadAllWorksInDay(Calendar.getInstance())
+            val startDate = Calendar.getInstance()
+            startDate.add(Calendar.DAY_OF_MONTH, -1)
+
+            val endDate = Calendar.getInstance()
+            endDate.add(Calendar.DAY_OF_MONTH, 1)
+
+            val works = db.loadWorksByDateRange(startDate, endDate)
             Log.d(debugTag, works.toString())
 
             val transaction = supportFragmentManager.beginTransaction()

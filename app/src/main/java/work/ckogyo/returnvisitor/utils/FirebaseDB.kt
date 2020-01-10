@@ -311,6 +311,9 @@ class FirebaseDB {
             }
     }
 
+    // Coroutineの使い方はここが詳しい
+    // https://qiita.com/k-kagurazaka@github/items/8595ca60a5c8d31bbe37#%E3%82%B3%E3%83%BC%E3%83%AB%E3%83%90%E3%83%83%E3%82%AF%E3%82%B9%E3%82%BF%E3%82%A4%E3%83%AB%E3%81%8B%E3%82%89%E4%B8%AD%E6%96%AD%E9%96%A2%E6%95%B0%E3%81%B8%E3%81%AE%E5%A4%89%E6%8F%9B
+
     private suspend fun loadWorksInDay(date: Calendar, byStart: Boolean): ArrayList<Work>
             = suspendCoroutine { cont ->
         loadWorksInDayByCallback(date, byStart){
@@ -336,6 +339,17 @@ class FirebaseDB {
 
         worksByStart.addAll(worksByEnd)
         return filterUndupList(worksByStart)
+    }
+
+    suspend fun loadWorksByDateRange(startDate: Calendar, endDate: Calendar): ArrayList<Work> {
+        val works = ArrayList<Work>()
+        val dateCounter = startDate.clone() as Calendar
+
+        while (isDateBefore(dateCounter, endDate)) {
+            works.addAll(loadAllWorksInDay(dateCounter))
+            dateCounter.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        return filterUndupList(works)
     }
 
 }

@@ -66,3 +66,59 @@ fun cloneDateWith0Time(date: Calendar):Calendar {
     date2.set(Calendar.DAY_OF_MONTH, date.get(Calendar.DAY_OF_MONTH))
     return date2
 }
+
+fun areSameDates(date1: Calendar, date2: Calendar): Boolean {
+    return date1.get(Calendar.YEAR) == date2.get(Calendar.YEAR)
+            && date1.get(Calendar.MONTH) == date2.get(Calendar.MONTH)
+            && date1.get(Calendar.DAY_OF_MONTH) == date2.get(Calendar.DAY_OF_MONTH)
+}
+
+fun isDateBefore(date1: Calendar, date2: Calendar, allowSame: Boolean = false): Boolean {
+
+    if (allowSame && areSameDates(date1, date2)) {
+        return true
+    }
+
+    return when {
+        date1.get(Calendar.YEAR) < date2.get(Calendar.YEAR) -> true
+        date1.get(Calendar.YEAR) > date2.get(Calendar.YEAR) -> false
+        else -> {
+            when {
+                date1.get(Calendar.MONTH) < date2.get(Calendar.MONTH) -> true
+                date1.get(Calendar.MONTH) > date2.get(Calendar.MONTH) -> false
+                else -> {
+                    when {
+                        date1.get(Calendar.DAY_OF_MONTH) < date2.get(Calendar.DAY_OF_MONTH) -> true
+                        date1.get(Calendar.DAY_OF_MONTH) > date2.get(Calendar.DAY_OF_MONTH) -> false
+                        else -> false
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun isDateAfter(date1: Calendar, date2: Calendar, allowSame: Boolean = false): Boolean {
+
+    if (allowSame && areSameDates(date1, date2)) {
+        return true
+    }
+
+    return when {
+        date1.get(Calendar.YEAR) < date2.get(Calendar.YEAR) -> false
+        date1.get(Calendar.YEAR) > date2.get(Calendar.YEAR) -> true
+        else -> {
+            when {
+                date1.get(Calendar.MONTH) < date2.get(Calendar.MONTH) -> false
+                date1.get(Calendar.MONTH) > date2.get(Calendar.MONTH) -> true
+                else -> {
+                    when {
+                        date1.get(Calendar.DAY_OF_MONTH) < date2.get(Calendar.DAY_OF_MONTH) -> false
+                        date1.get(Calendar.DAY_OF_MONTH) > date2.get(Calendar.DAY_OF_MONTH) -> true
+                        else -> false
+                    }
+                }
+            }
+        }
+    }
+}
