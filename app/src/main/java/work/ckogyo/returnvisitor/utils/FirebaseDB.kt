@@ -4,6 +4,10 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
@@ -12,6 +16,8 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class FirebaseDB {
 
@@ -275,34 +281,61 @@ class FirebaseDB {
         }
     }
 
-    fun loadWorksOfDate(date: Calendar, onFinished: (ArrayList<Work>) -> Unit) {
+    private fun loadWorksInDayByCallback(date: Calendar, byStart: Boolean, onLoaded: (ArrayList<Work>) -> Unit) {
 
         val works = ArrayList<Work>()
 
         if (userDoc == null) {
-            onFinished(works)
+            return  onLoaded(works)
         }
 
-        val start = cloneDateWith0Time(date)
-        val end = cloneDateWith0Time(date)
-        end.add(Calendar.DATE, 1)
+        val startOfDay = cloneDateWith0Time(date)
+        val endOfDay = cloneDateWith0Time(date)
+        endOfDay.add(Calendar.DATE, 1)
+
+        val key = if (byStart) startKey else endKey
 
         userDoc!!.collection(worksKey)
-            .whereGreaterThanOrEqualTo(startKey, start.timeInMillis)
-//            .whereGreaterThanOrEqualTo(endKey, start.timeInMillis)
-            .whereLessThan(startKey, end.timeInMillis)
-//            .whereLessThan(endKey, end.timeInMillis)
+            .whereGreaterThanOrEqualTo(key, startOfDay.timeInMillis)
+            .whereLessThan(key, endOfDay.timeInMillis)
             .get().addOnSuccessListener {
 
                 for(doc in it.documents) {
                     val work = Work()
                     work.initFromHashMap(doc.data as HashMap<String, Any>)
                     works.add(work)
-                    onFinished(works)
                 }
+                onLoaded(works)
             }.addOnFailureListener {
-                onFinished(works)
+                onLoaded(works)
             }
+    }
+
+    private suspend fun loadWorksInDay(date: Calendar, byStart: Boolean): ArrayList<Work>
+            = suspendCoroutine { cont ->
+        loadWorksInDayByCallback(date, byStart){
+            cont.resume(it)
+        }
+    }
+
+    suspend fun loadAllWorksInDay(date: Calendar): ArrayList<Work> {
+//        val task1 = GlobalScope.async {
+//            return@async loadWorksInDay(date, true)
+//        }
+//
+//        val task2 = GlobalScope.async {
+//            return@async loadWorksInDay(date, false)
+//        }
+//        val works = task1.await()
+//        works.addAll(task2.await())
+//
+//        return filterUndupList(works)
+
+        val worksByStart = loadWorksInDay(date, true)
+        val worksByEnd = loadWorksInDay(date, false)
+
+        worksByStart.addAll(worksByEnd)
+        return filterUndupList(worksByStart)
     }
 
 }

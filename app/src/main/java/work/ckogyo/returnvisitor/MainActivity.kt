@@ -20,9 +20,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.main_activity.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.fragments.MapFragment
 import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
+import work.ckogyo.returnvisitor.fragments.WorkFragment
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
@@ -121,8 +124,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showRecordVisitFragmentForEdit(visit: Visit, onFinishEditVisit: (Visit, EditMode, OnFinishEditParam) -> Unit) {
-
-
         val transaction = supportFragmentManager.beginTransaction()
         val rvFragment = RecordVisitFragment()
         rvFragment.visit = visit
@@ -135,8 +136,16 @@ class MainActivity : AppCompatActivity() {
 
     fun showWorkFragment() {
         val db = FirebaseDB.instance
-        db.loadWorksOfDate(Calendar.getInstance()){
-            Log.d(debugTag, it.toString())
+        GlobalScope.launch {
+            val works = db.loadAllWorksInDay(Calendar.getInstance())
+            Log.d(debugTag, works.toString())
+
+            val transaction = supportFragmentManager.beginTransaction()
+            val workFragment = WorkFragment()
+            transaction.addToBackStack(null)
+            transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
+            transaction.commit()
+
         }
     }
 
