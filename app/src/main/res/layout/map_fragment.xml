@@ -97,7 +97,7 @@
                 <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/lightGray"/>
+                        android:background="@color/colorPrimaryDark"/>
 
                 <work.ckogyo.returnvisitor.views.TimeCountButton
                         android:layout_width="match_parent"
@@ -107,7 +107,7 @@
                 <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/lightGray"/>
+                        android:background="@color/colorPrimaryDark"/>
 
                 <Button
                         android:layout_width="match_parent"
@@ -119,7 +119,7 @@
                 <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:background="@color/lightGray"/>
+                        android:background="@color/colorPrimaryDark"/>
 
             </LinearLayout>
 

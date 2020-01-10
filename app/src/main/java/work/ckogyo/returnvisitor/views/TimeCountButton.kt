@@ -1,14 +1,19 @@
 package work.ckogyo.returnvisitor.views
 
 import android.app.TimePickerDialog
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.util.AttributeSet
 import android.view.View
 import android.widget.TimePicker
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.android.synthetic.main.time_count_button.view.*
+import kotlinx.coroutines.channels.BroadcastChannel
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
+import work.ckogyo.returnvisitor.utils.getDurationString
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
 import java.util.*
@@ -17,7 +22,8 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
 
     private var isCountingTime = false
 
-    lateinit var startTime: Calendar
+    private lateinit var startTime: Calendar
+    private lateinit var receiver: BroadcastReceiver
 
     constructor(context: Context) : super(context){initCommon()}
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs){initCommon()}
@@ -56,6 +62,7 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
         }
 
         refreshButtonText()
+        initReceiver()
     }
 
     private fun showTimePicker() {
@@ -87,4 +94,18 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
         timeCountIntent.action = TimeCountIntentService.startCountToService
         context.startService(timeCountIntent)
     }
+
+    private fun initReceiver() {
+        receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == TimeCountIntentService.timeCountingToActivity) {
+                    val duration = intent.getLongExtra(TimeCountIntentService.duration, 0)
+                    durationText.text = context!!.resources.getString(R.string.duration_placeholder,
+                                                                        getDurationString(duration, true))
+                }
+            }
+        }
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, IntentFilter(TimeCountIntentService.timeCountingToActivity))
+    }
+
 }

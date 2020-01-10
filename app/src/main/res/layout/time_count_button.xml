@@ -31,11 +31,10 @@
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:layout_margin="5dp"
-                android:background="@drawable/gray_border_round"
+                android:background="@drawable/dark_gray_border_round"
                 android:textSize="15sp"
                 android:gravity="center"
-                android:id="@+id/startTimeText"
-                android:text="bbbbbb"/>
+                android:id="@+id/startTimeText"/>
 
     </LinearLayout>
     
@@ -45,6 +44,6 @@
             android:textSize="17sp"
             android:gravity="center"
             android:textColor="@color/darkGray"
-            android:text="aaaaaa"/>
+            android:id="@+id/durationText"/>
 
 </LinearLayout>
