@@ -1,18 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="60dp">
+    android:layout_height="wrap_content">
 
-    <TextView
-        android:layout_width="200dp"
-        android:layout_height="match_parent"
-        android:id="@+id/categoryText"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:orientation="horizontal"
+        android:id="@+id/dateBorderCellFrame">
 
-    <TextView
-        android:layout_width="200dp"
-        android:layout_height="match_parent"
-        android:id="@+id/dateTimeText"/>
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:padding="5dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_centerInParent="true"
+                android:background="@color/colorPrimary"/>
+
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:id="@+id/dateBorderText"
+            android:gravity="center"
+            android:textColor="@color/colorPrimary"/>
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:padding="5dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_centerInParent="true"
+                android:background="@color/colorPrimary"/>
+
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:id="@+id/workCellFrame"
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:id="@+id/timeLabel"
+            android:textColor="#FFF"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:id="@+id/timeText"
+            android:textColor="@color/darkGray"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:background="@drawable/whitesmoke_round"/>
 
 
-</LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:id="@+id/visitCellFrame">
+
+        <View
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary"
+            android:id="@+id/leftBorder"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/dodgerBlue"/>
+
+        <View
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary"
+            android:id="@+id/rightBorder"/>
+
+    </LinearLayout>
+
+</FrameLayout>

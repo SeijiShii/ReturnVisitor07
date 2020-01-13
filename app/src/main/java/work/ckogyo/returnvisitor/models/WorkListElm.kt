@@ -37,7 +37,7 @@ class WorkListElm(val category: Category) {
             return elms
         }
 
-        fun updateDateBorders(elms: ArrayList<WorkListElm>): ArrayList<WorkListElm> {
+        private fun updateDateBorders(elms: ArrayList<WorkListElm>): ArrayList<WorkListElm> {
 
             val tmp = ArrayList<WorkListElm>()
             for (elm in elms) {
