@@ -5,7 +5,7 @@ import android.view.View
 import android.widget.FrameLayout
 import kotlinx.android.synthetic.main.work_elm_cell.view.*
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.fragments.WorkListElm
+import work.ckogyo.returnvisitor.models.WorkListElm
 import java.text.SimpleDateFormat
 import java.util.*
 

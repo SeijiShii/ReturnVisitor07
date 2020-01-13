@@ -23,8 +23,6 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
     private val timeNotifyId = 100
 
-    private var work: Work? = null
-
     private var broadcastManager: LocalBroadcastManager? = null
     private var receiver: BroadcastReceiver? = null
 
@@ -42,6 +40,20 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         fun stopTimeCount() {
             isTimeCounting = false
+        }
+
+        // companion objectから触れるようにシングルトン的な
+        private var work: Work? = null
+
+        /**
+         * Workの更新は30秒に1回なのでVisitの編集タイミングなどによってはWork外になってしまうので、データの編集タイミングに合わせて呼ばれる
+         */
+        fun saveWorkIfActive() {
+
+            work ?: return
+
+            val db = FirebaseDB.instance
+            db.setWork(work!!)
         }
     }
 
@@ -180,5 +192,6 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         notificationManager!!.notify(timeNotifyId, mBuilder!!.build())
     }
+
 
 }

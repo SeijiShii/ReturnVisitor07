@@ -11,6 +11,7 @@ import kotlinx.android.synthetic.main.work_fragment.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
+import work.ckogyo.returnvisitor.models.WorkListElm
 import work.ckogyo.returnvisitor.views.WorkElmCell
 import java.util.*
 import kotlin.collections.ArrayList
@@ -59,44 +60,3 @@ class WorkFragment(val dataElms: ArrayList<WorkListElm>) : Fragment() {
 
 }
 
-class WorkListElm(val category: Category) {
-
-    companion object {
-        fun fromWork(work: Work): ArrayList<WorkListElm> {
-            val startElm = WorkListElm(Category.WorkStart)
-            startElm.work = work
-            val endElm = WorkListElm(Category.WorkEnd)
-            endElm.work = work
-            return arrayListOf(startElm, endElm)
-        }
-    }
-
-    enum class Category {
-        WorkStart,
-        WorkEnd,
-        Visit
-    }
-
-    var work: Work? = null
-    var visit: Visit? = null
-
-
-    var dateTime: Calendar
-    get() {
-        return when(category) {
-            Category.WorkStart -> work!!.start
-            Category.WorkEnd -> work!!.end
-            Category.Visit -> visit!!.dateTime
-        }
-    }
-
-    set(value) {
-        when(category) {
-            Category.WorkStart -> work!!.start = value
-            Category.WorkEnd -> work!!.end = value
-            Category.Visit -> visit!!.dateTime = value
-        }
-    }
-
-
-}

@@ -11,6 +11,7 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.VisitCell
 
@@ -171,6 +172,9 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             place.refreshRatingByVisits(visitsToPlace)
 
             db.setVisit(visit)
+            TimeCountIntentService.saveWorkIfActive()
+
+            // TODO: Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
 
             handler.post {
                 refreshColorMark()

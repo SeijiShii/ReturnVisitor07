@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -147,24 +148,28 @@ class FirebaseDB {
 
         userDoc!!.collection(visitsKey).whereEqualTo(placeIdKey, place.id).get().addOnSuccessListener {
 
-            var docCount = 0
-            if (it != null) {
-                docCount += it.documents.size
-                for (doc in it.documents) {
-                    val v = Visit()
-                    v.fromHashMap(doc.data as HashMap<String, Any>, this, place) {it2 ->
-                        visitsToPlace.add(it2)
-                        docCount--
-                    }
-                }
+            querySnapshotToVisitList(it) { visits ->
+                onFinished(visits)
             }
 
-            thread {
-                while (docCount > 0) {
-                    Thread.sleep(30)
-                }
-                onFinished(visitsToPlace)
-            }
+//            var docCount = 0
+//            if (it != null) {
+//                docCount += it.documents.size
+//                for (doc in it.documents) {
+//                    val v = Visit()
+//                    v.initFromHashMap(doc.data as HashMap<String, Any>, this, onFinish = { v ->
+//                        visitsToPlace.add(v)
+//                        docCount--
+//                    })
+//                }
+//            }
+//
+//            thread {
+//                while (docCount > 0) {
+//                    Thread.sleep(30)
+//                }
+//                onFinished(visitsToPlace)
+//            }
         }.addOnFailureListener {
             onFinished(visitsToPlace)
         }
@@ -321,18 +326,7 @@ class FirebaseDB {
         }
     }
 
-    suspend fun loadAllWorksInDay(date: Calendar): ArrayList<Work> {
-//        val task1 = GlobalScope.async {
-//            return@async loadWorksInDay(date, true)
-//        }
-//
-//        val task2 = GlobalScope.async {
-//            return@async loadWorksInDay(date, false)
-//        }
-//        val works = task1.await()
-//        works.addAll(task2.await())
-//
-//        return filterUndupList(works)
+    private suspend fun loadAllWorksInDay(date: Calendar): ArrayList<Work> {
 
         val worksByStart = loadWorksInDay(date, true)
         val worksByEnd = loadWorksInDay(date, false)
@@ -352,4 +346,70 @@ class FirebaseDB {
         return filterUndupList(works)
     }
 
+    private fun loadVisitsOfDayCallback(date: Calendar, onLoaded: (ArrayList<Visit>) -> Unit)  {
+
+        val visits = ArrayList<Visit>()
+
+        if (userDoc == null) {
+            onLoaded(visits)
+        }
+
+        val startOfDay = cloneDateWith0Time(date)
+        val endOfDay = cloneDateWith0Time(date)
+        endOfDay.add(Calendar.DATE, 1)
+
+        userDoc!!.collection(visitsKey)
+            .whereGreaterThanOrEqualTo(dateTimeMillisKey, startOfDay.timeInMillis)
+            .whereLessThan(dateTimeMillisKey, endOfDay.timeInMillis)
+            .get().addOnSuccessListener {
+                querySnapshotToVisitList(it){visits ->
+                    onLoaded(visits)
+                }
+
+            }.addOnFailureListener {
+                onLoaded(visits)
+            }
+    }
+
+    private fun querySnapshotToVisitList(qs: QuerySnapshot?, onConverted: (ArrayList<Visit>) -> Unit) {
+
+        val visits = ArrayList<Visit>()
+
+        var docCount = 0
+        if (qs != null) {
+            docCount += qs.documents.size
+            for (doc in qs.documents) {
+                val v = Visit()
+                v.initFromHashMap(doc.data as HashMap<String, Any>, this, onFinish = { v ->
+                    visits.add(v)
+                    docCount--
+                })
+            }
+        }
+
+        thread {
+            while (docCount > 0) {
+                Thread.sleep(30)
+            }
+            onConverted(visits)
+        }
+    }
+
+    private suspend fun loadVisitsOfDay(date: Calendar): ArrayList<Visit> = suspendCoroutine { cont ->
+        loadVisitsOfDayCallback(date){
+            cont.resume(it)
+        }
+    }
+
+    suspend fun loadVisitsByDateRange(startDate: Calendar, endDate: Calendar): ArrayList<Visit> {
+
+        val visits = ArrayList<Visit>()
+        val dateCounter = startDate.clone() as Calendar
+
+        while (isDateBefore(dateCounter, endDate)) {
+            visits.addAll(loadVisitsOfDay(dateCounter))
+            dateCounter.add(Calendar.DAY_OF_MONTH, 1)
+        }
+        return filterUndupList(visits)
+    }
 }

@@ -47,7 +47,7 @@ class Visit : BaseDataModel {
         }
     }
 
-    fun fromHashMap(map: HashMap<String, Any>, db: FirebaseDB, place2: Place? = null, onFinish: (Visit) -> Unit) {
+    fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB, place2: Place? = null, onFinish: (Visit) -> Unit) {
 
         super.initFromHashMap(map)
 

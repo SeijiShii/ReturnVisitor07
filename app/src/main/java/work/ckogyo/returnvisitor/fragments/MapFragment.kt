@@ -21,6 +21,7 @@ import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import kotlin.concurrent.thread
 
@@ -256,6 +257,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 }
 
                 db.setVisit(visit)
+
+                // TODO: Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+                TimeCountIntentService.saveWorkIfActive()
 
                 for (person in visit.persons) {
                     db.setPerson(person)

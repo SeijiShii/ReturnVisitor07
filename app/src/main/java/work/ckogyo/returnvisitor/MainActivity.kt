@@ -26,9 +26,9 @@ import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.fragments.MapFragment
 import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
 import work.ckogyo.returnvisitor.fragments.WorkFragment
-import work.ckogyo.returnvisitor.fragments.WorkListElm
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.models.WorkListElm
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -146,14 +146,9 @@ class MainActivity : AppCompatActivity() {
             endDate.add(Calendar.DAY_OF_MONTH, 1)
 
             val works = db.loadWorksByDateRange(startDate, endDate)
-//            Log.d(debugTag, works.toString())
+            val visits = db.loadVisitsByDateRange(startDate, endDate)
 
-            val dataElms = ArrayList<WorkListElm>()
-            for (work in works) {
-                dataElms.addAll(WorkListElm.fromWork(work))
-            }
-
-            dataElms.sortBy { elm -> elm.dateTime.timeInMillis }
+            val dataElms = WorkListElm.generateList(works, visits)
 
             val transaction = supportFragmentManager.beginTransaction()
             val workFragment = WorkFragment(dataElms)
