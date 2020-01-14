@@ -1,11 +1,15 @@
 package work.ckogyo.returnvisitor.models
 
 import android.content.Context
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class Visit : BaseDataModel {
 
@@ -47,7 +51,7 @@ class Visit : BaseDataModel {
         }
     }
 
-    fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB, place2: Place? = null, onFinish: (Visit) -> Unit) {
+    suspend fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB, place2: Place? = null): Visit  = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)
 
@@ -57,37 +61,25 @@ class Visit : BaseDataModel {
         dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
 
         val pvMapList = map[personVisitsKey] as ArrayList<HashMap<String, Any>>
-        var pvCount = pvMapList.size
         personVisits.clear()
-        for (pvm in pvMapList) {
-            val pv = PersonVisit()
-            pv.initFromHashMap(pvm, db) {
-                personVisits.add(it)
-                pvCount--
+
+        GlobalScope.launch {
+            for (pvm in pvMapList) {
+                val pv = PersonVisit().initFromHashMap(pvm, db)
+                personVisits.add(pv)
             }
-        }
 
-        val placeId = map[placesKey].toString()
+            val placeId = map[placesKey].toString()
 
-        var placeLoaded = false
-        if (place2 != null) {
-            place = place2
-            placeLoaded = true
-        } else {
-            db.loadPlaceById(placeId){
-                if (it != null) {
-                    place = it
+            if (place2 != null) {
+                place = place2
+            } else {
+                val place3 = db.loadPlaceById(placeId)
+                if (place3 != null) {
+                    place = place3
                 }
-                placeLoaded = true
             }
-        }
-
-
-        thread {
-            while (pvCount > 0 || !placeLoaded) {
-                Thread.sleep(30)
-            }
-            onFinish(this)
+            cont.resume(this@Visit)
         }
     }
 

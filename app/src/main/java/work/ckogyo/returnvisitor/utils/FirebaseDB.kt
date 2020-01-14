@@ -6,9 +6,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
@@ -23,9 +21,9 @@ import kotlin.coroutines.suspendCoroutine
 class FirebaseDB {
 
     companion object {
-        private val _instance = FirebaseDB()
+        private val innerInstance = FirebaseDB()
         val instance: FirebaseDB
-            get() = _instance
+            get() = innerInstance
 
         private lateinit var auth: FirebaseAuth
 
@@ -50,7 +48,7 @@ class FirebaseDB {
     /**
      * コレクションの属するすべてをHashMapで取得
      */
-    private fun loadList(collName: String, onFinished: (ArrayList<HashMap<String, Any>>) -> Unit) {
+    private fun loadListCallback(colName: String, onFinished: (ArrayList<HashMap<String, Any>>) -> Unit) {
         val list = ArrayList<HashMap<String, Any>>()
 
         if (userDoc == null) {
@@ -58,7 +56,7 @@ class FirebaseDB {
             return
         }
 
-        userDoc!!.collection(collName).get().addOnSuccessListener {
+        userDoc!!.collection(colName).get().addOnSuccessListener {
 
             for (doc in it.documents) {
                 list.add(doc.data as HashMap<String, Any>)
@@ -70,19 +68,26 @@ class FirebaseDB {
         }
     }
 
-    fun loadPlaces(onFinished: (ArrayList<Place>) -> Unit) {
-        loadList(placesKey){
+    private suspend fun loadList(colName: String): ArrayList<HashMap<String, Any>> = suspendCoroutine { cont ->
+        loadListCallback(colName){
+            cont.resume(it)
+        }
+    }
+
+    suspend fun loadPlaces(): ArrayList<Place> = suspendCoroutine { cont ->
+        GlobalScope.launch {
+            val mapList = loadList(placesKey)
             val places = ArrayList<Place>()
-            for (map in it) {
+            for (map in mapList) {
                 val place = Place()
                 place.initFromHashMap(map)
                 places.add(place)
             }
-            onFinished(places)
+            cont.resume(places)
         }
     }
 
-    private fun loadListById(collName: String, id: String, onFinished: (ArrayList<HashMap<String, Any>>) -> Unit) {
+    private fun loadListByIdCallback(colName: String, id: String, onFinished: (ArrayList<HashMap<String, Any>>) -> Unit) {
 
         val list = ArrayList<HashMap<String, Any>>()
 
@@ -91,7 +96,7 @@ class FirebaseDB {
             return
         }
 
-        userDoc!!.collection(collName).whereEqualTo(idKey, id).get().addOnSuccessListener {
+        userDoc!!.collection(colName).whereEqualTo(idKey, id).get().addOnSuccessListener {
 
             for (doc in it.documents) {
                 list.add(doc.data as HashMap<String, Any>)
@@ -103,8 +108,8 @@ class FirebaseDB {
         }
     }
 
-    private fun loadById(collName: String, id: String, onFinished: ((HashMap<String, Any>?) -> Unit)) {
-        loadListById(collName, id){
+    private fun loadByIdCallback(colName: String, id: String, onFinished: ((HashMap<String, Any>?) -> Unit)) {
+        loadListByIdCallback(colName, id){
             if (it.isEmpty()) {
                 onFinished(null)
             } else {
@@ -113,20 +118,27 @@ class FirebaseDB {
         }
     }
 
-    fun loadPlaceById(id: String, onFinished: ((Place?) -> Unit)){
-        loadById(placesKey, id){
-            if (it == null) {
-                onFinished(null)
+    private suspend fun loadById(colName: String, id: String): (HashMap<String, Any>)? = suspendCoroutine { cont ->
+        loadByIdCallback(colName, id){
+            cont.resume(it)
+        }
+    }
+
+    suspend fun loadPlaceById(id: String): Place? = suspendCoroutine {
+        GlobalScope.launch {
+            val map = loadById(placesKey, id)
+            if (map == null) {
+                it.resume(null)
             } else {
                 val place = Place()
-                place.initFromHashMap(it)
-                onFinished(place)
+                place.initFromHashMap(map)
+                it.resume(place)
             }
         }
     }
 
-    fun loadPersonById(id: String, onFinished: ((Person?) -> Unit)){
-        loadById(personsKey, id){
+    private fun loadPersonByIdCallback(id: String, onFinished: ((Person?) -> Unit)){
+        loadByIdCallback(personsKey, id){
             if (it == null) {
                 onFinished(null)
             } else {
@@ -137,52 +149,40 @@ class FirebaseDB {
         }
     }
 
-    fun loadVisitsOfPlace(place: Place, onFinished: (ArrayList<Visit> ) -> Unit) {
-
-        val visitsToPlace = ArrayList<Visit>()
-
-        if (userDoc == null) {
-            onFinished(visitsToPlace)
-            return
-        }
-
-        userDoc!!.collection(visitsKey).whereEqualTo(placeIdKey, place.id).get().addOnSuccessListener {
-
-            querySnapshotToVisitList(it) { visits ->
-                onFinished(visits)
-            }
-
-//            var docCount = 0
-//            if (it != null) {
-//                docCount += it.documents.size
-//                for (doc in it.documents) {
-//                    val v = Visit()
-//                    v.initFromHashMap(doc.data as HashMap<String, Any>, this, onFinish = { v ->
-//                        visitsToPlace.add(v)
-//                        docCount--
-//                    })
-//                }
-//            }
-//
-//            thread {
-//                while (docCount > 0) {
-//                    Thread.sleep(30)
-//                }
-//                onFinished(visitsToPlace)
-//            }
-        }.addOnFailureListener {
-            onFinished(visitsToPlace)
+    suspend fun loadPersonById(id: String): Person? = suspendCoroutine {  cont ->
+        loadPersonByIdCallback(id) {
+            cont.resume(it)
         }
     }
 
-    fun loadLatestVisitToPlace(place: Place, onFinished: ((Visit?) -> Unit)) {
-        loadVisitsOfPlace(place){
+
+    suspend fun loadVisitsOfPlace(place: Place): ArrayList<Visit> = suspendCoroutine { cont ->
+
+        var visitsToPlace = ArrayList<Visit>()
+
+        if (userDoc == null) {
+            cont.resume(visitsToPlace)
+        }
+
+        userDoc!!.collection(visitsKey).whereEqualTo(placeIdKey, place.id).get().addOnSuccessListener {
+            GlobalScope.launch {
+                visitsToPlace = querySnapshotToVisitList(it)
+                cont.resume(visitsToPlace)
+            }
+        }.addOnFailureListener {
+            cont.resume(visitsToPlace)
+        }
+    }
+
+    suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+            val visits = loadVisitsOfPlace(place)
             when {
-                it.isEmpty() -> onFinished(null)
-                it.size == 1 -> onFinished(it[0])
+                visits.isEmpty() -> cont.resume(null)
                 else -> {
-                    val visit = it.sortedByDescending { v -> v.dateTime.timeInMillis }[0]
-                    onFinished(visit)
+                    val visit = visits.sortedByDescending { v -> v.dateTime.timeInMillis }[0]
+                    cont.resume(visit)
                 }
             }
         }
@@ -346,12 +346,27 @@ class FirebaseDB {
         return filterUndupList(works)
     }
 
-    private fun loadVisitsOfDayCallback(date: Calendar, onLoaded: (ArrayList<Visit>) -> Unit)  {
+    private suspend fun querySnapshotToVisitList(qs: QuerySnapshot?): ArrayList<Visit> = suspendCoroutine{ cont ->
+
+        val visits = ArrayList<Visit>()
+
+        GlobalScope.launch {
+            if (qs != null) {
+                for (doc in qs.documents) {
+                    val v = Visit().initFromHashMap(doc.data as HashMap<String, Any>, this@FirebaseDB)
+                    visits.add(v)
+                }
+            }
+            cont.resume(visits)
+        }
+    }
+
+    private suspend fun loadVisitsOfDay(date: Calendar): ArrayList<Visit> = suspendCoroutine { cont ->
 
         val visits = ArrayList<Visit>()
 
         if (userDoc == null) {
-            onLoaded(visits)
+            cont.resume(visits)
         }
 
         val startOfDay = cloneDateWith0Time(date)
@@ -362,43 +377,12 @@ class FirebaseDB {
             .whereGreaterThanOrEqualTo(dateTimeMillisKey, startOfDay.timeInMillis)
             .whereLessThan(dateTimeMillisKey, endOfDay.timeInMillis)
             .get().addOnSuccessListener {
-                querySnapshotToVisitList(it){visits ->
-                    onLoaded(visits)
+                GlobalScope.launch {
+                    cont.resume(querySnapshotToVisitList(it))
                 }
-
             }.addOnFailureListener {
-                onLoaded(visits)
+                cont.resume(visits)
             }
-    }
-
-    private fun querySnapshotToVisitList(qs: QuerySnapshot?, onConverted: (ArrayList<Visit>) -> Unit) {
-
-        val visits = ArrayList<Visit>()
-
-        var docCount = 0
-        if (qs != null) {
-            docCount += qs.documents.size
-            for (doc in qs.documents) {
-                val v = Visit()
-                v.initFromHashMap(doc.data as HashMap<String, Any>, this, onFinish = { v ->
-                    visits.add(v)
-                    docCount--
-                })
-            }
-        }
-
-        thread {
-            while (docCount > 0) {
-                Thread.sleep(30)
-            }
-            onConverted(visits)
-        }
-    }
-
-    private suspend fun loadVisitsOfDay(date: Calendar): ArrayList<Visit> = suspendCoroutine { cont ->
-        loadVisitsOfDayCallback(date){
-            cont.resume(it)
-        }
     }
 
     suspend fun loadVisitsByDateRange(startDate: Calendar, endDate: Calendar): ArrayList<Visit> {

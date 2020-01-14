@@ -1,7 +1,11 @@
 package work.ckogyo.returnvisitor.models
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.utils.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class PersonVisit : BaseDataModel {
 
@@ -38,7 +42,7 @@ class PersonVisit : BaseDataModel {
 //        isStudy = map[isStudyKey].toString().toBoolean()
 //    }
 
-    fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB, onFinish: (pv: PersonVisit) -> Unit) {
+    suspend fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB): PersonVisit = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)
 
@@ -47,11 +51,13 @@ class PersonVisit : BaseDataModel {
         isStudy = map[isStudyKey].toString().toBoolean()
 
         val personId = map[personIdKey].toString()
-        db.loadPersonById(personId){
-            if (it != null) {
-                person = it
+
+        GlobalScope.launch {
+            val person2 = db.loadPersonById(personId)
+            if (person2 != null) {
+                person = person2
             }
-            onFinish(this)
+            cont.resume(this@PersonVisit)
         }
     }
 

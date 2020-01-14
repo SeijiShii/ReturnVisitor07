@@ -7,7 +7,8 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
 import kotlinx.android.synthetic.main.place_dialog.*
-import work.ckogyo.returnvisitor.MainActivity
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
@@ -77,12 +78,13 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun initVisitList() {
 
-        val db = FirebaseDB.instance
+        GlobalScope.launch {
 
-        db.loadVisitsOfPlace(place){
+            val db = FirebaseDB.instance
+            val visits = db.loadVisitsOfPlace(place)
 
             visitsToPlace.clear()
-            visitsToPlace.addAll(it)
+            visitsToPlace.addAll(visits)
 
             handler.post {
 
@@ -154,16 +156,15 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun addNotHomeVisit() {
 
-        val db = FirebaseDB.instance
-
-        db.loadLatestVisitToPlace(place){
-
-            val visit = if (it == null) {
+        GlobalScope.launch {
+            val db = FirebaseDB.instance
+            val latestVisit = db.loadLatestVisitOfPlace(place)
+            val visit = if (latestVisit == null) {
                 val v = Visit()
                 v.place = place
                 v
             } else {
-                Visit(it)
+                Visit(latestVisit)
             }
 
             visit.turnToNotHome()
@@ -176,10 +177,8 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
             // TODO: Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
 
-            handler.post {
-                refreshColorMark()
-                addVisitCell(visit)
-            }
+            refreshColorMark()
+            addVisitCell(visit)
         }
     }
 }

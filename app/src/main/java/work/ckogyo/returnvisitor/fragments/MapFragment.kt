@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.map_fragment.*
+import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
@@ -24,6 +26,7 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import kotlin.concurrent.thread
+import kotlin.coroutines.suspendCoroutine
 
 
 class MapFragment : Fragment(), OnMapReadyCallback {
@@ -58,7 +61,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onStart() {
         super.onStart()
 
-        waitForMapReadyAndShowMarkers()
+        GlobalScope.launch {
+            waitForMapReadyAndShowMarkers()
+        }
     }
 
     override fun onMapReady(p0: GoogleMap?) {
@@ -117,22 +122,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var isMapReady = false
     private var markerShown = false
 
-    fun waitForMapReadyAndShowMarkers() {
+    suspend fun waitForMapReadyAndShowMarkers() {
 
         // TODO: マーカーの再描画が確実でない。
         if (markerShown) return
 
         markerShown = true
 
-        thread {
+        GlobalScope.launch {
             while (!isMapReady || mainActivity == null || mainActivity!!.currentUser == null) {
-                Thread.sleep(30)
+                delay(30)
             }
 
-            loadPlaces {
-                handler.post{
-                    showPlaceMarkers()
-                }
+            loadPlaces()
+            handler.post {
+                showPlaceMarkers()
             }
         }
     }
@@ -149,14 +153,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         placeMarkers.refreshMarker(place)
     }
 
-    private fun loadPlaces(onLoaded: () -> Unit) {
+    private fun loadPlaces() {
 
-        val db = FirebaseDB.instance
-
-        places.clear()
-        db.loadPlaces {
-            places.addAll(it)
-            onLoaded()
+        runBlocking {
+            val db = FirebaseDB.instance
+            places.clear()
+            places.addAll(db.loadPlaces())
+            Log.d(debugTag, "Places loaded!")
         }
     }
 
@@ -220,6 +223,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         mainActivity?:return
 
+        Log.d(debugTag, "showPlaceMarkers")
+
         for (place in places) {
             placeMarkers.addMarker(place)
         }
@@ -245,15 +250,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 places.add(visit.place)
 
-                val handler = Handler()
-
-                db.loadVisitsOfPlace(visit.place){
-                    it.add(visit)
-                    visit.place.refreshRatingByVisits(it)
-                    db.setPlace(visit.place)
-                    handler.post {
-                        placeMarkers.addMarker(visit.place)
-                    }
+//                val handler = Handler()
+                GlobalScope.launch {
+                    val visitsOfPlace = db.loadVisitsOfPlace(visit.place)
+                    visitsOfPlace.add(visit)
+                    visit.place.refreshRatingByVisits(visitsOfPlace)
+                    placeMarkers.addMarker(visit.place)
                 }
 
                 db.setVisit(visit)
@@ -271,18 +273,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 placeMarkers.remove(visit.place)
 
-                val handler = Handler()
-
-                val place = visit.place
                 db.deleteVisit(visit)
-                db.loadVisitsOfPlace(place){
-                    it.remove(visit)
-                    place.refreshRatingByVisits(it)
-                    db.setPlace(place)
-
-                    handler.post {
-                        placeMarkers.refreshMarker(place)
-                    }
+                GlobalScope.launch {
+                    val visitsOfPlace = db.loadVisitsOfPlace(visit.place)
+                    visitsOfPlace.remove(visit)
+                    visit.place.refreshRatingByVisits(visitsOfPlace)
+                    placeMarkers.addMarker(visit.place)
                 }
             }
         }
