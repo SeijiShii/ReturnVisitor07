@@ -10,6 +10,9 @@ import kotlinx.android.synthetic.main.place_dialog.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
+import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
@@ -80,8 +83,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
         GlobalScope.launch {
 
-            val db = FirebaseDB.instance
-            val visits = db.loadVisitsOfPlace(place)
+            val visits = VisitCollection.instance.loadVisitsOfPlace(place)
 
             visitsToPlace.clear()
             visitsToPlace.addAll(visits)
@@ -110,16 +112,16 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun onDeleteConfirmedInCell(visit: Visit) {
 
-        val db = FirebaseDB.instance
+        GlobalScope.launch {
+            VisitCollection.instance.delete(visit)
+            visitsToPlace.remove(visit)
+            place.refreshRatingByVisits(visitsToPlace)
 
-        db.deleteVisit(visit)
-        visitsToPlace.remove(visit)
-        place.refreshRatingByVisits(visitsToPlace)
+            PlaceCollection.instance.set(place)
+            onRefreshPlace?.invoke(place)
 
-        db.setPlace(place)
-        onRefreshPlace?.invoke(place)
-
-        refreshColorMark()
+            refreshColorMark()
+        }
     }
 
     private fun showMenuPopup() {
@@ -142,14 +144,12 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             .setNegativeButton(R.string.cancel, null).
                 setPositiveButton(R.string.delete){_, _ ->
 
-                    val db = FirebaseDB.instance
-
-                    db.deletePlace(place){
-                        if (it) {
+                    GlobalScope.launch {
+                        if (PlaceCollection.instance.delete(place)) {
                             onClose?.invoke(place, OnFinishEditParam.Deleted)
                         }
+                        VisitCollection.instance.deleteVisitsToPlace(place)
                     }
-                    db.deleteVisitsToPlace(place)
                     close()
                 }.create().show()
     }
@@ -157,8 +157,8 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     private fun addNotHomeVisit() {
 
         GlobalScope.launch {
-            val db = FirebaseDB.instance
-            val latestVisit = db.loadLatestVisitOfPlace(place)
+            val visitColl = VisitCollection.instance
+            val latestVisit = visitColl.loadLatestVisitOfPlace(place)
             val visit = if (latestVisit == null) {
                 val v = Visit()
                 v.place = place
@@ -172,7 +172,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             visitsToPlace.add(visit)
             place.refreshRatingByVisits(visitsToPlace)
 
-            db.setVisit(visit)
+            visitColl.set(visit)
             TimeCountIntentService.saveWorkIfActive()
 
             // TODO: Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある

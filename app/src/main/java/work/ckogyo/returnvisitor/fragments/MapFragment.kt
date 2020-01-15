@@ -21,12 +21,14 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.PersonCollection
+import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
+import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
-import kotlin.concurrent.thread
-import kotlin.coroutines.suspendCoroutine
 
 
 class MapFragment : Fragment(), OnMapReadyCallback {
@@ -156,10 +158,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun loadPlaces() {
 
         runBlocking {
-            val db = FirebaseDB.instance
             places.clear()
-            places.addAll(db.loadPlaces())
-            Log.d(debugTag, "Places loaded!")
+            places.addAll(PlaceCollection.instance.loadPlaces())
         }
     }
 
@@ -250,22 +250,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 places.add(visit.place)
 
-//                val handler = Handler()
                 GlobalScope.launch {
-                    val visitsOfPlace = db.loadVisitsOfPlace(visit.place)
+                    val visitColl = VisitCollection.instance
+                    val visitsOfPlace = visitColl.loadVisitsOfPlace(visit.place)
                     visitsOfPlace.add(visit)
                     visit.place.refreshRatingByVisits(visitsOfPlace)
                     placeMarkers.addMarker(visit.place)
-                }
+                    visitColl.set(visit)
 
-                db.setVisit(visit)
+                    for (person in visit.persons) {
+                        PersonCollection.instance.set(person)
+                    }
+                }
 
                 // TODO: Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                 TimeCountIntentService.saveWorkIfActive()
-
-                for (person in visit.persons) {
-                    db.setPerson(person)
-                }
             }
             OnFinishEditParam.Deleted -> {
 
@@ -273,9 +272,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 placeMarkers.remove(visit.place)
 
-                db.deleteVisit(visit)
                 GlobalScope.launch {
-                    val visitsOfPlace = db.loadVisitsOfPlace(visit.place)
+                    val visitColl = VisitCollection.instance
+                    visitColl.delete(visit)
+                    val visitsOfPlace = visitColl.loadVisitsOfPlace(visit.place)
                     visitsOfPlace.remove(visit)
                     visit.place.refreshRatingByVisits(visitsOfPlace)
                     placeMarkers.addMarker(visit.place)

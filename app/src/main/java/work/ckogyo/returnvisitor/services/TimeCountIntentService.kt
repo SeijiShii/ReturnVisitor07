@@ -11,10 +11,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import work.ckogyo.returnvisitor.MainActivity
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
-import work.ckogyo.returnvisitor.utils.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.getDurationString
 import java.util.*
 
@@ -52,8 +54,9 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
             work ?: return
 
-            val db = FirebaseDB.instance
-            db.setWork(work!!)
+            GlobalScope.launch {
+                WorkCollection.instance.set(work!!)
+            }
         }
     }
 
@@ -134,7 +137,9 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 if (minCounter > 50) {
 
                     work!!.end = Calendar.getInstance()
-                    db.setWork(work!!)
+                    GlobalScope.launch {
+                        WorkCollection.instance.set(work!!)
+                    }
                     minCounter = 0
                 }
             }

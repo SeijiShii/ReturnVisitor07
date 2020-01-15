@@ -23,6 +23,7 @@ import kotlinx.android.synthetic.main.main_activity.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.fragments.MapFragment
 import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
 import work.ckogyo.returnvisitor.fragments.WorkFragment
@@ -31,7 +32,6 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.WorkListElm
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
 
@@ -137,25 +137,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showWorkFragment() {
-        val db = FirebaseDB.instance
         GlobalScope.launch {
-            val startDate = Calendar.getInstance()
-            startDate.add(Calendar.DAY_OF_MONTH, -1)
 
-            val endDate = Calendar.getInstance()
-            endDate.add(Calendar.DAY_OF_MONTH, 1)
-
-            val works = db.loadWorksByDateRange(startDate, endDate)
-            val visits = db.loadVisitsByDateRange(startDate, endDate)
-
-            val dataElms = WorkListElm.generateList(works, visits)
+            val dataElms = WorkListElm.generateListByDate(Calendar.getInstance())
 
             val transaction = supportFragmentManager.beginTransaction()
             val workFragment = WorkFragment(dataElms)
             transaction.addToBackStack(null)
             transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
             transaction.commit()
-
         }
     }
 

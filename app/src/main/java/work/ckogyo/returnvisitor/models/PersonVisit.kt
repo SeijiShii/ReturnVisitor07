@@ -3,6 +3,7 @@ package work.ckogyo.returnvisitor.models
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.utils.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -24,25 +25,7 @@ class PersonVisit : BaseDataModel {
         this.person = person
     }
 
-//    constructor(o: JSONObject, context: Context) : super(o){
-//
-//        seen = o.optBoolean(seenKey)
-//        isRv = o.optBoolean(isRVKey)
-//        isStudy = o.optBoolean(isStudyKey)
-//    }
-
-//    constructor(map: HashMap<String, Any>, userDocument: DocumentReference) : super(map){
-//
-//
-//        val userId = map[userIdKey].toString()
-//
-//
-//        seen = map[seenKey].toString().toBoolean()
-//        isRv = map[isRVKey].toString().toBoolean()
-//        isStudy = map[isStudyKey].toString().toBoolean()
-//    }
-
-    suspend fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB): PersonVisit = suspendCoroutine { cont ->
+    suspend fun initFromHashMap(map: HashMap<String, Any>, personColl: PersonCollection): PersonVisit = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)
 
@@ -53,7 +36,7 @@ class PersonVisit : BaseDataModel {
         val personId = map[personIdKey].toString()
 
         GlobalScope.launch {
-            val person2 = db.loadPersonById(personId)
+            val person2 = personColl.loadById(personId)
             if (person2 != null) {
                 person = person2
             }

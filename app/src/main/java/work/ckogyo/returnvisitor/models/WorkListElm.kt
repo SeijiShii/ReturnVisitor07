@@ -1,9 +1,15 @@
 package work.ckogyo.returnvisitor.models
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import work.ckogyo.returnvisitor.firebasedb.VisitCollection
+import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.areSameDates
 import work.ckogyo.returnvisitor.utils.cloneDateWith0Time
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class WorkListElm(val category: Category) {
 
@@ -16,7 +22,7 @@ class WorkListElm(val category: Category) {
             return arrayListOf(startElm, endElm)
         }
 
-        fun generateList(works: ArrayList<Work>, visits: ArrayList<Visit>): ArrayList<WorkListElm> {
+        private fun generateList(works: ArrayList<Work>, visits: ArrayList<Visit>): ArrayList<WorkListElm> {
 
             var elms = ArrayList<WorkListElm>()
 
@@ -35,6 +41,15 @@ class WorkListElm(val category: Category) {
             elms.sortBy { e -> e.dateTime.timeInMillis }
 
             return elms
+        }
+
+        suspend fun generateListByDate(date: Calendar): ArrayList<WorkListElm> = suspendCoroutine {  cont ->
+            GlobalScope.launch {
+                val works = WorkCollection.instance.loadWorksByDate(date)
+                val visits = VisitCollection.instance.loadVisitsByDate(date)
+
+                cont.resume(generateList(works, visits))
+            }
         }
 
         private fun updateDateBorders(elms: ArrayList<WorkListElm>): ArrayList<WorkListElm> {

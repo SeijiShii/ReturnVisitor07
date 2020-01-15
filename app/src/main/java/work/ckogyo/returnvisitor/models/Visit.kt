@@ -3,11 +3,13 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.PersonCollection
+import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
-import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -65,7 +67,7 @@ class Visit : BaseDataModel {
 
         GlobalScope.launch {
             for (pvm in pvMapList) {
-                val pv = PersonVisit().initFromHashMap(pvm, db)
+                val pv = PersonVisit().initFromHashMap(pvm, PersonCollection.instance)
                 personVisits.add(pv)
             }
 
@@ -74,7 +76,7 @@ class Visit : BaseDataModel {
             if (place2 != null) {
                 place = place2
             } else {
-                val place3 = db.loadPlaceById(placeId)
+                val place3 = PlaceCollection.instance.loadById(placeId)
                 if (place3 != null) {
                     place = place3
                 }
