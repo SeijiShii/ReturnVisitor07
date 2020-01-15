@@ -7,6 +7,7 @@ import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.areSameDates
 import work.ckogyo.returnvisitor.utils.cloneDateWith0Time
 import work.ckogyo.returnvisitor.utils.isDateAfter
+import work.ckogyo.returnvisitor.utils.isDateBefore
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.coroutines.resume
@@ -18,6 +19,38 @@ class WorkElmList {
         private val innerInstance = WorkElmList()
         val instance: WorkElmList
             get() = innerInstance
+
+        fun getDate(elms: ArrayList<WorkElement>): Calendar? {
+            return if (elms.isEmpty()) {
+                null
+            } else {
+                elms[0].dateTime
+            }
+        }
+
+        fun mergeAvoidingDup(elms1: ArrayList<WorkElement>, elms2: ArrayList<WorkElement>): ArrayList<WorkElement> {
+            val merged = ArrayList<WorkElement>(elms1)
+
+            for (elm2 in elms2) {
+                var contained = false
+                for (elm in merged) {
+                    if (elm2.visit != null && elm.visit != null && elm2.visit == elm.visit
+                        || elm2.work != null && elm.work != null && elm2.work == elm.work
+                        || elm2.category == WorkElement.Category.DateBorder
+                            && elm.category == WorkElement.Category.DateBorder
+                            && areSameDates(elm2.dateTime, elm.dateTime)) {
+                        contained = true
+                    }
+                }
+
+                if (!contained) {
+                    merged.add(elm2)
+                }
+            }
+
+            merged.sortBy { elm -> elm.dateTime.timeInMillis }
+            return merged
+        }
     }
 
     private fun generateList(works: ArrayList<Work>, visits: ArrayList<Visit>): ArrayList<WorkElement> {
@@ -41,7 +74,7 @@ class WorkElmList {
         return elms
     }
 
-    suspend fun generateListByDate(date: Calendar): ArrayList<WorkElement> = suspendCoroutine { cont ->
+    private suspend fun generateListByDate(date: Calendar): ArrayList<WorkElement> = suspendCoroutine { cont ->
         GlobalScope.launch {
             val works = WorkCollection.instance.loadAllWorksInDate(date)
             val visits = VisitCollection.instance.loadVisitsByDate(date)
@@ -85,11 +118,11 @@ class WorkElmList {
         return tmp
     }
 
-    private suspend fun getFirstRecordedDate(): Calendar? = suspendCoroutine { cont ->
+    private suspend fun getRecordedDateAtEnd(getFirst: Boolean): Calendar? = suspendCoroutine { cont ->
 
         GlobalScope.launch {
-            val firstVisitDate = VisitCollection.instance.getFirstRecordedDate()
-            val firstWorkDate = WorkCollection.instance.getFirstRecordedDate()
+            val firstVisitDate = VisitCollection.instance.getRecordedDateAtEnd(getFirst)
+            val firstWorkDate = WorkCollection.instance.getRecordedDateAtEnd(getFirst)
 
             when {
                 firstVisitDate == null && firstWorkDate == null -> cont.resume(null)
@@ -99,10 +132,10 @@ class WorkElmList {
         }
     }
 
-    suspend fun getListOfLatestDate(): ArrayList<WorkElement>? =  suspendCoroutine { cont ->
+    suspend fun getListOfToday(): ArrayList<WorkElement>? =  suspendCoroutine { cont ->
 
         GlobalScope.launch {
-            val firstDate = getFirstRecordedDate()
+            val firstDate = getRecordedDateAtEnd(getFirst = true)
             if (firstDate == null) {
                 cont.resume(null)
             } else {
@@ -120,6 +153,41 @@ class WorkElmList {
                 cont.resume(null)
             }
         }
+    }
+
+    suspend fun getListOfNeighboringDate(date: Calendar, previous: Boolean): ArrayList<WorkElement>? = suspendCoroutine {  cont ->
+        GlobalScope.launch {
+            val limitDate = getRecordedDateAtEnd(previous)
+            if (limitDate == null) {
+                cont.resume(null)
+            } else {
+                val increase = if (previous) -1 else 1
+                val checker = { date: Calendar ->
+                    if (previous) {
+                        isDateAfter(date, limitDate, true)
+                    } else {
+                        isDateBefore(date, limitDate, true)
+                    }
+                }
+
+                val dateCounter = date.clone() as Calendar
+                dateCounter.add(Calendar.DAY_OF_MONTH, increase)
+
+                val visitColl = VisitCollection.instance
+                val workColl = WorkCollection.instance
+
+                while (checker(dateCounter)) {
+
+                    if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
+                        cont.resume(generateListByDate(dateCounter))
+                        return@launch
+                    }
+                    dateCounter.add(Calendar.DAY_OF_MONTH, increase)
+                }
+                cont.resume(null)
+            }
+        }
+
     }
 
 }

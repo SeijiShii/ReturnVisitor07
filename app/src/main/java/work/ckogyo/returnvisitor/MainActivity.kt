@@ -33,7 +33,6 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.utils.*
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -142,14 +141,30 @@ class MainActivity : AppCompatActivity() {
         val handler = Handler()
         GlobalScope.launch {
 
-            val latestDateElms = WorkElmList.instance.getListOfLatestDate()
+            val elmList = WorkElmList.instance
+
+            val latestDateElms = elmList.getListOfToday()
             if (latestDateElms == null) {
                 handler.post {
                     Toast.makeText(this@MainActivity, R.string.no_data_recoreded, Toast.LENGTH_SHORT).show()
                 }
             } else {
+
+                val date = WorkElmList.getDate(latestDateElms)!!
+                val previousDateElms = elmList.getListOfNeighboringDate(date, true)
+                val nextDateElms = elmList.getListOfNeighboringDate(date, false)
+
+                var merged = ArrayList<WorkElement>(latestDateElms)
+                if (previousDateElms != null) {
+                    merged = WorkElmList.mergeAvoidingDup(merged, previousDateElms)
+                }
+
+                if (nextDateElms != null) {
+                    merged = WorkElmList.mergeAvoidingDup(merged, nextDateElms)
+                }
+
                 val transaction = supportFragmentManager.beginTransaction()
-                val workFragment = WorkFragment(latestDateElms)
+                val workFragment = WorkFragment(merged)
                 transaction.addToBackStack(null)
                 transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
                 transaction.commit()

@@ -76,15 +76,17 @@ class WorkCollection {
         }
     }
 
-    suspend fun getFirstRecordedDate(): Calendar? = suspendCoroutine { cont ->
+    suspend fun getRecordedDateAtEnd(getFirst: Boolean): Calendar? = suspendCoroutine { cont ->
 
         val db = FirebaseDB.instance
         if (db.userDoc == null) {
             cont.resume(null)
         } else {
             GlobalScope.launch {
+                val direction = if (getFirst) Query.Direction.ASCENDING else Query.Direction.DESCENDING
+                val key = if (getFirst) startKey else endKey
                 val query = db.userDoc!!.collection(worksKey)
-                    .orderBy(startKey, Query.Direction.ASCENDING)
+                    .orderBy(key, direction)
                     .limit(1)
                 query.get().addOnSuccessListener {
                     if (it.documents.size > 0) {

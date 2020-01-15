@@ -3,6 +3,8 @@ package work.ckogyo.returnvisitor.views
 import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.work_elm_cell.view.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.WorkElement
@@ -14,7 +16,7 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
     init {
         View.inflate(context, R.layout.work_elm_cell, this)
         // Layout XMLでセットしているはずなのにここでやらないと効かない
-        layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+        layoutParams = RecyclerView.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
     }
 
     var dataElm: WorkElement? = null
@@ -58,7 +60,7 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         when(dataElm!!.category) {
             WorkElement.Category.WorkStart -> {
                 timeLabel.text = context.getText(R.string.start)
-                (layoutParams as LayoutParams).topMargin = context.toDP(5)
+                (layoutParams as RecyclerView.LayoutParams).topMargin = context.toDP(5)
             }
             WorkElement.Category.WorkEnd -> {
                 timeLabel.text = context.getText(R.string.end)
