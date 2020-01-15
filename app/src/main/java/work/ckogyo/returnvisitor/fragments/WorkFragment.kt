@@ -9,14 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.work_fragment.*
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.models.Visit
-import work.ckogyo.returnvisitor.models.Work
-import work.ckogyo.returnvisitor.models.WorkListElm
+import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.views.WorkElmCell
-import java.util.*
 import kotlin.collections.ArrayList
 
-class WorkFragment(val dataElms: ArrayList<WorkListElm>) : Fragment() {
+class WorkFragment(val dataElms: ArrayList<WorkElement>) : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,7 +29,7 @@ class WorkFragment(val dataElms: ArrayList<WorkListElm>) : Fragment() {
         workListView.adapter = WorkElmAdapter(context!!, dataElms)
     }
 
-    class WorkElmAdapter(private val context: Context, val dataElms: ArrayList<WorkListElm>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    class WorkElmAdapter(private val context: Context, val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             return WorkElmViewHolder(WorkElmCell(context))
@@ -49,7 +46,7 @@ class WorkFragment(val dataElms: ArrayList<WorkListElm>) : Fragment() {
 
     class WorkElmViewHolder(private val elmCell: WorkElmCell): RecyclerView.ViewHolder(elmCell) {
 
-        var dataElm : WorkListElm? = null
+        var dataElm : WorkElement? = null
         set(value) {
             field = value
             elmCell.dataElm = field

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -29,7 +30,8 @@ import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
 import work.ckogyo.returnvisitor.fragments.WorkFragment
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
-import work.ckogyo.returnvisitor.models.WorkListElm
+import work.ckogyo.returnvisitor.models.WorkElement
+import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 
@@ -137,15 +139,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showWorkFragment() {
+        val handler = Handler()
         GlobalScope.launch {
 
-            val dataElms = WorkListElm.generateListByDate(Calendar.getInstance())
-
-            val transaction = supportFragmentManager.beginTransaction()
-            val workFragment = WorkFragment(dataElms)
-            transaction.addToBackStack(null)
-            transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
-            transaction.commit()
+            val latestDateElms = WorkElmList.instance.getListOfLatestDate()
+            if (latestDateElms == null) {
+                handler.post {
+                    Toast.makeText(this@MainActivity, R.string.no_data_recoreded, Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                val transaction = supportFragmentManager.beginTransaction()
+                val workFragment = WorkFragment(latestDateElms)
+                transaction.addToBackStack(null)
+                transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
+                transaction.commit()
+            }
         }
     }
 

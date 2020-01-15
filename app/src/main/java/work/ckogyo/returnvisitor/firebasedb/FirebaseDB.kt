@@ -59,17 +59,17 @@ class FirebaseDB {
 
             if (userDoc == null) {
                 cont.resume(list)
-            }
+            } else {
+                userDoc!!.collection(colName).get().addOnSuccessListener {
 
-            userDoc!!.collection(colName).get().addOnSuccessListener {
+                    for (doc in it.documents) {
+                        list.add(doc.data as HashMap<String, Any>)
+                    }
+                    cont.resume(list)
 
-                for (doc in it.documents) {
-                    list.add(doc.data as HashMap<String, Any>)
+                }.addOnFailureListener {
+                    cont.resume(list)
                 }
-                cont.resume(list)
-
-            }.addOnFailureListener {
-                cont.resume(list)
             }
         }
     }
@@ -112,12 +112,12 @@ class FirebaseDB {
 
         if (userDoc == null) {
             cont.resume(false)
-        }
-
-        userDoc!!.collection(collName).document(id).set(map).addOnSuccessListener {
-            cont.resume(true)
-        }.addOnFailureListener {
-            cont.resume(false)
+        } else {
+            userDoc!!.collection(collName).document(id).set(map).addOnSuccessListener {
+                cont.resume(true)
+            }.addOnFailureListener {
+                cont.resume(false)
+            }
         }
     }
 

@@ -5,7 +5,7 @@ import android.view.View
 import android.widget.FrameLayout
 import kotlinx.android.synthetic.main.work_elm_cell.view.*
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.models.WorkListElm
+import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.utils.getTimeText
 import work.ckogyo.returnvisitor.utils.toDP
 
@@ -17,7 +17,7 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
     }
 
-    var dataElm: WorkListElm? = null
+    var dataElm: WorkElement? = null
     set(value) {
         field = value
 
@@ -35,10 +35,10 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         visitCellFrame.visibility = View.GONE
 
         when(dataElm!!.category) {
-            WorkListElm.Category.DateBorder -> refreshDateBorderCellFrame()
-            WorkListElm.Category.WorkStart,
-                WorkListElm.Category.WorkEnd -> refreshWorkCellFrame()
-            WorkListElm.Category.Visit -> refreshVisitCellFrame()
+            WorkElement.Category.DateBorder -> refreshDateBorderCellFrame()
+            WorkElement.Category.WorkStart,
+                WorkElement.Category.WorkEnd -> refreshWorkCellFrame()
+            WorkElement.Category.Visit -> refreshVisitCellFrame()
         }
     }
 
@@ -56,11 +56,11 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         workCellFrame.visibility = View.VISIBLE
 
         when(dataElm!!.category) {
-            WorkListElm.Category.WorkStart -> {
+            WorkElement.Category.WorkStart -> {
                 timeLabel.text = context.getText(R.string.start)
                 (layoutParams as LayoutParams).topMargin = context.toDP(5)
             }
-            WorkListElm.Category.WorkEnd -> {
+            WorkElement.Category.WorkEnd -> {
                 timeLabel.text = context.getText(R.string.end)
             }
         }

@@ -1,10 +1,12 @@
 package work.ckogyo.returnvisitor.firebasedb
 
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -29,16 +31,16 @@ class VisitCollection {
 
         if (db.userDoc == null) {
             cont.resume(visitsToPlace)
-        }
-
-        db.userDoc!!.collection(visitsKey).whereEqualTo(
-            placeIdKey, place.id).get().addOnSuccessListener {
-            GlobalScope.launch {
-                visitsToPlace = querySnapshotToVisitList(it)
+        } else {
+            db.userDoc!!.collection(visitsKey).whereEqualTo(
+                placeIdKey, place.id).get().addOnSuccessListener {
+                GlobalScope.launch {
+                    visitsToPlace = querySnapshotToVisitList(it)
+                    cont.resume(visitsToPlace)
+                }
+            }.addOnFailureListener {
                 cont.resume(visitsToPlace)
             }
-        }.addOnFailureListener {
-            cont.resume(visitsToPlace)
         }
     }
 
@@ -78,23 +80,77 @@ class VisitCollection {
 
         if (db.userDoc == null) {
             cont.resume(visits)
-        }
+        } else {
+            val startOfDay = cloneDateWith0Time(date)
+            val endOfDay = cloneDateWith0Time(date)
+            endOfDay.add(Calendar.DATE, 1)
 
-        val startOfDay = cloneDateWith0Time(date)
-        val endOfDay = cloneDateWith0Time(date)
-        endOfDay.add(Calendar.DATE, 1)
-
-        db.userDoc!!.collection(visitsKey)
-            .whereGreaterThanOrEqualTo(dateTimeMillisKey, startOfDay.timeInMillis)
-            .whereLessThan(dateTimeMillisKey, endOfDay.timeInMillis)
-            .get().addOnSuccessListener {
-                GlobalScope.launch {
-                    cont.resume(querySnapshotToVisitList(it))
+            db.userDoc!!.collection(visitsKey)
+                .whereGreaterThanOrEqualTo(dateTimeMillisKey, startOfDay.timeInMillis)
+                .whereLessThan(dateTimeMillisKey, endOfDay.timeInMillis)
+                .get().addOnSuccessListener {
+                    GlobalScope.launch {
+                        cont.resume(querySnapshotToVisitList(it))
+                    }
+                }.addOnFailureListener {
+                    cont.resume(visits)
                 }
-            }.addOnFailureListener {
-                cont.resume(visits)
-            }
+        }
     }
+
+    suspend fun aDayHasVisit(date: Calendar):Boolean = suspendCoroutine { cont ->
+
+        val db = FirebaseDB.instance
+        if (db.userDoc == null) {
+            cont.resume(false)
+        } else {
+            val startOfDay = cloneDateWith0Time(date)
+            val endOfDay = cloneDateWith0Time(date)
+            endOfDay.add(Calendar.DATE, 1)
+
+            db.userDoc!!.collection(visitsKey)
+                .whereGreaterThanOrEqualTo(dateTimeMillisKey, startOfDay.timeInMillis)
+                .whereLessThan(dateTimeMillisKey, endOfDay.timeInMillis)
+                .get().addOnSuccessListener {
+                    if (it.documents.size > 0) {
+                        cont.resume(true)
+                    } else {
+                        cont.resume(false)
+                    }
+                }.addOnFailureListener {
+                    cont.resume(false)
+                }
+        }
+    }
+
+    suspend fun getFirstRecordedDate(): Calendar? = suspendCoroutine { cont ->
+
+        val db = FirebaseDB.instance
+        if (db.userDoc == null) {
+            cont.resume(null)
+        } else {
+            GlobalScope.launch {
+                val query = db.userDoc!!.collection(visitsKey)
+                    .orderBy(dateTimeMillisKey, Query.Direction.ASCENDING)
+                    .limit(1)
+                query.get().addOnSuccessListener {
+                    if (it.documents.size > 0) {
+                        val data = it.documents[0].data as HashMap<String, Any>
+                        val visit = Visit()
+                        GlobalScope.launch {
+                            visit.initFromHashMap(data, db)
+                            cont.resume(visit.dateTime)
+                        }
+                    } else {
+                        cont.resume(null)
+                    }
+                }.addOnFailureListener {
+                    cont.resume(null)
+                }
+            }
+        }
+    }
+
 
 //    suspend fun loadVisitsByDateRange(startDate: Calendar, endDate: Calendar): ArrayList<Visit> {
 //
@@ -131,17 +187,17 @@ class VisitCollection {
 
         if (db.userDoc == null) {
             cont.resume(false)
-        }
-
-        GlobalScope.launch {
-            db.userDoc!!.collection(visitsKey).whereEqualTo(
-                placeIdKey, place.id).get().addOnSuccessListener {
-                for (doc in it) {
-                    doc.reference.delete()
-                    cont.resume(true)
+        } else {
+            GlobalScope.launch {
+                db.userDoc!!.collection(visitsKey).whereEqualTo(
+                    placeIdKey, place.id).get().addOnSuccessListener {
+                    for (doc in it) {
+                        doc.reference.delete()
+                        cont.resume(true)
+                    }
+                }.addOnFailureListener {
+                    cont.resume(false)
                 }
-            }.addOnFailureListener {
-                cont.resume(false)
             }
         }
     }
