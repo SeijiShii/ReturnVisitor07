@@ -1,6 +1,7 @@
 package work.ckogyo.returnvisitor
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -96,6 +97,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         refreshLoginOverlay()
+        switchProgressOverlay(false)
         isAppVisible = true
     }
 
@@ -138,6 +140,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showWorkFragment() {
+
+        switchProgressOverlay(true)
+
         val handler = Handler()
         GlobalScope.launch {
 
@@ -170,6 +175,10 @@ class MainActivity : AppCompatActivity() {
                 transaction.addToBackStack(null)
                 transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
                 transaction.commit()
+
+                handler.post{
+                    switchProgressOverlay(false)
+                }
             }
         }
     }
@@ -308,6 +317,25 @@ class MainActivity : AppCompatActivity() {
             loginOverlay.setOnTouchListener(null)
             loginOverlay.visibility = View.GONE
             0f
+        }
+    }
+
+    private fun switchProgressOverlay(show: Boolean) {
+
+        val origin = progressOverlay.alpha
+        val target = if (show) 1f else 0f
+
+        val animator = ValueAnimator.ofFloat(origin, target)
+        animator.duration = 300
+        animator.addUpdateListener {
+            progressOverlay.alpha = it.animatedValue as Float
+        }
+        animator.start()
+
+        if (show) {
+            progressOverlay.setOnTouchListener { _, _ -> true }
+        } else {
+            progressOverlay.setOnTouchListener(null)
         }
     }
 
