@@ -163,6 +163,8 @@ class MainActivity : AppCompatActivity() {
                     merged = WorkElmList.mergeAvoidingDup(merged, nextDateElms)
                 }
 
+                WorkElmList.refreshIsVisitInWork(merged)
+
                 val transaction = supportFragmentManager.beginTransaction()
                 val workFragment = WorkFragment(merged)
                 transaction.addToBackStack(null)

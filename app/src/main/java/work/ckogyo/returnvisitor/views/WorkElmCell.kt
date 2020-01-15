@@ -36,6 +36,9 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         workCellFrame.visibility = View.GONE
         visitCellFrame.visibility = View.GONE
 
+        (layoutParams as RecyclerView.LayoutParams).topMargin = 0
+        (layoutParams as RecyclerView.LayoutParams).bottomMargin = 0
+
         when(dataElm!!.category) {
             WorkElement.Category.DateBorder -> refreshDateBorderCellFrame()
             WorkElement.Category.WorkStart,
@@ -60,10 +63,11 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         when(dataElm!!.category) {
             WorkElement.Category.WorkStart -> {
                 timeLabel.text = context.getText(R.string.start)
-                (layoutParams as RecyclerView.LayoutParams).topMargin = context.toDP(5)
+                (layoutParams as RecyclerView.LayoutParams).topMargin = context.toDP(3)
             }
             WorkElement.Category.WorkEnd -> {
                 timeLabel.text = context.getText(R.string.end)
+                (layoutParams as RecyclerView.LayoutParams).bottomMargin = context.toDP(3)
             }
         }
 
@@ -73,6 +77,13 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
     private fun refreshVisitCellFrame() {
         dataElm ?: return
         visitCellFrame.visibility = View.VISIBLE
+
+        leftBorder.visibility = if (dataElm!!.isVisitInWork) {
+            View.VISIBLE
+        }  else {
+            View.GONE
+        }
+        rightBorder.visibility = leftBorder.visibility
     }
 
 

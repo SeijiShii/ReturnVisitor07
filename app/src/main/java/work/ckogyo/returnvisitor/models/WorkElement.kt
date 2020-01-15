@@ -29,6 +29,8 @@ class WorkElement(val category: Category) {
     var visit: Visit? = null
     private var borderDate: Calendar? = null
 
+    var isVisitInWork = false
+
 
     var dateTime: Calendar
         get() {

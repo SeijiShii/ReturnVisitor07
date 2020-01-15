@@ -27,6 +27,7 @@ class WorkFragment(val dataElms: ArrayList<WorkElement>) : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         workListView.adapter = WorkElmAdapter(context!!, dataElms)
+        view.setOnTouchListener { _, _ -> true }
     }
 
     class WorkElmAdapter(private val context: Context, val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {

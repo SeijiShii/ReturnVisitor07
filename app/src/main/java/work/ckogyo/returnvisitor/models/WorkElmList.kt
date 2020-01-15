@@ -34,8 +34,15 @@ class WorkElmList {
             for (elm2 in elms2) {
                 var contained = false
                 for (elm in merged) {
-                    if (elm2.visit != null && elm.visit != null && elm2.visit == elm.visit
-                        || elm2.work != null && elm.work != null && elm2.work == elm.work
+                    if (elm2.category == WorkElement.Category.Visit
+                            && elm.category == WorkElement.Category.Visit
+                            && elm2.visit == elm.visit
+                        || elm2.category == WorkElement.Category.WorkStart
+                            && elm.category == WorkElement.Category.WorkStart
+                            && elm2.work == elm.work
+                        || elm2.category == WorkElement.Category.WorkEnd
+                            && elm.category == WorkElement.Category.WorkEnd
+                            && elm2.work == elm.work
                         || elm2.category == WorkElement.Category.DateBorder
                             && elm.category == WorkElement.Category.DateBorder
                             && areSameDates(elm2.dateTime, elm.dateTime)) {
@@ -50,6 +57,26 @@ class WorkElmList {
 
             merged.sortBy { elm -> elm.dateTime.timeInMillis }
             return merged
+        }
+
+        fun refreshIsVisitInWork(elms: ArrayList<WorkElement>) {
+
+            for(elm1 in elms) {
+                elm1.isVisitInWork = false
+                if (elm1.category == WorkElement.Category.Visit) {
+                    for (elm2 in elms) {
+                        if (elm2.category == WorkElement.Category.WorkStart) {
+
+                            if (elm2.work!!.start.timeInMillis <= elm1.dateTime.timeInMillis
+                                && elm1.dateTime.timeInMillis <= elm2.work!!.end.timeInMillis) {
+                                elm1.isVisitInWork = true
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+
         }
     }
 
