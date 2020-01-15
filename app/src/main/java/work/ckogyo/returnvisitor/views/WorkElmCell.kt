@@ -86,5 +86,14 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         rightBorder.visibility = leftBorder.visibility
     }
 
+    fun attacheVisitCell(visitCell: VisitCell) {
+        visitCellWrapper.addView(visitCell)
+    }
+
+    fun detachVisitCell() {
+        visitCellWrapper.removeAllViews()
+    }
+
+
 
 }

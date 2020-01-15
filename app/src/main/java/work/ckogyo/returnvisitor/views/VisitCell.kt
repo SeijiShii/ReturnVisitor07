@@ -14,7 +14,7 @@ import work.ckogyo.returnvisitor.utils.ratingToColorButtonResId
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
 
-class VisitCell(context: Context, private val visit: Visit) :HeightAnimationView(context) {
+class VisitCell(context: Context, val visit: Visit) :HeightAnimationView(context) {
 
     override val collapseHeight: Int
         get() = context.toDP(50)

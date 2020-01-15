@@ -73,7 +73,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:id="@+id/visitCellFrame">
 
@@ -83,11 +83,11 @@
             android:background="@color/colorPrimary"
             android:id="@+id/leftBorder"/>
 
-        <View
+        <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@color/dodgerBlue"/>
+            android:id="@+id/visitCellWrapper"/>
 
         <View
             android:layout_width="5dp"
