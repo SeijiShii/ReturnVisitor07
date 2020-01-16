@@ -12,11 +12,13 @@ import kotlinx.android.synthetic.main.work_fragment.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.WorkElement
+import work.ckogyo.returnvisitor.utils.areSameDates
 import work.ckogyo.returnvisitor.views.VisitCell
 import work.ckogyo.returnvisitor.views.WorkElmCell
+import java.util.*
 import kotlin.collections.ArrayList
 
-class WorkFragment(val dataElms: ArrayList<WorkElement>) : Fragment() {
+class WorkFragment(val dataElms: ArrayList<WorkElement>, private val dateToShow: Calendar) : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,8 +31,15 @@ class WorkFragment(val dataElms: ArrayList<WorkElement>) : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        workListView.adapter = WorkElmAdapter(context!!, dataElms)
+        val adapter = WorkElmAdapter(context!!, dataElms)
+
+        workListView.adapter = adapter
         view.setOnTouchListener { _, _ -> true }
+
+        val position = adapter.getPositionByDate(dateToShow)
+        if (position > 0) {
+            workListView.layoutManager!!.scrollToPosition(position)
+        }
     }
 
     class WorkElmAdapter(private val context: Context, val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -72,6 +81,15 @@ class WorkFragment(val dataElms: ArrayList<WorkElement>) : Fragment() {
             val cell = VisitCell(context, visit)
             visitCells.add(cell)
             return cell
+        }
+
+        fun getPositionByDate(date: Calendar): Int {
+            for (i in 0 until dataElms.size) {
+                if (areSameDates(date, dataElms[i].dateTime)) {
+                    return i
+                }
+            }
+            return -1
         }
 
     }

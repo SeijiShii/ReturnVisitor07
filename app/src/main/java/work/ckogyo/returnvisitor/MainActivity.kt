@@ -171,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                 WorkElmList.refreshIsVisitInWork(merged)
 
                 val transaction = supportFragmentManager.beginTransaction()
-                val workFragment = WorkFragment(merged)
+                val workFragment = WorkFragment(merged, date)
                 transaction.addToBackStack(null)
                 transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
                 transaction.commit()
