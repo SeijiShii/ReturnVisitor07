@@ -15,6 +15,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.android.synthetic.main.main_activity.*
 import kotlinx.android.synthetic.main.map_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
@@ -220,6 +221,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         super.onPause()
 
         saveCameraPosition()
+        googleMap.isMyLocationEnabled = false
     }
 
     private fun saveCameraPosition() {
@@ -274,6 +276,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
             OnFinishEditParam.Done -> {
 
+                mainActivity?.progressOverlay?.fadeVisibility(true)
                 placeMarkers.remove(visit.place)
 
                 places.add(visit.place)
@@ -294,6 +297,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                     handler.post{
                         placeMarkers.addMarker(visit.place)
+                        mainActivity?.progressOverlay?.fadeVisibility(false)
                     }
                 }
 
