@@ -3,6 +3,7 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
@@ -53,7 +54,7 @@ class Visit : BaseDataModel {
         }
     }
 
-    suspend fun initFromHashMap(map: HashMap<String, Any>, db: FirebaseDB, place2: Place? = null): Visit  = suspendCoroutine { cont ->
+    suspend fun initVisitFromHashMap(map: HashMap<String, Any>, place2: Place? = null): Visit  = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)
 
@@ -71,7 +72,7 @@ class Visit : BaseDataModel {
                 personVisits.add(pv)
             }
 
-            val placeId = map[placesKey].toString()
+            val placeId = map[placeIdKey].toString()
 
             if (place2 != null) {
                 place = place2

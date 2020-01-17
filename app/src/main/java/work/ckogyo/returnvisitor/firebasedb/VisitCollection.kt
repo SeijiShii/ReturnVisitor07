@@ -65,7 +65,7 @@ class VisitCollection {
         GlobalScope.launch {
             if (qs != null) {
                 for (doc in qs.documents) {
-                    val v = Visit().initFromHashMap(doc.data as HashMap<String, Any>, FirebaseDB.instance)
+                    val v = Visit().initVisitFromHashMap(doc.data as HashMap<String, Any>)
                     visits.add(v)
                 }
             }
@@ -139,7 +139,7 @@ class VisitCollection {
                         val data = it.documents[0].data as HashMap<String, Any>
                         val visit = Visit()
                         GlobalScope.launch {
-                            visit.initFromHashMap(data, db)
+                            visit.initVisitFromHashMap(data)
                             cont.resume(visit.dateTime)
                         }
                     } else {

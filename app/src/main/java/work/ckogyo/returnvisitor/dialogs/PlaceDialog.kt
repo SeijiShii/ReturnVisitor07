@@ -173,12 +173,16 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             place.refreshRatingByVisits(visitsToPlace)
 
             visitColl.set(visit)
-            TimeCountIntentService.saveWorkIfActive()
+
+            // すでに記録してある場所に留守を追加しても場所のステートは変化させないので場所データは更新しない
 
             // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+            TimeCountIntentService.saveWorkIfActive()
 
-            refreshColorMark()
-            addVisitCell(visit)
+            handler.post {
+                refreshColorMark()
+                addVisitCell(visit)
+            }
         }
     }
 }
