@@ -52,8 +52,6 @@ class MainActivity : AppCompatActivity() {
     val isLoggedIn : Boolean
     get() = auth.currentUser != null
 
-//    lateinit var db: FirebaseDB
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -66,8 +64,6 @@ class MainActivity : AppCompatActivity() {
 
         initGoogleSignIn()
         FirebaseDB.initialize(auth)
-
-//        db = FirebaseDB(auth)
 
     }
 
@@ -97,7 +93,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         refreshLoginOverlay()
-        switchProgressOverlay(false)
+        progressOverlay.fadeVisibility(false)
         isAppVisible = true
     }
 
@@ -141,7 +137,7 @@ class MainActivity : AppCompatActivity() {
 
     fun showWorkFragment() {
 
-        switchProgressOverlay(true)
+        progressOverlay.fadeVisibility(true)
 
         val handler = Handler()
         GlobalScope.launch {
@@ -177,7 +173,7 @@ class MainActivity : AppCompatActivity() {
                 transaction.commit()
 
                 handler.post{
-                    switchProgressOverlay(false)
+                    progressOverlay.fadeVisibility(false)
                 }
             }
         }
@@ -317,25 +313,6 @@ class MainActivity : AppCompatActivity() {
             loginOverlay.setOnTouchListener(null)
             loginOverlay.visibility = View.GONE
             0f
-        }
-    }
-
-    private fun switchProgressOverlay(show: Boolean) {
-
-        val origin = progressOverlay.alpha
-        val target = if (show) 1f else 0f
-
-        val animator = ValueAnimator.ofFloat(origin, target)
-        animator.duration = 300
-        animator.addUpdateListener {
-            progressOverlay.alpha = it.animatedValue as Float
-        }
-        animator.start()
-
-        if (show) {
-            progressOverlay.setOnTouchListener { _, _ -> true }
-        } else {
-            progressOverlay.setOnTouchListener(null)
         }
     }
 

@@ -81,6 +81,8 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun initVisitList() {
 
+        loadingVisitsOfPlaceProgress.fadeVisibility(true)
+
         GlobalScope.launch {
 
             val visits = VisitCollection.instance.loadVisitsOfPlace(place)
@@ -94,6 +96,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
                 for (visit in visitsToPlace) {
                     addVisitCell(visit)
                 }
+                loadingVisitsOfPlaceProgress.fadeVisibility(false)
             }
         }
     }

@@ -50,19 +50,37 @@
             android:layout_height="1dp"
             android:background="@color/lightGray"/>
 
-    <ScrollView
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="match_parent"
             android:layout_margin="3dp"
             android:paddingLeft="10dp">
-        <LinearLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:id="@+id/visitListContent"/>
 
-    </ScrollView>
+        </ScrollView>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ProgressBar
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_centerInParent="true"
+                android:id="@+id/loadingVisitsOfPlaceProgress"/>
+
+        </RelativeLayout>
+
+    </FrameLayout>
 
     <LinearLayout
             android:layout_width="match_parent"
