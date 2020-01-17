@@ -11,6 +11,7 @@ import work.ckogyo.returnvisitor.models.Place
 class PlacePopup(context: Context, place: Place) : LinearLayout(context) {
 
     var onClickButton: ((place: Place) -> Unit)? = null
+    var onClickNotHomeButton: ((place: Place) -> Unit)? = null
     var onCancel: ((place: Place) -> Unit)? = null
 
     init {
@@ -41,6 +42,12 @@ class PlacePopup(context: Context, place: Place) : LinearLayout(context) {
         recordPlaceButton.setOnClickListener {
             place.category = Place.Category.Place
             onClickButton?.invoke(place)
+            remove()
+        }
+
+        recordNotHomeButton.setOnClickListener {
+            place.category = Place.Category.House
+            onClickNotHomeButton?.invoke(place)
             remove()
         }
 

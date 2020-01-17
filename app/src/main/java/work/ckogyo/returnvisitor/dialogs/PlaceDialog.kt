@@ -175,7 +175,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             visitColl.set(visit)
             TimeCountIntentService.saveWorkIfActive()
 
-            // TODO: Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+            // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
 
             refreshColorMark()
             addVisitCell(visit)

@@ -21,7 +21,6 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
-import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
@@ -95,6 +94,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
 
             popup.onClickButton = this::onClickButtonInPlacePopup
+            popup.onClickNotHomeButton = this::onNotHomeRecorded
             mapOuterFrame.addView(popup)
         }
 
@@ -175,7 +175,37 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onClickButtonInPlacePopup(place: Place) {
+
         mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
+    }
+
+    private fun onNotHomeRecorded(place: Place) {
+        // TODO: 留守宅ボタンが押されたとき
+        placeMarkers.remove(place)
+
+        places.add(place)
+
+        val visit = Visit()
+        visit.place = place
+        visit.rating = Visit.Rating.NotHome
+
+        GlobalScope.launch {
+            val placeColl = PlaceCollection.instance
+            val visitColl = VisitCollection.instance
+
+            val visitsOfPlace = arrayListOf(visit)
+            place.refreshRatingByVisits(visitsOfPlace)
+
+            visitColl.set(visit)
+            placeColl.set(place)
+
+            handler.post {
+                placeMarkers.addMarker(place)
+            }
+        }
+
+        // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+        TimeCountIntentService.saveWorkIfActive()
     }
 
     override fun onResume() {
@@ -234,8 +264,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
 
-        val db = FirebaseDB.instance
-
         when(param) {
             OnFinishEditParam.Canceled -> {
                 when(mode) {
@@ -251,19 +279,25 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 places.add(visit.place)
 
                 GlobalScope.launch {
+                    val placeColl = PlaceCollection.instance
                     val visitColl = VisitCollection.instance
                     val visitsOfPlace = visitColl.loadVisitsOfPlace(visit.place)
                     visitsOfPlace.add(visit)
                     visit.place.refreshRatingByVisits(visitsOfPlace)
-                    placeMarkers.addMarker(visit.place)
+
                     visitColl.set(visit)
+                    placeColl.set(visit.place)
 
                     for (person in visit.persons) {
                         PersonCollection.instance.set(person)
                     }
+
+                    handler.post{
+                        placeMarkers.addMarker(visit.place)
+                    }
                 }
 
-                // TODO: Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+                // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                 TimeCountIntentService.saveWorkIfActive()
             }
             OnFinishEditParam.Deleted -> {
