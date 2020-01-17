@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.map_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.dialogs.HousingComplexDialog
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
@@ -105,12 +106,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             if (id != null) {
                 val place = getPlaceById(id)
                 if (place != null) {
-                    val dialog = PlaceDialog(place)
-                    dialog.onClose = this::onClosePlaceDialog
-                    dialog.onRefreshPlace = this::onRefreshPlaceInPlaceDialog
-                    dialog.onEditVisitInvoked = this::onEditVisitInvokedInPlaceDialog
-                    dialog.onRecordNewVisitInvoked = this::onRecordNewVisitInvokedInPlaceDialog
-                    mainActivity?.showDialog(dialog)
+                    when(place.category) {
+                        Place.Category.Place,
+                        Place.Category.House -> showPlaceDialog(place)
+                        Place.Category.HousingComplex -> {}
+                    }
                 }
             }
             return@setOnMarkerClickListener true
@@ -120,6 +120,20 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         isMapReady = true
 
+    }
+
+    private fun showPlaceDialog(place: Place) {
+        val dialog = PlaceDialog(place)
+        dialog.onClose = this::onClosePlaceDialog
+        dialog.onRefreshPlace = this::onRefreshPlaceInPlaceDialog
+        dialog.onEditVisitInvoked = this::onEditVisitInvokedInPlaceDialog
+        dialog.onRecordNewVisitInvoked = this::onRecordNewVisitInvokedInPlaceDialog
+        mainActivity?.showDialog(dialog)
+    }
+
+    private fun showHousingComplexDialog(hComplex: Place) {
+        val dialog = HousingComplexDialog(hComplex)
+        mainActivity?.showDialog(dialog)
     }
 
     private var isMapReady = false
@@ -177,7 +191,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun onClickButtonInPlacePopup(place: Place) {
 
-        mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
+        when(place.category) {
+            Place.Category.Place,
+            Place.Category.House -> {
+                mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
+            }
+            Place.Category.HousingComplex -> showHousingComplexDialog(place)
+        }
+
     }
 
     private fun onNotHomeRecorded(place: Place) {
