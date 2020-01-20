@@ -12,6 +12,8 @@ import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.record_visit_fragment.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
@@ -19,10 +21,7 @@ import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.PersonVisit
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
-import work.ckogyo.returnvisitor.utils.EditMode
-import work.ckogyo.returnvisitor.utils.OnFinishEditParam
-import work.ckogyo.returnvisitor.utils.confirmDeleteVisit
-import work.ckogyo.returnvisitor.utils.setOnClick
+import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.PersonVisitCell
 import java.text.SimpleDateFormat
 import java.time.Year
@@ -84,6 +83,7 @@ class RecordVisitFragment : Fragment(),
         okButton.setOnClickListener {
 
             visit.description = descriptionText.text.toString()
+            visit.place.name = placeNameText.text.toString()
 
             onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Done)
             mainActivity?.supportFragmentManager?.popBackStack()
@@ -96,7 +96,13 @@ class RecordVisitFragment : Fragment(),
             }
         }
 
-        requestAddressIfNeeded()
+        val handler = Handler()
+        GlobalScope.launch {
+            val address = requestAddressIfNeeded(visit.place, context!!)
+            handler.post {
+                addressText.setText(address)
+            }
+        }
 
         interestRater.refresh(visit.rating.ordinal)
         interestRater.onClickButton = {
@@ -128,26 +134,6 @@ class RecordVisitFragment : Fragment(),
 
         val pvCell = PersonVisitCell(pv, context!!)
         personVisitContainer.addView(pvCell)
-    }
-
-    private fun requestAddressIfNeeded() {
-
-        if(visit.place.address.isNotEmpty()) {
-            addressText.setText(visit.place.address)
-        } else {
-            val handler = Handler()
-            thread {
-                val geocoder = Geocoder(context!!, Locale.getDefault())
-                val addressList = geocoder.getFromLocation(visit.place.latLng.latitude, visit.place.latLng.longitude, 1)
-                if (addressList.isNotEmpty()) {
-                    visit.place.address = addressList[0].getAddressLine(0)
-                }
-
-                handler.post {
-                    addressText.setText(visit.place.address)
-                }
-            }
-        }
     }
 
     private fun initDateTimeTexts() {

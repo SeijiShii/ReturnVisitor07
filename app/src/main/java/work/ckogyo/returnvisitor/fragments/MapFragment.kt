@@ -20,7 +20,6 @@ import kotlinx.android.synthetic.main.map_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.dialogs.HousingComplexDialog
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection

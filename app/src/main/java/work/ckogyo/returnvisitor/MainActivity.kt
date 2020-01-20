@@ -138,6 +138,7 @@ class MainActivity : AppCompatActivity() {
     fun showHousingComplexFragment(hComplex: Place) {
         val transaction = supportFragmentManager.beginTransaction()
         val hcFragment = HousingComplexFragment()
+        hcFragment.hComplex = hComplex
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
         transaction.commit()

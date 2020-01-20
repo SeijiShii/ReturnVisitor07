@@ -54,6 +54,16 @@
 
             <EditText
                 android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:textSize="14sp"
+                android:hint="@string/housing_complex_name"
+                android:id="@+id/housingComplexNameText"
+                android:background="@drawable/gray_border_round"
+                android:layout_margin="3dp"
+                android:gravity="start|center_vertical"/>
+
+            <EditText
+                android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:textSize="14sp"
                 android:hint="@string/address"

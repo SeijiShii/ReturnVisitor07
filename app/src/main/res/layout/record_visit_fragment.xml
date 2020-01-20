@@ -32,21 +32,31 @@
                 android:orientation="vertical">
 
             <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="70dp"
-                    android:textSize="14sp"
-                    android:hint="@string/address"
-                    android:id="@+id/addressText"
-                    android:background="@drawable/gray_border_round"
-                    android:layout_margin="3dp"
-                    android:gravity="start|top"/>
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:textSize="16sp"
+                android:hint="@string/place_name"
+                android:id="@+id/placeNameText"
+                android:background="@drawable/gray_border_round"
+                android:layout_margin="3dp"
+                android:gravity="start|center_vertical"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:textSize="14sp"
+                android:hint="@string/address"
+                android:id="@+id/addressText"
+                android:background="@drawable/gray_border_round"
+                android:layout_margin="3dp"
+                android:gravity="start|top"/>
 
             <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:orientation="horizontal"
-                    android:background="@drawable/gray_border_round"
-                    android:layout_margin="3dp">
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal"
+                android:background="@drawable/gray_border_round"
+                android:layout_margin="3dp">
 
                 <TextView
                         android:layout_width="0dp"
