@@ -108,9 +108,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     when(place.category) {
                         Place.Category.Place,
                         Place.Category.House -> showPlaceDialog(place)
-                        Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place){ hComplex ->
-                            placeMarkers.refreshMarker(hComplex)
-                        }
+                        Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
+                            onOk = this::onOkInHousingComplexFragment,
+                            onDeleted = this::onDeleteInHousingComplexFragment)
                     }
                 }
             }
@@ -121,6 +121,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         isMapReady = true
 
+    }
+
+    private fun onOkInHousingComplexFragment(hComplex: Place) {
+
+        places.remove(hComplex)
+        places.add(hComplex)
+        placeMarkers.refreshMarker(hComplex)
+    }
+
+    private fun onDeleteInHousingComplexFragment(hComplex: Place) {
+        places.remove(hComplex)
+        placeMarkers.remove(hComplex)
     }
 
     private fun showPlaceDialog(place: Place) {
@@ -194,9 +206,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             Place.Category.House -> {
                 mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
             }
-            Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place){ hComplex ->
-                placeMarkers.refreshMarker(hComplex)
-            }
+            Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
+                onOk = this::onOkInHousingComplexFragment, 
+                onDeleted = this::onDeleteInHousingComplexFragment)
         }
 
     }

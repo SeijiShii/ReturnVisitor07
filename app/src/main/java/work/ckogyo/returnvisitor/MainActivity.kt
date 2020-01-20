@@ -135,11 +135,14 @@ class MainActivity : AppCompatActivity() {
         transaction.commit()
     }
 
-    fun showHousingComplexFragment(hComplex: Place, onOk: (hComplex: Place) -> Unit) {
+    fun showHousingComplexFragment(hComplex: Place,
+                                   onOk: (hComplex: Place) -> Unit,
+                                   onDeleted: (hComplex: Place) -> Unit) {
         val transaction = supportFragmentManager.beginTransaction()
         val hcFragment = HousingComplexFragment()
         hcFragment.hComplex = hComplex
         hcFragment.onOk = onOk
+        hcFragment.onDeleted = onDeleted
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
         transaction.commit()

@@ -35,14 +35,8 @@ class Place : BaseDataModel{
         category = Category.valueOf(map[categoryKey].toString())
         rating = Visit.Rating.valueOf(map[ratingKey].toString())
 
-        val mapArrayObj = map[roomsKey]
-        if (mapArrayObj != null) {
-            val mapArray = mapArrayObj as JSONArray
-            rooms.clear()
-            for (i in 0 until mapArray.length()) {
-                val room = Place(mapArray[i] as JSONObject)
-                rooms.add(room)
-            }
+        if (category == Category.Room) {
+            parentId = map[parentIdKey].toString()
         }
     }
 
@@ -55,8 +49,9 @@ class Place : BaseDataModel{
     var category = Category.House
     var rating = Visit.Rating.None
 
-    // 集合住宅だけ
-    val rooms = ArrayList<Place>()
+    // Roomだけ
+    var parentId = ""
+
 
     override val hashMap: HashMap<String, Any>
         get() {
@@ -68,12 +63,8 @@ class Place : BaseDataModel{
             map[categoryKey] = category
             map[ratingKey] = rating
 
-            if (category == Category.HousingComplex) {
-                val mapArray = JSONArray()
-                for (room in rooms) {
-                    mapArray.put(room.hashMap)
-                }
-                map[roomsKey] = mapArray
+            if (category == Category.Room) {
+                map[parentIdKey] = parentId
             }
 
             return map

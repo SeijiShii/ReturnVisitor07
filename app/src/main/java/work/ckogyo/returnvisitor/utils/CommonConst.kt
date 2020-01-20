@@ -26,7 +26,7 @@ const val descriptionKey = "description"
 
 const val addressKey = "address"
 const val placeIdKey = "place_id"
-const val roomsKey = "rooms"
+const val parentIdKey = "parent_id" // RoomからHousingComplexを指すID
 
 const val sexKey = "sex"
 const val ageKey = "age"
