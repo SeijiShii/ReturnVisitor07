@@ -131,11 +131,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mainActivity?.showDialog(dialog)
     }
 
-    private fun showHousingComplexDialog(hComplex: Place) {
-        val dialog = HousingComplexDialog(hComplex)
-        mainActivity?.showDialog(dialog)
-    }
-
     private var isMapReady = false
     private var markerShown = false
 
@@ -196,7 +191,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             Place.Category.House -> {
                 mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
             }
-            Place.Category.HousingComplex -> showHousingComplexDialog(place)
+            Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place)
         }
 
     }

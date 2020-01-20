@@ -34,7 +34,7 @@ class RecordVisitFragment : Fragment(),
                             TimePickerDialog.OnTimeSetListener {
 
     private val mainActivity: MainActivity?
-    get() = context as? MainActivity
+        get() = context as? MainActivity
 
     var onFinishEdit: ((Visit, EditMode, OnFinishEditParam) -> Unit)? = null
 

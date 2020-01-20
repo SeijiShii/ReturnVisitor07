@@ -1,7 +1,6 @@
 package work.ckogyo.returnvisitor
 
 import android.Manifest
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -26,6 +25,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.fragments.HousingComplexFragment
 import work.ckogyo.returnvisitor.fragments.MapFragment
 import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
 import work.ckogyo.returnvisitor.fragments.WorkFragment
@@ -132,6 +132,14 @@ class MainActivity : AppCompatActivity() {
         rvFragment.mode = EditMode.Edit
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
+        transaction.commit()
+    }
+
+    fun showHousingComplexFragment(hComplex: Place) {
+        val transaction = supportFragmentManager.beginTransaction()
+        val hcFragment = HousingComplexFragment()
+        transaction.addToBackStack(null)
+        transaction.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
         transaction.commit()
     }
 

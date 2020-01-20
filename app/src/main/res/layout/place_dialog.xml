@@ -36,11 +36,12 @@
                 android:layout_height="match_parent">
 
             <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:id="@+id/placeMenuButton"
-                    android:background="@mipmap/three_dots"
-                    android:layout_centerInParent="true"/>
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:id="@+id/placeMenuButton"
+                android:background="@mipmap/three_dots"
+                android:contentDescription="@string/menu_button_description"
+                android:layout_centerInParent="true"/>
         </RelativeLayout>
 
     </LinearLayout>
