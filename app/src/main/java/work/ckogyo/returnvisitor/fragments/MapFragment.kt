@@ -207,7 +207,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
             }
             Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
-                onOk = this::onOkInHousingComplexFragment, 
+                onOk = this::onOkInHousingComplexFragment,
                 onDeleted = this::onDeleteInHousingComplexFragment)
         }
 
