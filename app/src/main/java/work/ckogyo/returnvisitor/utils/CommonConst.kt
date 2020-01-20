@@ -26,6 +26,7 @@ const val descriptionKey = "description"
 
 const val addressKey = "address"
 const val placeIdKey = "place_id"
+const val roomsKey = "rooms"
 
 const val sexKey = "sex"
 const val ageKey = "age"
@@ -41,3 +42,34 @@ const val personVisitsKey = "person_visits"
 
 const val startKey = "start"
 const val endKey = "end"
+
+val pinMarkerIds = arrayOf(
+    R.mipmap.gray_pin,
+    R.mipmap.red_pin,
+    R.mipmap.purple_pin,
+    R.mipmap.blue_pin,
+    R.mipmap.green_pin,
+    R.mipmap.yellow_pin,
+    R.mipmap.orange_pin
+)
+
+val roundMarkerIds = arrayOf(
+    R.mipmap.gray_round,
+    R.mipmap.red_round,
+    R.mipmap.purple_round,
+    R.mipmap.blue_round,
+    R.mipmap.green_round,
+    R.mipmap.yellow_round,
+    R.mipmap.orange_round
+)
+
+val squareMarkerIds = arrayOf(
+    R.mipmap.gray_square,
+    R.mipmap.red_square,
+    R.mipmap.purple_square,
+    R.mipmap.blue_square,
+    R.mipmap.green_square,
+    R.mipmap.yellow_square,
+    R.mipmap.orange_square
+)
+

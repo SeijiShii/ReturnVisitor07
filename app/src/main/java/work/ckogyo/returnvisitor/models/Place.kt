@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import org.json.JSONArray
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.utils.*
@@ -26,19 +27,6 @@ class Place : BaseDataModel{
         }
     }
 
-//    constructor(map: HashMap<String, Any>):super(map) {
-//
-//        address = map[addressKey].toString()
-//        latLng = LatLng(map[latitudeKey].toString().toDouble(), map[longitudeKey].toString().toDouble())
-//        category = Category.valueOf(map[categoryKey].toString())
-//        rating = Visit.Rating.valueOf(map[ratingKey].toString())
-//
-////        val visitsMapList = map[visitsKey] as ArrayList<HashMap<String, Any>>
-////        for (vm in visitsMapList) {
-////            visits.add(Visit(vm))
-////        }
-//    }
-
     override fun initFromHashMap(map: HashMap<String, Any>) {
         super.initFromHashMap(map)
 
@@ -46,29 +34,20 @@ class Place : BaseDataModel{
         latLng = LatLng(map[latitudeKey].toString().toDouble(), map[longitudeKey].toString().toDouble())
         category = Category.valueOf(map[categoryKey].toString())
         rating = Visit.Rating.valueOf(map[ratingKey].toString())
+
+        val mapArrayObj = map[roomsKey]
+        if (mapArrayObj != null) {
+            val mapArray = mapArrayObj as JSONArray
+            rooms.clear()
+            for (i in 0 until mapArray.length()) {
+                val room = Place(mapArray[i] as JSONObject)
+                rooms.add(room)
+            }
+        }
     }
 
-//    fun addOrUpdateVisit(visit: Visit) {
-//
-//        val v = getVisitById(visit.id)
-//        if (v != null) {
-//            visits.remove(v)
-//        }
-//
-//        visits.add(visit)
-//    }
-
-//    private fun getVisitById(visitId: String): Visit? {
-//        for (v in visits) {
-//            if (v.id == visitId) {
-//                return v
-//            }
-//        }
-//        return null
-//    }
-
     enum class Category{
-        House, HousingComplex, Place
+        House, HousingComplex, Place, Room
     }
 
     var address = ""
@@ -76,19 +55,8 @@ class Place : BaseDataModel{
     var category = Category.House
     var rating = Visit.Rating.None
 
-//    val visits = ArrayList<Visit>()
-
-//    override val jsonObject: JSONObject
-//    get() {
-//        val o = super.jsonObject
-//
-//        o.put(addressKey, address)
-//        o.put(latitudeKey, latLng.latitude)
-//        o.put(longitudeKey, latLng.longitude)
-//        o.put(categoryKey, category.toString())
-//
-//        return o
-//    }
+    // 集合住宅だけ
+    val rooms = ArrayList<Place>()
 
     override val hashMap: HashMap<String, Any>
         get() {
@@ -100,11 +68,13 @@ class Place : BaseDataModel{
             map[categoryKey] = category
             map[ratingKey] = rating
 
-//            val visitMapList = ArrayList<HashMap<String, Any>>()
-//            for (v in visits) {
-//                visitMapList.add(v.hashMap)
-//            }
-//            map[visitsKey] = visitMapList
+            if (category == Category.HousingComplex) {
+                val mapArray = JSONArray()
+                for (room in rooms) {
+                    mapArray.put(room.hashMap)
+                }
+                map[roomsKey] = mapArray
+            }
 
             return map
         }
@@ -153,27 +123,5 @@ class Place : BaseDataModel{
 
     }
 
-//    fun refreshRating(userDoc: DocumentReference, onFinished:(Place) -> Unit) {
-//
-//        userDoc.collection(visitsKey).whereEqualTo(placeIdKey, id).addSnapshotListener { snapshot, e ->
-//            val visits = ArrayList<Visit>()
-//            if (e != null) {
-//                if (snapshot != null) {
-//
-//                    for (doc in snapshot.documents) {
-//                        val v = Visit()
-//                        v.fromHashMap(doc.data as HashMap<String, Any>, this)
-//                        visits.add(v)
-//                    }
-//                }
-//            }
-//            rating = if (visits.isEmpty()) {
-//                Visit.Rating.None
-//            } else {
-//                visits.maxBy { v -> v.dateTime.timeInMillis }?.rating?:Visit.Rating.None
-//            }
-//            onFinished(this)
-//        }
-//    }
 
 }

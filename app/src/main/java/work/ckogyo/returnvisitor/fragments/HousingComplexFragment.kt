@@ -11,10 +11,14 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.models.Place
+import work.ckogyo.returnvisitor.utils.fadeVisibility
 import work.ckogyo.returnvisitor.utils.requestAddressIfNeeded
 
 class HousingComplexFragment : Fragment() {
+
+    var onOk: ((hComplex: Place) -> Unit)? = null
 
     var hComplex = Place()
     set(value) {
@@ -38,6 +42,22 @@ class HousingComplexFragment : Fragment() {
                 housingComplexAddressText.setText(address)
             }
         }
+
+        okButton.setOnClickListener {
+            mainActivity?.supportFragmentManager?.popBackStack()
+            GlobalScope.launch {
+                PlaceCollection.instance.set(hComplex)
+            }
+            onOk?.invoke(hComplex)
+        }
+
+        cancelButton.setOnClickListener {
+            mainActivity?.supportFragmentManager?.popBackStack()
+        }
+
+        loadingRoomsProgressFrame.fadeVisibility(true)
+        noRoomRegisteredFrame.fadeVisibility(false)
+        roomListFrame.fadeVisibility(false)
     }
 
 }

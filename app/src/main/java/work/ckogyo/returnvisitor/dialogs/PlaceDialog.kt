@@ -53,6 +53,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             Place.Category.Place -> R.string.place
             Place.Category.House -> R.string.house
             Place.Category.HousingComplex -> R.string.housing_complex
+            Place.Category.Room -> R.string.room
         }
 
         setTitle(titleId)

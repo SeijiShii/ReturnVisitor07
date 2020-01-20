@@ -11,18 +11,13 @@ import work.ckogyo.returnvisitor.models.Visit
 class PlaceMarkers(private val googleMap: GoogleMap) {
 
     companion object {
-        private val markerIds = arrayOf(
-            R.mipmap.gray_pin,
-            R.mipmap.red_pin,
-            R.mipmap.purple_pin,
-            R.mipmap.blue_pin,
-            R.mipmap.green_pin,
-            R.mipmap.yellow_pin,
-            R.mipmap.orange_pin
-        )
-
-        private fun ratingToMarkerId(rating: Visit.Rating):Int {
-            return markerIds[rating.ordinal]
+        private fun ratingToMarkerId(rating: Visit.Rating, category: Place.Category):Int {
+            return when(category) {
+                Place.Category.Place -> roundMarkerIds[rating.ordinal]
+                Place.Category.House -> pinMarkerIds[rating.ordinal]
+                Place.Category.HousingComplex -> squareMarkerIds[rating.ordinal]
+                Place.Category.Room -> roundMarkerIds[rating.ordinal]
+            }
         }
     }
 
@@ -36,7 +31,7 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
     }
 
     fun addMarker(place: Place): Marker? {
-        return addMarker(place, ratingToMarkerId(place.rating))
+        return addMarker(place, ratingToMarkerId(place.rating, place.category))
     }
 
     fun remove(place: Place) {

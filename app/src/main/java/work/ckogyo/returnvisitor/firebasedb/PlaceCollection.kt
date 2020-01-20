@@ -16,14 +16,16 @@ class PlaceCollection {
             get() = innerInstance
     }
 
-    suspend fun loadPlaces(): ArrayList<Place> = suspendCoroutine { cont ->
+    suspend fun loadPlacesForMap(): ArrayList<Place> = suspendCoroutine { cont ->
         GlobalScope.launch {
             val mapList = FirebaseDB.instance.loadList(placesKey)
             val places = ArrayList<Place>()
             for (map in mapList) {
                 val place = Place()
                 place.initFromHashMap(map)
-                places.add(place)
+                if (place.category != Place.Category.Room) {
+                    places.add(place)
+                }
             }
             cont.resume(places)
         }

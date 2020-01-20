@@ -108,7 +108,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     when(place.category) {
                         Place.Category.Place,
                         Place.Category.House -> showPlaceDialog(place)
-                        Place.Category.HousingComplex -> {}
+                        Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place){ hComplex ->
+                            placeMarkers.refreshMarker(hComplex)
+                        }
                     }
                 }
             }
@@ -168,7 +170,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         runBlocking {
             places.clear()
-            places.addAll(PlaceCollection.instance.loadPlaces())
+            places.addAll(PlaceCollection.instance.loadPlacesForMap())
         }
     }
 
@@ -185,12 +187,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun onClickButtonInPlacePopup(place: Place) {
 
+        placeMarkers.refreshMarker(place)
+
         when(place.category) {
             Place.Category.Place,
             Place.Category.House -> {
                 mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
             }
-            Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place)
+            Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place){ hComplex ->
+                placeMarkers.refreshMarker(hComplex)
+            }
         }
 
     }
