@@ -2,7 +2,9 @@ package work.ckogyo.returnvisitor.firebasedb
 
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
@@ -199,6 +201,23 @@ class VisitCollection {
                 }.addOnFailureListener {
                     cont.resume(false)
                 }
+            }
+        }
+    }
+
+    fun saveVisit(visit: Visit): Deferred<Unit> {
+        return GlobalScope.async {
+
+            val placeColl = PlaceCollection.instance
+            val visitsOfPlace = loadVisitsOfPlace(visit.place)
+            visitsOfPlace.add(visit)
+            visit.place.refreshRatingByVisits(visitsOfPlace)
+
+            set(visit)
+            placeColl.set(visit.place)
+
+            for (person in visit.persons) {
+                PersonCollection.instance.set(person)
             }
         }
     }

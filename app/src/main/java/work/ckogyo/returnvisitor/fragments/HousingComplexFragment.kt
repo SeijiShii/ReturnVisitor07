@@ -19,16 +19,15 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
-import work.ckogyo.returnvisitor.utils.OnFinishEditParam
-import work.ckogyo.returnvisitor.utils.fadeVisibility
-import work.ckogyo.returnvisitor.utils.requestAddressIfNeeded
-import work.ckogyo.returnvisitor.utils.setOnClick
+import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.RoomCell
 
 class HousingComplexFragment : Fragment() {
 
     var onOk: ((hComplex: Place) -> Unit)? = null
     var onDeleted: ((hComplex: Place) -> Unit)? = null
+    var onNewRoomAdded: ((room: Place) -> Unit)? = null
 
     private val rooms = ArrayList<Place>()
     private var isLoadingRooms = false
@@ -82,6 +81,10 @@ class HousingComplexFragment : Fragment() {
             }
         })
 
+        addInputRoomNumButton.setOnClickListener {
+            onClickAddNewRoom()
+        }
+
         refreshAddRoomButton()
 
         loadingRoomsProgressFrame.fadeVisibility(true)
@@ -103,7 +106,6 @@ class HousingComplexFragment : Fragment() {
                 loadingRoomsProgressFrame.fadeVisibility(false)
             }
         }
-
     }
 
     private fun showMenuPopup() {
@@ -146,6 +148,22 @@ class HousingComplexFragment : Fragment() {
         // TODO: 条件の追加
         addInputRoomNumButton.isEnabled = searchOrAddRoomNumText.text.isNotEmpty()
                                             && !isLoadingRooms
+    }
+
+    private fun onClickAddNewRoom() {
+
+        val room = Place()
+        room.category = Place.Category.Room
+        room.parentId = hComplex.id
+        room.address = hComplex.address
+        room.latLng = hComplex.latLng
+        room.name = searchOrAddRoomNumText.text.toString()
+
+        mainActivity?.showRecordVisitFragmentForNew(room, this::onFinishEditVisit)
+    }
+
+    private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
+
     }
 
 

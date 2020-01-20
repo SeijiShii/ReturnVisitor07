@@ -315,27 +315,30 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 places.add(visit.place)
 
                 GlobalScope.launch {
-                    val placeColl = PlaceCollection.instance
-                    val visitColl = VisitCollection.instance
-                    val visitsOfPlace = visitColl.loadVisitsOfPlace(visit.place)
-                    visitsOfPlace.add(visit)
-                    visit.place.refreshRatingByVisits(visitsOfPlace)
 
-                    visitColl.set(visit)
-                    placeColl.set(visit.place)
+                    VisitCollection.instance.saveVisit(visit).await()
 
-                    for (person in visit.persons) {
-                        PersonCollection.instance.set(person)
-                    }
+//                    val placeColl = PlaceCollection.instance
+//                    val visitColl = VisitCollection.instance
+//                    val visitsOfPlace = visitColl.loadVisitsOfPlace(visit.place)
+//                    visitsOfPlace.add(visit)
+//                    visit.place.refreshRatingByVisits(visitsOfPlace)
+//
+//                    visitColl.set(visit)
+//                    placeColl.set(visit.place)
+//
+//                    for (person in visit.persons) {
+//                        PersonCollection.instance.set(person)
+//                    }
 
                     handler.post{
                         placeMarkers.addMarker(visit.place)
                         mainActivity?.progressOverlay?.fadeVisibility(false)
                     }
-                }
 
-                // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
-                TimeCountIntentService.saveWorkIfActive()
+                    // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+                    TimeCountIntentService.saveWorkIfActive()
+                }
             }
             OnFinishEditParam.Deleted -> {
 

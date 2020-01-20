@@ -110,6 +110,8 @@ class RecordVisitFragment : Fragment(),
             interestStatementText.setText(interestTextIds[it])
         }
 
+        placeNameText.setText(visit.place.name)
+
         initDateTimeTexts()
         refreshDateTimeTexts()
 
