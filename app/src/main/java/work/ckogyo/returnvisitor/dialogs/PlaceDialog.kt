@@ -10,7 +10,6 @@ import kotlinx.android.synthetic.main.place_dialog.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
@@ -26,7 +25,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private val handler = Handler()
 
-    private val visitsToPlace = ArrayList<Visit>()
+//    private val visitsToPlace = ArrayList<Visit>()
 
     override fun onOkClick() {}
 
@@ -88,13 +87,13 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
             val visits = VisitCollection.instance.loadVisitsOfPlace(place)
 
-            visitsToPlace.clear()
-            visitsToPlace.addAll(visits)
+//            visitsToPlace.clear()
+//            visitsToPlace.addAll(visits)
 
             handler.post {
 
                 visitListContent.removeAllViews()
-                for (visit in visitsToPlace) {
+                for (visit in visits) {
                     addVisitCell(visit)
                 }
                 loadingVisitsOfPlaceProgress.fadeVisibility(false)
@@ -117,11 +116,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     private fun onDeleteConfirmedInCell(visit: Visit) {
 
         GlobalScope.launch {
-            VisitCollection.instance.delete(visit)
-            visitsToPlace.remove(visit)
-            place.refreshRatingByVisits(visitsToPlace)
-
-            PlaceCollection.instance.set(place)
+            VisitCollection.instance.deleteAsync(visit).await()
             onRefreshPlace?.invoke(place)
 
             refreshColorMark()
@@ -147,13 +142,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
             .setMessage(R.string.delete_place_confirm)
             .setNegativeButton(R.string.cancel, null).
                 setPositiveButton(R.string.delete){_, _ ->
-
-                    GlobalScope.launch {
-                        if (PlaceCollection.instance.delete(place)) {
-                            onClose?.invoke(place, OnFinishEditParam.Deleted)
-                        }
-                        VisitCollection.instance.deleteVisitsToPlace(place)
-                    }
+                    onClose?.invoke(place, OnFinishEditParam.Deleted)
                     close()
                 }.create().show()
     }
@@ -161,31 +150,14 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     private fun addNotHomeVisit() {
 
         GlobalScope.launch {
-            val visitColl = VisitCollection.instance
-            val latestVisit = visitColl.loadLatestVisitOfPlace(place)
-            val visit = if (latestVisit == null) {
-                val v = Visit()
-                v.place = place
-                v
-            } else {
-                Visit(latestVisit)
-            }
-
-            visit.turnToNotHome()
-
-            visitsToPlace.add(visit)
-            place.refreshRatingByVisits(visitsToPlace)
-
-            visitColl.set(visit)
-
-            // すでに記録してある場所に留守を追加しても場所のステートは変化させないので場所データは更新しない
+            val nhVisit = VisitCollection.instance.addNotHomeVisitAsync(place).await()
 
             // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
             TimeCountIntentService.saveWorkIfActive()
 
             handler.post {
                 refreshColorMark()
-                addVisitCell(visit)
+                addVisitCell(nhVisit)
             }
         }
     }

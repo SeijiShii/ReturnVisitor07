@@ -1,6 +1,8 @@
 package work.ckogyo.returnvisitor.firebasedb
 
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.utils.personsKey
@@ -31,15 +33,15 @@ class PersonCollection {
         }
     }
 
-    suspend fun set(person: Person): Boolean = suspendCoroutine { cont ->
-        GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.set(personsKey, person.id, person.hashMap))
+    fun setAsync(person: Person): Deferred<Boolean> {
+        return GlobalScope.async {
+            FirebaseDB.instance.set(personsKey, person.id, person.hashMap)
         }
     }
 
-    suspend fun delete(person: Person): Boolean = suspendCoroutine { cont ->
-        GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.delete(personsKey, person.id))
+    fun deleteAsync(person: Person): Deferred<Boolean> {
+        return GlobalScope.async {
+            FirebaseDB.instance.delete(personsKey, person.id)
         }
     }
 

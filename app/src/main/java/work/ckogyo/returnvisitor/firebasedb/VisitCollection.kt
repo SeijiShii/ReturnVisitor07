@@ -8,7 +8,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
-import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -172,18 +171,27 @@ class VisitCollection {
 //    }
 
 
-    suspend fun set(visit: Visit): Boolean = suspendCoroutine { cont ->
-        GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.set(visitsKey, visit.id, visit.hashMap))
+    private fun setAsync(visit: Visit): Deferred<Boolean> {
+        return GlobalScope.async{
+            FirebaseDB.instance.set(visitsKey, visit.id, visit.hashMap)
         }
     }
 
-    suspend fun delete(visit: Visit): Boolean  = suspendCoroutine{ cont ->
-        GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.delete(visitsKey, visit.id))
+    /**
+     * Visitを削除し、Visitに属するPlaceのRatingを更新する。
+     */
+    fun deleteAsync(visit: Visit): Deferred<Boolean> {
+        return GlobalScope.async {
+            val result = FirebaseDB.instance.delete(visitsKey, visit.id)
+            visit.place.refreshRatingByVisitsAsync().await()
+            PlaceCollection.instance.saveAsync(visit.place).await()
+            result
         }
     }
 
+    /**
+     * Placeを削除したときに呼ばれる
+     */
     suspend fun deleteVisitsToPlace(place: Place): Boolean = suspendCoroutine { cont ->
 
         val db = FirebaseDB.instance
@@ -205,24 +213,36 @@ class VisitCollection {
         }
     }
 
-    fun saveVisit(visit: Visit): Deferred<Unit> {
+    /**
+     * Visitを追加または更新し、Visitに属するPlaceのRatingを更新する。
+    */
+    fun saveVisitAsync(visit: Visit): Deferred<Unit> {
         return GlobalScope.async {
 
-            val placeColl = PlaceCollection.instance
-            val visitsOfPlace = loadVisitsOfPlace(visit.place)
-            visitsOfPlace.add(visit)
-            visit.place.refreshRatingByVisits(visitsOfPlace)
-
-            set(visit)
-            placeColl.set(visit.place)
+            setAsync(visit).await()
+            visit.place.refreshRatingByVisitsAsync().await()
+            PlaceCollection.instance.saveAsync(visit.place).await()
 
             for (person in visit.persons) {
-                PersonCollection.instance.set(person)
+                PersonCollection.instance.setAsync(person).await()
             }
         }
     }
 
+    fun addNotHomeVisitAsync(place: Place):Deferred<Visit> {
 
-
-
+        return GlobalScope.async {
+            val latestVisit = loadLatestVisitOfPlace(place)
+            val visit = if (latestVisit == null) {
+                val v = Visit()
+                v.place = place
+                v
+            } else {
+                Visit(latestVisit)
+            }
+            visit.turnToNotHome()
+            saveVisitAsync(visit).await()
+            visit
+        }
+    }
 }

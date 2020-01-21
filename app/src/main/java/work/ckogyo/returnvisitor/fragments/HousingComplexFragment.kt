@@ -27,7 +27,6 @@ class HousingComplexFragment : Fragment() {
 
     var onOk: ((hComplex: Place) -> Unit)? = null
     var onDeleted: ((hComplex: Place) -> Unit)? = null
-    var onNewRoomAdded: ((room: Place) -> Unit)? = null
 
     private val rooms = ArrayList<Place>()
     private var isLoadingRooms = false
@@ -58,9 +57,9 @@ class HousingComplexFragment : Fragment() {
         okButton.setOnClickListener {
             mainActivity?.supportFragmentManager?.popBackStack()
             GlobalScope.launch {
-                PlaceCollection.instance.set(hComplex)
+                PlaceCollection.instance.saveAsync(hComplex).await()
+                onOk?.invoke(hComplex)
             }
-            onOk?.invoke(hComplex)
         }
 
         cancelButton.setOnClickListener {
@@ -129,10 +128,9 @@ class HousingComplexFragment : Fragment() {
                 setPositiveButton(R.string.delete){_, _ ->
 
                     GlobalScope.launch {
-                        PlaceCollection.instance.delete(hComplex)
-                        // TODO 部屋データと部屋への訪問データを削除する
+                        PlaceCollection.instance.deleteAsync(hComplex).await()
+                        onDeleted?.invoke(hComplex)
                     }
-                    onDeleted?.invoke(hComplex)
                     mainActivity?.supportFragmentManager?.popBackStack()
                 }.create().show()
     }

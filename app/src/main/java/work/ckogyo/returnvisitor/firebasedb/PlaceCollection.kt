@@ -1,6 +1,8 @@
 package work.ckogyo.returnvisitor.firebasedb
 
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.utils.categoryKey
@@ -46,17 +48,29 @@ class PlaceCollection {
         }
     }
 
-    suspend fun set(place: Place): Boolean = suspendCoroutine { cont ->
-        GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.set(placesKey, place.id, place.hashMap))
+    private fun setAsync(place: Place): Deferred<Boolean> {
+        return GlobalScope.async {
+            FirebaseDB.instance.set(placesKey, place.id, place.hashMap)
         }
     }
 
-    suspend fun delete(place: Place): Boolean = suspendCoroutine { cont ->
-        GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.delete(placesKey, place.id))
+    fun deleteAsync(place: Place): Deferred<Boolean> {
+        return GlobalScope.async {
+            VisitCollection.instance.deleteVisitsToPlace(place)
+            if (place.category == Place.Category.HousingComplex) {
+                deleteRoomsByParentId(place.id)
+            }
+            FirebaseDB.instance.delete(placesKey, place.id)
         }
     }
+
+    fun saveAsync(place: Place): Deferred<Boolean> {
+        return GlobalScope.async {
+            place.refreshRatingByVisitsAsync().await()
+            setAsync(place).await()
+        }
+    }
+
 
     suspend fun loadRoomsByParentId(parentId: String): ArrayList<Place> = suspendCoroutine {  cont ->
 
@@ -85,11 +99,23 @@ class PlaceCollection {
                     cont.resume(rooms)
                 }
         }
-
-
-
     }
 
+    private suspend fun deleteRoomsByParentId(parentId: String) = suspendCoroutine<Unit> { cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc == null) {
+            cont.resume(Unit)
+            return@suspendCoroutine
+        }
+
+        userDoc.collection(placesKey).whereEqualTo(parentIdKey, parentId).get().addOnSuccessListener {
+            for (doc in it.documents) {
+                doc.reference.delete()
+            }
+        }
+        cont.resume(Unit)
+    }
 
 
 

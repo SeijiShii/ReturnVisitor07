@@ -22,7 +22,6 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
-import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
@@ -42,7 +41,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     var onSignOutConfirmed: (() -> Unit)? = null
 
-    private val places = ArrayList<Place>()
+//    private val places = ArrayList<Place>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.map_fragment, container, false)
@@ -103,14 +102,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             val id = it.tag as? String
             if (id != null) {
-                val place = getPlaceById(id)
-                if (place != null) {
-                    when(place.category) {
-                        Place.Category.Place,
-                        Place.Category.House -> showPlaceDialog(place)
-                        Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
-                            onOk = this::onOkInHousingComplexFragment,
-                            onDeleted = this::onDeleteInHousingComplexFragment)
+                GlobalScope.launch {
+                    val place = PlaceCollection.instance.loadById(id)
+                    if (place != null) {
+                        when(place.category) {
+                            Place.Category.Place,
+                            Place.Category.House -> handler.post {
+                                showPlaceDialog(place)
+                            }
+                            Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
+                                onOk = this@MapFragment::onOkInHousingComplexFragment,
+                                onDeleted = this@MapFragment::onDeletedInHousingComplexFragment)
+                        }
                     }
                 }
             }
@@ -124,15 +127,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onOkInHousingComplexFragment(hComplex: Place) {
-
-        places.remove(hComplex)
-        places.add(hComplex)
-        placeMarkers.refreshMarker(hComplex)
+        handler.post {
+            placeMarkers.refreshMarker(hComplex)
+        }
     }
 
-    private fun onDeleteInHousingComplexFragment(hComplex: Place) {
-        places.remove(hComplex)
-        placeMarkers.remove(hComplex)
+    private fun onDeletedInHousingComplexFragment(hComplex: Place) {
+        handler.post {
+            placeMarkers.remove(hComplex)
+        }
     }
 
     private fun showPlaceDialog(place: Place) {
@@ -159,7 +162,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 delay(30)
             }
 
-            loadPlaces()
+//            loadPlaces()
             handler.post {
                 showPlaceMarkers()
             }
@@ -178,19 +181,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         placeMarkers.refreshMarker(place)
     }
 
-    private fun loadPlaces() {
-
-        runBlocking {
-            places.clear()
-            places.addAll(PlaceCollection.instance.loadPlacesForMap())
-        }
-    }
+//    private fun loadPlaces() {
+//
+//        runBlocking {
+//            places.clear()
+//            places.addAll(PlaceCollection.instance.loadPlacesForMap())
+//        }
+//    }
 
     private fun onClosePlaceDialog(place: Place, param: OnFinishEditParam) {
 
         when(param) {
             OnFinishEditParam.Deleted -> {
-                places.remove(place)
+                GlobalScope.launch {
+                    PlaceCollection.instance.deleteAsync(place).await()
+                }
                 placeMarkers.remove(place)
             }
         }
@@ -208,33 +213,22 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
             Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
                 onOk = this::onOkInHousingComplexFragment,
-                onDeleted = this::onDeleteInHousingComplexFragment)
+                onDeleted = this::onDeletedInHousingComplexFragment)
         }
 
     }
 
     private fun onNotHomeRecorded(place: Place) {
         // TODO: 留守宅ボタンが押されたとき
-        placeMarkers.remove(place)
-
-        places.add(place)
 
         val visit = Visit()
         visit.place = place
         visit.rating = Visit.Rating.NotHome
 
         GlobalScope.launch {
-            val placeColl = PlaceCollection.instance
-            val visitColl = VisitCollection.instance
-
-            val visitsOfPlace = arrayListOf(visit)
-            place.refreshRatingByVisits(visitsOfPlace)
-
-            visitColl.set(visit)
-            placeColl.set(place)
-
+            VisitCollection.instance.saveVisitAsync(visit).await()
             handler.post {
-                placeMarkers.addMarker(place)
+                placeMarkers.refreshMarker(place)
             }
         }
 
@@ -290,11 +284,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         Log.d(debugTag, "showPlaceMarkers")
 
-        for (place in places) {
-            placeMarkers.addMarker(place)
+        GlobalScope.launch {
+            val places = PlaceCollection.instance.loadPlacesForMap()
+            handler.post{
+                for (place in places) {
+                    placeMarkers.addMarker(place)
+                }
+                markerShown = true
+            }
         }
-
-        markerShown = true
     }
 
     private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
@@ -310,29 +308,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             OnFinishEditParam.Done -> {
 
                 mainActivity?.progressOverlay?.fadeVisibility(true)
-                placeMarkers.remove(visit.place)
-
-                places.add(visit.place)
-
                 GlobalScope.launch {
 
-                    VisitCollection.instance.saveVisit(visit).await()
-
-//                    val placeColl = PlaceCollection.instance
-//                    val visitColl = VisitCollection.instance
-//                    val visitsOfPlace = visitColl.loadVisitsOfPlace(visit.place)
-//                    visitsOfPlace.add(visit)
-//                    visit.place.refreshRatingByVisits(visitsOfPlace)
-//
-//                    visitColl.set(visit)
-//                    placeColl.set(visit.place)
-//
-//                    for (person in visit.persons) {
-//                        PersonCollection.instance.set(person)
-//                    }
-
+                    VisitCollection.instance.saveVisitAsync(visit).await()
                     handler.post{
-                        placeMarkers.addMarker(visit.place)
+                        placeMarkers.refreshMarker(visit.place)
                         mainActivity?.progressOverlay?.fadeVisibility(false)
                     }
 
@@ -344,28 +324,24 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 mainActivity?:return
 
-                placeMarkers.remove(visit.place)
-
                 GlobalScope.launch {
-                    val visitColl = VisitCollection.instance
-                    visitColl.delete(visit)
-                    val visitsOfPlace = visitColl.loadVisitsOfPlace(visit.place)
-                    visitsOfPlace.remove(visit)
-                    visit.place.refreshRatingByVisits(visitsOfPlace)
-                    placeMarkers.addMarker(visit.place)
+                    VisitCollection.instance.deleteAsync(visit).await()
+                    handler.post {
+                        placeMarkers.refreshMarker(visit.place)
+                    }
                 }
             }
         }
     }
 
-    private fun getPlaceById(id: String):Place? {
-        for (place in places) {
-            if (place.id == id) {
-                return place
-            }
-        }
-        return null
-    }
+//    private fun getPlaceById(id: String):Place? {
+//        for (place in places) {
+//            if (place.id == id) {
+//                return place
+//            }
+//        }
+//        return null
+//    }
 
     private var isDrawerOpen = false
 
@@ -503,7 +479,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             .setMessage(context!!.resources.getString(R.string.logout_confirm, mainActivity!!.currentUser!!.displayName))
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.logout){ _, _ ->
-                places.clear()
                 placeMarkers.clear()
                 markerShown = false
                 onSignOutConfirmed?.invoke()

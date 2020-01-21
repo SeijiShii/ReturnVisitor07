@@ -4,10 +4,16 @@ import android.content.Context
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import org.json.JSONArray
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
+import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.utils.*
+import kotlin.coroutines.suspendCoroutine
 
 class Place : BaseDataModel{
 
@@ -86,33 +92,29 @@ class Place : BaseDataModel{
         return "${context.getString(R.string.latitude)}: ${latLng.latitude}, ${context.getString(R.string.longitude)}: ${latLng.longitude}"
     }
 
-    fun refreshRatingByVisits(visitsToPlace: ArrayList<Visit>) {
+    fun refreshRatingByVisitsAsync():Deferred<Unit> {
 
-        if (visitsToPlace.isEmpty()) {
-            rating = Visit.Rating.None
-            return
-        }
+        return GlobalScope.async {
+            val visits = VisitCollection.instance.loadVisitsOfPlace(this@Place)
 
-        if (visitsToPlace.size == 1) {
-            rating = visitsToPlace[0].rating
-            return
-        }
+            if (visits.isEmpty()) {
+                rating = Visit.Rating.None
+            } else {
+                visits.sortByDescending { v -> v.dateTime.timeInMillis }
+                for (v in visits) {
+                    if (v.rating == Visit.Rating.None || v.rating == Visit.Rating.NotHome) {
+                        continue
+                    }
+                    rating = v.rating
+                    break
+                }
 
-        val visits = visitsToPlace.sortedByDescending { v -> v.dateTime.timeInMillis }
-
-        for (v in visits) {
-            if (v.rating == Visit.Rating.None || v.rating == Visit.Rating.NotHome) {
-                continue
+                if (rating == Visit.Rating.None) {
+                    rating = visits[0].rating
+                }
             }
-            rating = v.rating
-            break
+            Unit
         }
-
-        if (rating == Visit.Rating.None) {
-            rating = visitsToPlace[0].rating
-        }
-
     }
-
 
 }
