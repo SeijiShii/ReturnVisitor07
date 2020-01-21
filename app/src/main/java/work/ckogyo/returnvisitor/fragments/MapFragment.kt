@@ -112,7 +112,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             }
                             Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
                                 onOk = this@MapFragment::onOkInHousingComplexFragment,
-                                onDeleted = this@MapFragment::onDeletedInHousingComplexFragment)
+                                onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
+                                onCancel = {
+                                    placeMarkers.refreshMarker(place)
+                                })
                         }
                     }
                 }
@@ -213,7 +216,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
             Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
                 onOk = this::onOkInHousingComplexFragment,
-                onDeleted = this::onDeletedInHousingComplexFragment)
+                onDeleted = this::onDeletedInHousingComplexFragment,
+                onCancel = {
+                    // 新規追加した集合住宅ということ
+                    placeMarkers.remove(it)
+                })
         }
 
     }

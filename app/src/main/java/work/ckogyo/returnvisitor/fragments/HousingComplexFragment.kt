@@ -26,6 +26,7 @@ import work.ckogyo.returnvisitor.views.RoomCell
 class HousingComplexFragment : Fragment() {
 
     var onOk: ((hComplex: Place) -> Unit)? = null
+    var onCancel: ((hComplex: Place) -> Unit)? = null
     var onDeleted: ((hComplex: Place) -> Unit)? = null
 
     private val rooms = ArrayList<Place>()
@@ -64,6 +65,7 @@ class HousingComplexFragment : Fragment() {
 
         cancelButton.setOnClickListener {
             mainActivity?.supportFragmentManager?.popBackStack()
+            onCancel?.invoke(hComplex)
         }
 
         housingComplexMenuButton.setOnClick {

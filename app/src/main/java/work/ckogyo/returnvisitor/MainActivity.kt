@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.main_activity.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
@@ -95,12 +96,14 @@ class MainActivity : AppCompatActivity() {
         refreshLoginOverlay()
         progressOverlay.fadeVisibility(false)
         isAppVisible = true
+        watchAndAdjustAdView()
     }
 
     override fun onStop() {
         super.onStop()
 
         isAppVisible = false
+        isWatchingForAdView = false
     }
 
     private fun showMapFragment() {
@@ -137,11 +140,13 @@ class MainActivity : AppCompatActivity() {
 
     fun showHousingComplexFragment(hComplex: Place,
                                    onOk: (hComplex: Place) -> Unit,
-                                   onDeleted: (hComplex: Place) -> Unit) {
+                                   onDeleted: (hComplex: Place) -> Unit,
+                                   onCancel: (hComplex: Place) -> Unit) {
         val transaction = supportFragmentManager.beginTransaction()
         val hcFragment = HousingComplexFragment()
         hcFragment.hComplex = hComplex
         hcFragment.onOk = onOk
+        hcFragment.onCancel = onCancel
         hcFragment.onDeleted = onDeleted
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
@@ -326,6 +331,26 @@ class MainActivity : AppCompatActivity() {
             loginOverlay.setOnTouchListener(null)
             loginOverlay.visibility = View.GONE
             0f
+        }
+    }
+
+    private var isWatchingForAdView = false
+    private fun watchAndAdjustAdView() {
+        isWatchingForAdView = true
+        val handler = Handler()
+        var oldShow = true
+        GlobalScope.launch {
+            while (isWatchingForAdView) {
+                delay(50)
+                Log.d(debugTag, "appFrame.height: ${appFrame.height}")
+                val show = appFrame.height >= toDP(500)
+                if (show != oldShow) {
+                    handler.post {
+                        oldShow = show
+                        adOuterFrame.fadeVisibility(show)
+                    }
+                }
+            }
         }
     }
 

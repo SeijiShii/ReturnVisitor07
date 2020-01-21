@@ -66,7 +66,9 @@ fun View.setOnClick(onClick: (View) -> Unit) {
     }
 }
 
-fun View.fadeVisibility(fadeIn: Boolean, touchListener: View.OnTouchListener? = null) {
+fun View.fadeVisibility(fadeIn: Boolean,
+                        touchListener: View.OnTouchListener? = null,
+                        onAnimationFinished: (() -> Unit)? = null) {
 
     val touchListener2 = touchListener?:View.OnTouchListener { p0, p1 -> true }
 
@@ -93,6 +95,7 @@ fun View.fadeVisibility(fadeIn: Boolean, touchListener: View.OnTouchListener? = 
             if (!fadeIn) {
                 this@fadeVisibility.visibility = View.GONE
             }
+            onAnimationFinished?.invoke()
         }
 
         override fun onAnimationCancel(p0: Animator?) {}

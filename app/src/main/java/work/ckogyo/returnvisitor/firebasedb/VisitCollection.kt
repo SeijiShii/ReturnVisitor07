@@ -192,24 +192,24 @@ class VisitCollection {
     /**
      * Placeを削除したときに呼ばれる
      */
-    suspend fun deleteVisitsToPlace(place: Place): Boolean = suspendCoroutine { cont ->
+    suspend fun deleteVisitsToPlace(place: Place) = suspendCoroutine<Unit> { cont ->
 
         val db = FirebaseDB.instance
 
-        if (db.userDoc == null) {
-            cont.resume(false)
-        } else {
+        if (db.userDoc != null) {
             GlobalScope.launch {
                 db.userDoc!!.collection(visitsKey).whereEqualTo(
                     placeIdKey, place.id).get().addOnSuccessListener {
                     for (doc in it) {
                         doc.reference.delete()
-                        cont.resume(true)
                     }
+                    cont.resume(Unit)
                 }.addOnFailureListener {
-                    cont.resume(false)
+                    cont.resume(Unit)
                 }
             }
+        } else {
+            cont.resume(Unit)
         }
     }
 
