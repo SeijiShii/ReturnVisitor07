@@ -125,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
         transaction.commit()
+        hideKeyboard(this)
     }
 
     fun showRecordVisitFragmentForEdit(visit: Visit, onFinishEditVisit: (Visit, EditMode, OnFinishEditParam) -> Unit) {
@@ -136,6 +137,7 @@ class MainActivity : AppCompatActivity() {
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
         transaction.commit()
+        hideKeyboard(this)
     }
 
     fun showHousingComplexFragment(hComplex: Place,
@@ -151,6 +153,7 @@ class MainActivity : AppCompatActivity() {
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
         transaction.commit()
+        hideKeyboard(this)
     }
 
     fun showWorkFragment() {

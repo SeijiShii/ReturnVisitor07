@@ -78,6 +78,7 @@ class RecordVisitFragment : Fragment(),
         cancelButton.setOnClickListener {
             onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Canceled)
             mainActivity?.supportFragmentManager?.popBackStack()
+            hideKeyboard(mainActivity!!)
         }
 
         okButton.setOnClickListener {
@@ -87,12 +88,14 @@ class RecordVisitFragment : Fragment(),
 
             onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Done)
             mainActivity?.supportFragmentManager?.popBackStack()
+            hideKeyboard(mainActivity!!)
         }
 
         deleteButton.setOnClickListener {
             confirmDeleteVisit(context!!, visit) {
                 onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Deleted)
                 mainActivity?.supportFragmentManager?.popBackStack()
+                hideKeyboard(mainActivity!!)
             }
         }
 

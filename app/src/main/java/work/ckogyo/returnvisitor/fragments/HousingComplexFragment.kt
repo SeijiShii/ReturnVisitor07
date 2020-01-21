@@ -60,12 +60,14 @@ class HousingComplexFragment : Fragment() {
             GlobalScope.launch {
                 PlaceCollection.instance.saveAsync(hComplex).await()
                 onOk?.invoke(hComplex)
+                hideKeyboard(mainActivity!!)
             }
         }
 
         cancelButton.setOnClickListener {
             mainActivity?.supportFragmentManager?.popBackStack()
             onCancel?.invoke(hComplex)
+            hideKeyboard(mainActivity!!)
         }
 
         housingComplexMenuButton.setOnClick {
