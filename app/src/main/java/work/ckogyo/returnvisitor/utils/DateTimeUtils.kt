@@ -58,15 +58,6 @@ fun getDateTimeText(calendar: Calendar, context: Context): String {
 //    }
 //}
 
-fun cloneDateWith0Time(date: Calendar):Calendar {
-
-    val date2 = Calendar.getInstance()
-    date2.timeInMillis = 0
-    date2.set(Calendar.YEAR, date.get(Calendar.YEAR))
-    date2.set(Calendar.MONTH, date.get(Calendar.MONTH))
-    date2.set(Calendar.DAY_OF_MONTH, date.get(Calendar.DAY_OF_MONTH))
-    return date2
-}
 
 fun areSameDates(date1: Calendar, date2: Calendar): Boolean {
     return date1.get(Calendar.YEAR) == date2.get(Calendar.YEAR)

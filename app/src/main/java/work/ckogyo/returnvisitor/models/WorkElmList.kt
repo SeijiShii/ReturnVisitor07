@@ -1,15 +1,10 @@
 package work.ckogyo.returnvisitor.models
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import android.util.Log
+import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
-import work.ckogyo.returnvisitor.utils.areSameDates
-import work.ckogyo.returnvisitor.utils.cloneDateWith0Time
-import work.ckogyo.returnvisitor.utils.isDateAfter
-import work.ckogyo.returnvisitor.utils.isDateBefore
+import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.coroutines.resume
@@ -132,7 +127,7 @@ class WorkElmList {
         if (tmp.size > 0) {
             val borderElms = ArrayList<WorkElement>()
             val borderEml1 = WorkElement(WorkElement.Category.DateBorder)
-            borderEml1.dateTime = cloneDateWith0Time(tmp[0].dateTime)
+            borderEml1.dateTime = (tmp[0].dateTime).cloneWith0Time()
             borderElms.add(borderEml1)
 
             if (tmp.size > 1) {
@@ -140,7 +135,7 @@ class WorkElmList {
                     if (!areSameDates(tmp[i].dateTime, tmp[i + 1].dateTime)) {
 
                         val borderElm2 = WorkElement(WorkElement.Category.DateBorder)
-                        borderElm2.dateTime = cloneDateWith0Time(tmp[i + 1].dateTime)
+                        borderElm2.dateTime = (tmp[i + 1].dateTime).cloneWith0Time()
                         borderElms.add(borderElm2)
                     }
                 }
@@ -190,80 +185,170 @@ class WorkElmList {
         }
     }
 
-    fun loadListOfNeighboringDateAsync (date: Calendar, previous: Boolean): Deferred<ArrayList<WorkElement>?> {
-        return GlobalScope.async {
-            val neighboringDate = getNeighboringDateAsync(date, previous).await()
-            neighboringDate ?: return@async null
-            generateListByDate(neighboringDate)
+//    fun getNeighboringDateAsync(date: Calendar, previous: Boolean): Deferred<Calendar?> {
+//
+//        return GlobalScope.async {
+//            getNeighboringDate(date, previous)
+//        }
+//    }
+
+    private suspend fun getPreviouslyNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
+        GlobalScope.launch {
+
+            val limitDate = date.cloneWith0Time()
+            limitDate.timeInMillis -= 1
+
+            val visitColl = VisitCollection.instance
+            val workColl = WorkCollection.instance
+
+            val hasVisitBefore = visitColl.hasVisitBeforeThan(date, includesEqual = true)
+            val hasWorkBefore = workColl.hasWorkBeforeThan(date, includesEqual = true)
+
+            if (!hasVisitBefore && !hasWorkBefore) {
+                cont.resume(null)
+                return@launch
+            }
+
+            val firstVisitDate = visitColl.getRecordedDateAtEnd(true)
+            val firstWorkDate = workColl.getRecordedDateAtEnd(true)
+
+            var firstDate = Calendar.getInstance()
+            when {
+                firstVisitDate != null && firstWorkDate != null -> {
+                    firstDate = if (firstVisitDate.before(firstWorkDate)) {
+                        firstVisitDate
+                    } else {
+                        firstWorkDate
+                    }
+                }
+                firstVisitDate != null -> {
+                    firstDate = firstVisitDate
+                }
+                firstWorkDate != null -> {
+                    firstDate = firstWorkDate
+                }
+                else -> {
+                    cont.resume(null)
+                    return@launch
+                }
+            }
+
+            cont.resume(getEndDateWithData(firstDate, limitDate, firstEnd = false))
+            return@launch
         }
     }
 
-//    private suspend fun loadListOfNeighboringDate(date: Calendar, previous: Boolean): ArrayList<WorkElement>? = suspendCoroutine {  cont ->
-//        GlobalScope.launch {
-//            val limitDate = getRecordedDateAtEnd(previous)
-//            if (limitDate == null) {
-//                cont.resume(null)
-//            } else {
-//                val increase = if (previous) -1 else 1
-//                val checker = { date: Calendar ->
-//                    if (previous) {
-//                        isDateAfter(date, limitDate, true)
-//                    } else {
-//                        isDateBefore(date, limitDate, true)
-//                    }
-//                }
-//
-//                val dateCounter = date.clone() as Calendar
-//                dateCounter.add(Calendar.DAY_OF_MONTH, increase)
-//
-//                val visitColl = VisitCollection.instance
-//                val workColl = WorkCollection.instance
-//
-//                while (checker(dateCounter)) {
-//
-//                    if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
-//                        cont.resume(generateListByDate(dateCounter))
-//                        return@launch
-//                    }
-//                    dateCounter.add(Calendar.DAY_OF_MONTH, increase)
-//                }
-//                cont.resume(null)
-//            }
-//        }
-//
-//    }
+    private suspend fun getNextNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
+        GlobalScope.launch {
 
-    fun getNeighboringDateAsync(date: Calendar, previous: Boolean): Deferred<Calendar?> {
+            val limitDate = date.cloneWith0Time()
+            limitDate.add(Calendar.DAY_OF_YEAR, 1)
 
-        return GlobalScope.async {
-            val limitDate = getRecordedDateAtEnd(previous)
-            if (limitDate == null) {
-                null
-            } else {
-                val increase = if (previous) -1 else 1
-                val checker = { date: Calendar ->
-                    if (previous) {
-                        isDateAfter(date, limitDate, true)
-                    } else {
-                        isDateBefore(date, limitDate, true)
-                    }
-                }
+            val visitColl = VisitCollection.instance
+            val workColl = WorkCollection.instance
 
-                val dateCounter = date.clone() as Calendar
-                dateCounter.add(Calendar.DAY_OF_MONTH, increase)
+            val hasVisitAfter = visitColl.hasVisitAfterThan(date, includesEqual = true)
+            val hasWorkAfter = workColl.hasWorkAfterThan(date, includesEqual = true)
 
-                val visitColl = VisitCollection.instance
-                val workColl = WorkCollection.instance
-
-                while (checker(dateCounter)) {
-
-                    if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
-                        return@async dateCounter
-                    }
-                    dateCounter.add(Calendar.DAY_OF_MONTH, increase)
-                }
-                null
+            if (!hasVisitAfter && !hasWorkAfter) {
+                cont.resume(null)
+                return@launch
             }
+
+            val lastVisitDate = visitColl.getRecordedDateAtEnd(false)
+            val lastWorkDate = workColl.getRecordedDateAtEnd(false)
+
+            var lastDate = Calendar.getInstance()
+            when {
+                lastVisitDate != null && lastWorkDate != null -> {
+                    lastDate = if (lastVisitDate.after(lastWorkDate)) {
+                        lastVisitDate
+                    } else {
+                        lastWorkDate
+                    }
+                }
+                lastVisitDate != null -> {
+                    lastDate = lastVisitDate
+                }
+                lastWorkDate != null -> {
+                    lastDate = lastWorkDate
+                }
+                else -> {
+                    cont.resume(null)
+                    return@launch
+                }
+            }
+
+            cont.resume(getEndDateWithData(limitDate, lastDate, firstEnd = true))
+            return@launch
+        }
+    }
+
+    suspend fun getNeighboringDate(date: Calendar, previous: Boolean): Calendar? = suspendCoroutine {  cont ->
+        GlobalScope.launch {
+            if (previous) {
+                cont.resume(getPreviouslyNeighboringDate(date))
+                return@launch
+            } else {
+                cont.resume(getNextNeighboringDate(date))
+                return@launch
+            }
+        }
+    }
+
+
+    private fun getEndDateWithData(start: Calendar, end: Calendar, firstEnd: Boolean): Calendar? {
+
+        Log.d(debugTag, "start: ${start.toDateTimeText()}, end: ${end.toDateTimeText()}")
+        if (areSameDates(start, end)) {
+            return if (firstEnd) start else end
+        } else {
+            val boundaryInMillis = (start.timeInMillis + end.timeInMillis) / 2
+            val frontEnd = Calendar.getInstance()
+            frontEnd.timeInMillis = boundaryInMillis
+
+            val latterStart = Calendar.getInstance()
+            latterStart.timeInMillis = boundaryInMillis + 1
+
+            val frontHalfHasData = hasDataInDateTimeRange(start, frontEnd)
+            val latterHalfHasData = hasDataInDateTimeRange(latterStart, end)
+
+            if (firstEnd) {
+                return when {
+                    frontHalfHasData && latterHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
+                    frontHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
+                    latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
+                    else -> {
+                        null
+                    }
+                }
+            } else {
+                return when {
+                    frontHalfHasData && latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
+                    latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
+                    frontHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
+                    else -> {
+                        null
+                    }
+                }
+            }
+        }
+    }
+
+    private fun hasDataInDateTimeRange(start: Calendar, end: Calendar): Boolean {
+
+        var hasVisit = false
+        var hasWork = false
+        runBlocking {
+            hasVisit = VisitCollection.instance.hasVisitInDateTimeRange(start, end)
+            hasWork = WorkCollection.instance.hasWorkInDateTimeRange(start, end)
+        }
+        return hasVisit || hasWork
+    }
+
+    fun aDayHasElmAsync(date: Calendar): Deferred<Boolean> {
+        return GlobalScope.async {
+            VisitCollection.instance.aDayHasVisit(date) || WorkCollection.instance.aDayHasWork(date)
         }
     }
 

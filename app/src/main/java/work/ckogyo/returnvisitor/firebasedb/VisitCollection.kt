@@ -82,8 +82,8 @@ class VisitCollection {
         if (db.userDoc == null) {
             cont.resume(visits)
         } else {
-            val startOfDay = cloneDateWith0Time(date)
-            val endOfDay = cloneDateWith0Time(date)
+            val startOfDay = date.cloneWith0Time()
+            val endOfDay = date.cloneWith0Time()
             endOfDay.add(Calendar.DATE, 1)
 
             db.userDoc!!.collection(visitsKey)
@@ -105,8 +105,8 @@ class VisitCollection {
         if (db.userDoc == null) {
             cont.resume(false)
         } else {
-            val startOfDay = cloneDateWith0Time(date)
-            val endOfDay = cloneDateWith0Time(date)
+            val startOfDay = date.cloneWith0Time()
+            val endOfDay = date.cloneWith0Time()
             endOfDay.add(Calendar.DATE, 1)
 
             db.userDoc!!.collection(visitsKey)
@@ -245,4 +245,70 @@ class VisitCollection {
             visit
         }
     }
+
+    suspend fun hasVisitBeforeThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc != null) {
+            val query = if (includesEqual) {
+                userDoc.collection(visitsKey)
+                    .whereLessThanOrEqualTo(dateTimeMillisKey, dateTime.timeInMillis)
+            } else {
+                userDoc.collection(visitsKey)
+                    .whereLessThan(dateTimeMillisKey, dateTime.timeInMillis)
+            }
+            query.get()
+                .addOnSuccessListener {
+                    cont.resume(it.documents.size > 0)
+                }
+                .addOnFailureListener {
+                    cont.resume(false)
+                }
+        } else {
+            cont.resume(false)
+        }
+    }
+
+    suspend fun hasVisitAfterThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc != null) {
+            val query = if (includesEqual) {
+                userDoc.collection(visitsKey)
+                    .whereGreaterThanOrEqualTo(dateTimeMillisKey, dateTime.timeInMillis)
+            } else {
+                userDoc.collection(visitsKey)
+                    .whereGreaterThan(dateTimeMillisKey, dateTime.timeInMillis)
+            }
+            query.get()
+                .addOnSuccessListener {
+                    cont.resume(it.documents.size > 0)
+                }
+                .addOnFailureListener {
+                    cont.resume(false)
+                }
+        } else {
+            cont.resume(false)
+        }
+    }
+
+    suspend fun hasVisitInDateTimeRange(start: Calendar, end: Calendar): Boolean = suspendCoroutine { cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc != null) {
+            userDoc.collection(visitsKey)
+                .whereGreaterThanOrEqualTo(dateTimeMillisKey, start.timeInMillis)
+                .whereLessThanOrEqualTo(dateTimeMillisKey, end.timeInMillis)
+                .get()
+                .addOnSuccessListener {
+                    cont.resume(it.documents.size > 0)
+                }
+                .addOnFailureListener {
+                    cont.resume(false)
+                }
+        } else {
+            cont.resume(false)
+        }
+    }
+
 }
