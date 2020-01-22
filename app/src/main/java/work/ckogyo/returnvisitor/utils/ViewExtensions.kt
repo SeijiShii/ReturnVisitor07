@@ -23,27 +23,39 @@ fun View.getViewCapture(): Bitmap {
 
 fun View.getRectInScreen(): Rect {
 
-    fun getLeftTop(v: View, leftTopSum: Point) {
-
-        val parentView = v.parent
-
-        if (parentView is ScrollView) {
-            leftTopSum.x -= parentView.scrollX
-            leftTopSum.y -= parentView.scrollY
-        } else {
-            leftTopSum.x += v.left
-            leftTopSum.y += v.top
-        }
-
-        if (parentView is ViewGroup) {
-            getLeftTop(parentView, leftTopSum)
-        }
-    }
-
     val leftTopSum = Point()
     getLeftTop(this, leftTopSum)
 
     return Rect(leftTopSum.x, leftTopSum.y, leftTopSum.x + width, leftTopSum.y + height)
+}
+
+
+private fun getLeftTop(v: View, leftTopSum: Point, limitAncestor: View? = null) {
+
+    val parentView = v.parent
+
+    if (parentView is ScrollView) {
+        leftTopSum.x -= parentView.scrollX
+        leftTopSum.y -= parentView.scrollY
+    } else {
+        leftTopSum.x += v.left
+        leftTopSum.y += v.top
+    }
+
+    if (limitAncestor != null && parentView == limitAncestor) {
+        return
+    }
+
+    if (parentView is ViewGroup) {
+        getLeftTop(parentView, leftTopSum)
+    }
+}
+
+fun View.getPositionInAncestor(ancestor: View): Point {
+
+    val leftTopSum = Point()
+    getLeftTop(this, leftTopSum, ancestor)
+    return leftTopSum
 }
 
 fun View.setOnClick(onClick: (View) -> Unit) {

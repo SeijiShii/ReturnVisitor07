@@ -112,6 +112,12 @@ class WorkElmList {
         }
     }
 
+    fun generateListByDateAsync(date: Calendar): Deferred<ArrayList<WorkElement>> {
+        return GlobalScope.async {
+            generateListByDate(date)
+        }
+    }
+
     private fun updateDateBorders(elms: ArrayList<WorkElement>): ArrayList<WorkElement> {
 
         val tmp = ArrayList<WorkElement>()
@@ -186,15 +192,53 @@ class WorkElmList {
 
     fun loadListOfNeighboringDateAsync (date: Calendar, previous: Boolean): Deferred<ArrayList<WorkElement>?> {
         return GlobalScope.async {
-            loadListOfNeighboringDate(date, previous)
+            val neighboringDate = getNeighboringDateAsync(date, previous).await()
+            neighboringDate ?: return@async null
+            generateListByDate(neighboringDate)
         }
     }
 
-    private suspend fun loadListOfNeighboringDate(date: Calendar, previous: Boolean): ArrayList<WorkElement>? = suspendCoroutine {  cont ->
-        GlobalScope.launch {
+//    private suspend fun loadListOfNeighboringDate(date: Calendar, previous: Boolean): ArrayList<WorkElement>? = suspendCoroutine {  cont ->
+//        GlobalScope.launch {
+//            val limitDate = getRecordedDateAtEnd(previous)
+//            if (limitDate == null) {
+//                cont.resume(null)
+//            } else {
+//                val increase = if (previous) -1 else 1
+//                val checker = { date: Calendar ->
+//                    if (previous) {
+//                        isDateAfter(date, limitDate, true)
+//                    } else {
+//                        isDateBefore(date, limitDate, true)
+//                    }
+//                }
+//
+//                val dateCounter = date.clone() as Calendar
+//                dateCounter.add(Calendar.DAY_OF_MONTH, increase)
+//
+//                val visitColl = VisitCollection.instance
+//                val workColl = WorkCollection.instance
+//
+//                while (checker(dateCounter)) {
+//
+//                    if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
+//                        cont.resume(generateListByDate(dateCounter))
+//                        return@launch
+//                    }
+//                    dateCounter.add(Calendar.DAY_OF_MONTH, increase)
+//                }
+//                cont.resume(null)
+//            }
+//        }
+//
+//    }
+
+    fun getNeighboringDateAsync(date: Calendar, previous: Boolean): Deferred<Calendar?> {
+
+        return GlobalScope.async {
             val limitDate = getRecordedDateAtEnd(previous)
             if (limitDate == null) {
-                cont.resume(null)
+                null
             } else {
                 val increase = if (previous) -1 else 1
                 val checker = { date: Calendar ->
@@ -214,15 +258,13 @@ class WorkElmList {
                 while (checker(dateCounter)) {
 
                     if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
-                        cont.resume(generateListByDate(dateCounter))
-                        return@launch
+                        return@async dateCounter
                     }
                     dateCounter.add(Calendar.DAY_OF_MONTH, increase)
                 }
-                cont.resume(null)
+                null
             }
         }
-
     }
 
 }

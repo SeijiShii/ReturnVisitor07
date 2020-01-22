@@ -8,22 +8,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.AbsListView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.work_elm_cell.view.*
 import kotlinx.android.synthetic.main.work_fragment.*
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.utils.areSameDates
 import work.ckogyo.returnvisitor.utils.debugTag
+import work.ckogyo.returnvisitor.utils.getPositionInAncestor
 import work.ckogyo.returnvisitor.views.VisitCell
 import work.ckogyo.returnvisitor.views.WorkElmCell
 import java.util.*
@@ -33,6 +30,9 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
                    private val dateToShow: Calendar) : Fragment() {
 
     private val handler = Handler()
+    private lateinit var adapter: WorkElmAdapter
+    private val mainActivity: MainActivity?
+        get() = context as? MainActivity
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,7 +45,7 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = WorkElmAdapter(context!!, dataElms)
+        adapter = WorkElmAdapter(context!!, dataElms)
 
         workListView.adapter = adapter
         view.setOnTouchListener { _, _ -> true }
@@ -53,7 +53,13 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
         workListView.addOnScrollListener(object : RecyclerView.OnScrollListener(){
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                Log.d(debugTag, "onScrollStateChanged: $newState")
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+//                    Log.d(debugTag, "onScrollStateChanged: SCROLL_STATE_IDLE")
+                    GlobalScope.launch {
+                        addNeighboringDateElmsIfNeededAsync(dateToShow, true).await()
+                        addNeighboringDateElmsIfNeededAsync(dateToShow, false).await()
+                    }
+                }
             }
         })
 
@@ -70,19 +76,48 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
                 view.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
                 GlobalScope.launch {
-                    val previousDateElms = WorkElmList.instance.loadListOfNeighboringDateAsync(dateToShow, true).await()
-                    if (previousDateElms != null) {
-                        handler.post {
-                            val currTopPos = (workListView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-                            Log.d(debugTag, "currTopPos: $currTopPos")
-                            val nextTopPos = adapter.addElms(previousDateElms, currTopPos)
-                            Log.d(debugTag, "nextTopPos: $nextTopPos")
-                            (workListView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(nextTopPos, 0)
-                        }
-                    }
+                    addNeighboringDateElmsIfNeededAsync(dateToShow, true).await()
+                    addNeighboringDateElmsIfNeededAsync(dateToShow, false).await()
                 }
+
             }
         })
+    }
+
+    private fun addNeighboringDateElmsIfNeededAsync(date: Calendar, previous: Boolean):Deferred<Unit> {
+        return GlobalScope.async {
+
+            val neighboringDate = WorkElmList.instance.getNeighboringDateAsync(date, previous).await()
+            if (neighboringDate == null || adapter.hasElmsOfDate(neighboringDate)) {
+                handler.post {
+                    mainActivity?.switchProgressOverlay(false)
+                }
+                return@async
+            }
+
+            val dateElms = WorkElmList.instance.generateListByDateAsync(neighboringDate).await()
+            var waitingHandler = true
+            handler.post {
+                val layoutManager = workListView.layoutManager as LinearLayoutManager
+                val currTopPos = layoutManager.findFirstVisibleItemPosition()
+                val topView = layoutManager.findViewByPosition(currTopPos)
+                val posInFrame = topView?.getPositionInAncestor(workListView)
+
+//                Log.d(debugTag, "currTopPos: $currTopPos")
+                val nextTopPos = adapter.addElms(dateElms, currTopPos)
+
+//                Log.d(debugTag, "nextTopPos: $nextTopPos")
+
+                val offsetY = posInFrame?.y ?: 0
+                layoutManager.scrollToPositionWithOffset(nextTopPos, offsetY)
+                waitingHandler = false
+            }
+
+            while (waitingHandler) {
+                delay(50)
+            }
+            Unit
+        }
     }
 
     class WorkElmAdapter(private val context: Context,
@@ -136,24 +171,47 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
             return -1
         }
 
-        private fun getDateByPosition(pos: Int): Calendar? {
+//        private fun getDateByPosition(pos: Int): Calendar? {
+//            if (pos <= dataElms.size - 1) {
+//                return dataElms[pos].dateTime
+//            }
+//            return null
+//        }
+
+        private fun getTimeInMillisByPosition(pos: Int): Long {
             if (pos <= dataElms.size - 1) {
-                return dataElms[pos].dateTime
+                return dataElms[pos].dateTime.timeInMillis
             }
-            return null
+            return -1
+        }
+
+        private fun getPositionByTimeInMillis(timeInMillis: Long): Int {
+            for (i in 0 until dataElms.size) {
+                if (dataElms[i].dateTime.timeInMillis == timeInMillis) {
+                    return i
+                }
+            }
+            return -1
         }
 
         fun addElms(elms: ArrayList<WorkElement>, currTopPos: Int):Int {
 
-            val currTopDate = getDateByPosition(currTopPos)
+            val currTopTimeInMillis = getTimeInMillisByPosition(currTopPos)
             val merged = WorkElmList.mergeAvoidingDup(dataElms, elms)
             dataElms.clear()
             dataElms.addAll(merged)
             notifyDataSetChanged()
 
-            currTopDate ?: return currTopPos
+            if (currTopTimeInMillis < 0) return currTopPos
 
-            return getPositionByDate(currTopDate)
+            val updatedPos = getPositionByTimeInMillis(currTopTimeInMillis)
+            if (updatedPos < 0) return currTopPos
+
+            return updatedPos
+        }
+
+        fun hasElmsOfDate(date: Calendar): Boolean {
+            return getPositionByDate(date) >= 0
         }
 
     }

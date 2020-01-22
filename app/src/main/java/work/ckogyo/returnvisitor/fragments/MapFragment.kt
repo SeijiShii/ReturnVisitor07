@@ -289,7 +289,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         mainActivity?:return
 
-        Log.d(debugTag, "showPlaceMarkers")
+//        Log.d(debugTag, "showPlaceMarkers")
 
         GlobalScope.launch {
             val places = PlaceCollection.instance.loadPlacesForMap()
