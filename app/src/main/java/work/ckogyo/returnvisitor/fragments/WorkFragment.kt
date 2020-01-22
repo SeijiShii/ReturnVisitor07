@@ -3,7 +3,6 @@ package work.ckogyo.returnvisitor.fragments
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,8 +18,9 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.utils.areSameDates
-import work.ckogyo.returnvisitor.utils.debugTag
+import work.ckogyo.returnvisitor.utils.fadeVisibility
 import work.ckogyo.returnvisitor.utils.getPositionInAncestor
+import work.ckogyo.returnvisitor.utils.toDateText
 import work.ckogyo.returnvisitor.views.VisitCell
 import work.ckogyo.returnvisitor.views.WorkElmCell
 import java.util.*
@@ -59,6 +59,7 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
                         addNeighboringDateElmsIfNeededAsync(dateToShow, true).await()
                         addNeighboringDateElmsIfNeededAsync(dateToShow, false).await()
                     }
+                    updateWorkDateText()
                 }
             }
         })
@@ -75,11 +76,17 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
 //                Log.d(debugTag, "view.width: ${view.width}, view.height: ${view.height}")
                 view.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
+                loadingWorkProgress.fadeVisibility(true)
+
                 GlobalScope.launch {
                     addNeighboringDateElmsIfNeededAsync(dateToShow, true).await()
                     addNeighboringDateElmsIfNeededAsync(dateToShow, false).await()
+                    handler.post {
+                        loadingWorkProgress.fadeVisibility(false)
+                    }
                 }
 
+                updateWorkDateText()
             }
         })
     }
@@ -118,6 +125,15 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
             }
             Unit
         }
+    }
+
+    private fun updateWorkDateText() {
+        val layoutManager = workListView.layoutManager as LinearLayoutManager
+        val topPos = layoutManager.findFirstCompletelyVisibleItemPosition()
+        val topCell = layoutManager.findViewByPosition(topPos) as WorkElmCell
+        val date = topCell.dataElm?.dateTime
+
+        workDateText.text = date?.toDateText() ?: ""
     }
 
     class WorkElmAdapter(private val context: Context,
@@ -171,12 +187,12 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
             return -1
         }
 
-//        private fun getDateByPosition(pos: Int): Calendar? {
-//            if (pos <= dataElms.size - 1) {
-//                return dataElms[pos].dateTime
-//            }
-//            return null
-//        }
+        fun getDateByPosition(pos: Int): Calendar? {
+            if (pos <= dataElms.size - 1) {
+                return dataElms[pos].dateTime
+            }
+            return null
+        }
 
         private fun getTimeInMillisByPosition(pos: Int): Long {
             if (pos <= dataElms.size - 1) {

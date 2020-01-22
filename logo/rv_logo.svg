@@ -55,7 +55,7 @@
      inkscape:current-layer="g861"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1137"
+     inkscape:window-height="1017"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
@@ -126,6 +126,13 @@
          y="-180.48984"
          x="460.45285"
          style="fill:#015500;fill-opacity:1;stroke-width:1" />
+      <rect
+         id="rect836-2"
+         height="631"
+         width="180"
+         y="-180.48982"
+         x="55.178043"
+         style="fill:#02bd00;stroke-width:1;fill-opacity:1" />
     </g>
     <g
        id="g905"

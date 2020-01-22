@@ -47,6 +47,7 @@ fun getDateTimeText(calendar: Calendar, context: Context): String {
     return dateString + " " + getTimeText(calendar, false)
 }
 
+
 //fun getDaysAgoText(days: Int, context: Context): String {
 //    return if (days <= 0) {
 //        context.getString(R.string.today)
