@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         refreshLoginOverlay()
-        progressOverlay.fadeVisibility(false)
+        switchProgressOverlay(false)
         isAppVisible = true
         watchAndAdjustAdView()
     }
@@ -158,7 +158,7 @@ class MainActivity : AppCompatActivity() {
 
     fun showWorkFragment() {
 
-        progressOverlay.fadeVisibility(true)
+        switchProgressOverlay(true, getString(R.string.loading_works))
 
         val handler = Handler()
         GlobalScope.launch {
@@ -173,28 +173,28 @@ class MainActivity : AppCompatActivity() {
             } else {
 
                 val date = WorkElmList.getDate(latestDateElms)!!
-                val previousDateElms = elmList.getListOfNeighboringDate(date, true)
-                val nextDateElms = elmList.getListOfNeighboringDate(date, false)
+//                val previousDateElms = elmList.getListOfNeighboringDate(date, true)
+//                val nextDateElms = elmList.getListOfNeighboringDate(date, false)
+//
+//                var merged = ArrayList<WorkElement>(latestDateElms)
+//                if (previousDateElms != null) {
+//                    merged = WorkElmList.mergeAvoidingDup(merged, previousDateElms)
+//                }
+//
+//                if (nextDateElms != null) {
+//                    merged = WorkElmList.mergeAvoidingDup(merged, nextDateElms)
+//                }
 
-                var merged = ArrayList<WorkElement>(latestDateElms)
-                if (previousDateElms != null) {
-                    merged = WorkElmList.mergeAvoidingDup(merged, previousDateElms)
-                }
-
-                if (nextDateElms != null) {
-                    merged = WorkElmList.mergeAvoidingDup(merged, nextDateElms)
-                }
-
-                WorkElmList.refreshIsVisitInWork(merged)
+                WorkElmList.refreshIsVisitInWork(latestDateElms)
 
                 val transaction = supportFragmentManager.beginTransaction()
-                val workFragment = WorkFragment(merged, date)
+                val workFragment = WorkFragment(latestDateElms, date)
                 transaction.addToBackStack(null)
                 transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
                 transaction.commit()
 
                 handler.post{
-                    progressOverlay.fadeVisibility(false)
+                    switchProgressOverlay(false)
                 }
             }
         }
@@ -341,11 +341,11 @@ class MainActivity : AppCompatActivity() {
     private fun watchAndAdjustAdView() {
         isWatchingForAdView = true
         val handler = Handler()
-        var oldShow = true
+        var oldShow = false
         GlobalScope.launch {
             while (isWatchingForAdView) {
                 delay(50)
-                Log.d(debugTag, "appFrame.height: ${appFrame.height}")
+//                Log.d(debugTag, "appFrame.height: ${appFrame.height}")
                 val show = appFrame.height >= toDP(500)
                 if (show != oldShow) {
                     handler.post {
@@ -354,6 +354,15 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    fun switchProgressOverlay(show: Boolean, message: String = "") {
+        progressOverlay.fadeVisibility(show)
+        progressMessage.text = if (show) {
+             message
+        } else {
+            ""
         }
     }
 

@@ -314,13 +314,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
             OnFinishEditParam.Done -> {
 
-                mainActivity?.progressOverlay?.fadeVisibility(true)
+                mainActivity?.switchProgressOverlay(true, getString(R.string.updating))
                 GlobalScope.launch {
 
                     VisitCollection.instance.saveVisitAsync(visit).await()
                     handler.post{
                         placeMarkers.refreshMarker(visit.place)
-                        mainActivity?.progressOverlay?.fadeVisibility(false)
+                        mainActivity?.switchProgressOverlay(false)
                     }
 
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
