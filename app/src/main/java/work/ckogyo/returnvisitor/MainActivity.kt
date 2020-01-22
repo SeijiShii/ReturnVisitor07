@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
 
     private lateinit var mapFragment: MapFragment
+    private val handler = Handler()
 
     val currentUser: FirebaseUser?
     get() = auth.currentUser
@@ -159,8 +160,6 @@ class MainActivity : AppCompatActivity() {
     fun showWorkFragment() {
 
         switchProgressOverlay(true, getString(R.string.loading_works))
-
-        val handler = Handler()
         GlobalScope.launch {
 
             val elmList = WorkElmList.instance
@@ -187,13 +186,13 @@ class MainActivity : AppCompatActivity() {
 
                 WorkElmList.refreshIsVisitInWork(latestDateElms)
 
-                val transaction = supportFragmentManager.beginTransaction()
-                val workFragment = WorkFragment(latestDateElms, date)
-                transaction.addToBackStack(null)
-                transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
-                transaction.commit()
-
                 handler.post{
+                    val transaction = supportFragmentManager.beginTransaction()
+                    val workFragment = WorkFragment(latestDateElms, date)
+                    transaction.addToBackStack(null)
+                    transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
+                    transaction.commit()
+
                     switchProgressOverlay(false)
                 }
             }

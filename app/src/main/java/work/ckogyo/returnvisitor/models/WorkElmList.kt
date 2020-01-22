@@ -1,6 +1,8 @@
 package work.ckogyo.returnvisitor.models
 
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
@@ -182,7 +184,13 @@ class WorkElmList {
         }
     }
 
-    suspend fun getListOfNeighboringDate(date: Calendar, previous: Boolean): ArrayList<WorkElement>? = suspendCoroutine {  cont ->
+    fun loadListOfNeighboringDateAsync (date: Calendar, previous: Boolean): Deferred<ArrayList<WorkElement>?> {
+        return GlobalScope.async {
+            loadListOfNeighboringDate(date, previous)
+        }
+    }
+
+    private suspend fun loadListOfNeighboringDate(date: Calendar, previous: Boolean): ArrayList<WorkElement>? = suspendCoroutine {  cont ->
         GlobalScope.launch {
             val limitDate = getRecordedDateAtEnd(previous)
             if (limitDate == null) {
