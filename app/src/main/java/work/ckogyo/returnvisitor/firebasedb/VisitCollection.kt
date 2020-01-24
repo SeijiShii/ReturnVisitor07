@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.firebasedb
 
+import android.util.Log
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.Deferred
@@ -76,17 +77,18 @@ class VisitCollection {
 
     suspend fun loadVisitsByDate(date: Calendar): ArrayList<Visit> = suspendCoroutine { cont ->
 
-        val db = FirebaseDB.instance
+        val userDoc = FirebaseDB.instance.userDoc
         val visits = ArrayList<Visit>()
 
-        if (db.userDoc == null) {
+        if (userDoc == null) {
             cont.resume(visits)
         } else {
             val startOfDay = date.cloneWith0Time()
             val endOfDay = date.cloneWith0Time()
             endOfDay.add(Calendar.DATE, 1)
+            endOfDay.add(Calendar.MILLISECOND, -1)
 
-            db.userDoc!!.collection(visitsKey)
+            userDoc.collection(visitsKey)
                 .whereGreaterThanOrEqualTo(dateTimeMillisKey, startOfDay.timeInMillis)
                 .whereLessThan(dateTimeMillisKey, endOfDay.timeInMillis)
                 .get().addOnSuccessListener {
@@ -126,6 +128,8 @@ class VisitCollection {
 
     suspend fun getRecordedDateAtEnd(getFirst: Boolean): Calendar? = suspendCoroutine { cont ->
 
+        val start = System.currentTimeMillis()
+
         val db = FirebaseDB.instance
         if (db.userDoc == null) {
             cont.resume(null)
@@ -142,6 +146,7 @@ class VisitCollection {
                         GlobalScope.launch {
                             visit.initVisitFromHashMap(data)
                             cont.resume(visit.dateTime)
+                            Log.d(debugTag, "Visit getRecordedDateAtEnd, took ${System.currentTimeMillis() - start}ms.")
                         }
                     } else {
                         cont.resume(null)
@@ -247,6 +252,7 @@ class VisitCollection {
     }
 
     suspend fun hasVisitBeforeThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
+//        val start = System.currentTimeMillis()
 
         val userDoc = FirebaseDB.instance.userDoc
         if (userDoc != null) {
@@ -257,12 +263,14 @@ class VisitCollection {
                 userDoc.collection(visitsKey)
                     .whereLessThan(dateTimeMillisKey, dateTime.timeInMillis)
             }
-            query.get()
-                .addOnSuccessListener {
-                    cont.resume(it.documents.size > 0)
-                }
-                .addOnFailureListener {
-                    cont.resume(false)
+            query.limit(1)
+                .addSnapshotListener{ qs, _ ->
+                    if (qs == null) {
+                        cont.resume(false)
+                    } else {
+                        cont.resume(!qs.isEmpty)
+                    }
+//                    Log.d(debugTag, "hasVisitBeforeThan took ${System.currentTimeMillis() - start}ms.")
                 }
         } else {
             cont.resume(false)
@@ -270,6 +278,8 @@ class VisitCollection {
     }
 
     suspend fun hasVisitAfterThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
+
+//        val start = System.currentTimeMillis()
 
         val userDoc = FirebaseDB.instance.userDoc
         if (userDoc != null) {
@@ -280,12 +290,14 @@ class VisitCollection {
                 userDoc.collection(visitsKey)
                     .whereGreaterThan(dateTimeMillisKey, dateTime.timeInMillis)
             }
-            query.get()
-                .addOnSuccessListener {
-                    cont.resume(it.documents.size > 0)
-                }
-                .addOnFailureListener {
-                    cont.resume(false)
+            query.limit(1)
+                .addSnapshotListener{ qs, _ ->
+                    if (qs == null) {
+                        cont.resume(false)
+                    } else {
+                        cont.resume(!qs.isEmpty)
+                    }
+//                    Log.d(debugTag, "hasVisitBeforeThan took ${System.currentTimeMillis() - start}ms.")
                 }
         } else {
             cont.resume(false)
@@ -294,20 +306,50 @@ class VisitCollection {
 
     suspend fun hasVisitInDateTimeRange(start: Calendar, end: Calendar): Boolean = suspendCoroutine { cont ->
 
+//        val funStart = System.currentTimeMillis()
+
         val userDoc = FirebaseDB.instance.userDoc
         if (userDoc != null) {
             userDoc.collection(visitsKey)
                 .whereGreaterThanOrEqualTo(dateTimeMillisKey, start.timeInMillis)
                 .whereLessThanOrEqualTo(dateTimeMillisKey, end.timeInMillis)
-                .get()
-                .addOnSuccessListener {
-                    cont.resume(it.documents.size > 0)
-                }
-                .addOnFailureListener {
-                    cont.resume(false)
+                .limit(1)
+                .addSnapshotListener{ qs, _ ->
+                    if (qs == null) {
+                        cont.resume(false)
+                    } else {
+                        cont.resume(!qs.isEmpty)
+                    }
+//                    Log.d(debugTag, "hasVisitInDateTimeRange, took ${System.currentTimeMillis() - funStart}ms.")
                 }
         } else {
             cont.resume(false)
+        }
+    }
+
+    suspend fun loadVisitsByDateRange(start: Calendar, end: Calendar): ArrayList<Visit> = suspendCoroutine {  cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        val visits = ArrayList<Visit>()
+
+        if (userDoc == null) {
+            cont.resume(visits)
+        } else {
+            val startMillis = start.cloneWith0Time().timeInMillis
+            val endLimit = end.cloneWith0Time()
+            endLimit.add(Calendar.DAY_OF_MONTH, 1)
+            val endMillis = endLimit.timeInMillis - 1
+
+            userDoc.collection(visitsKey)
+                .whereGreaterThanOrEqualTo(dateTimeMillisKey, startMillis)
+                .whereLessThanOrEqualTo(dateTimeMillisKey, endMillis)
+                .get().addOnSuccessListener {
+                    GlobalScope.launch {
+                        cont.resume(querySnapshotToVisitList(it))
+                    }
+                }.addOnFailureListener {
+                    cont.resume(visits)
+                }
         }
     }
 

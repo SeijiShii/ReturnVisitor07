@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.firebasedb
 
+import android.util.Log
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -29,12 +30,13 @@ class WorkCollection {
             val startOfDay = date.cloneWith0Time()
             val endOfDay = date.cloneWith0Time()
             endOfDay.add(Calendar.DATE, 1)
+            endOfDay.add(Calendar.MILLISECOND, -1)
 
             val key = if (byStart) startKey else endKey
 
             db.userDoc!!.collection(worksKey)
                 .whereGreaterThanOrEqualTo(key, startOfDay.timeInMillis)
-                .whereLessThan(key, endOfDay.timeInMillis)
+                .whereLessThanOrEqualTo(key, endOfDay.timeInMillis)
                 .get().addOnSuccessListener {
 
                     for(doc in it.documents) {
@@ -53,6 +55,48 @@ class WorkCollection {
 
         val worksByStart = loadWorksByDate(date, true)
         val worksByEnd = loadWorksByDate(date, false)
+
+        worksByStart.addAll(worksByEnd)
+        return filterUndupList(worksByStart)
+    }
+
+    private suspend fun loadWorksByDateRange(start: Calendar, end: Calendar, byStart: Boolean): ArrayList<Work> = suspendCoroutine { cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        val works = ArrayList<Work>()
+
+        if (userDoc == null) {
+            cont.resume(works)
+        } else {
+
+            val startMillis = start.cloneWith0Time().timeInMillis
+            val endLimit = end.cloneWith0Time()
+            endLimit.add(Calendar.DAY_OF_MONTH, 1)
+            val endMillis = endLimit.timeInMillis - 1
+
+            val key = if (byStart) startKey else endKey
+
+            userDoc.collection(worksKey)
+                .whereGreaterThanOrEqualTo(key, startMillis)
+                .whereLessThanOrEqualTo(key, endMillis)
+                .get().addOnSuccessListener {
+
+                    for(doc in it.documents) {
+                        val work = Work()
+                        work.initFromHashMap(doc.data as HashMap<String, Any>)
+                        works.add(work)
+                    }
+                    cont.resume(works)
+                }.addOnFailureListener {
+                    cont.resume(works)
+                }
+        }
+
+    }
+
+    suspend fun loadWorksByDateRange(start: Calendar, end: Calendar): ArrayList<Work> {
+        val worksByStart = loadWorksByDateRange(start, end, true)
+        val worksByEnd = loadWorksByDateRange(start, end, false)
 
         worksByStart.addAll(worksByEnd)
         return filterUndupList(worksByStart)
@@ -77,6 +121,8 @@ class WorkCollection {
 
     suspend fun getRecordedDateAtEnd(getFirst: Boolean): Calendar? = suspendCoroutine { cont ->
 
+        val start = System.currentTimeMillis()
+
         val userDoc = FirebaseDB.instance.userDoc
         if (userDoc == null) {
             cont.resume(null)
@@ -93,6 +139,7 @@ class WorkCollection {
                         val work = Work()
                         work.initFromHashMap(data)
                         cont.resume(if (getFirst) work.start else work.end)
+                        Log.d(debugTag, "Work getRecordedDateAtEnd, took ${System.currentTimeMillis() - start}ms.")
                     } else {
                         cont.resume(null)
                     }
@@ -133,22 +180,6 @@ class WorkCollection {
     }
 
 
-
-//    suspend fun loadWorksByDateRange(startDate: Calendar, endDate: Calendar): ArrayList<Work> {
-//        val works = ArrayList<Work>()
-//        val dateCounter = startDate.clone() as Calendar
-//
-//        while (isDateBefore(
-//                dateCounter,
-//                endDate
-//            )
-//        ) {
-//            works.addAll(loadAllWorksInDay(dateCounter))
-//            dateCounter.add(Calendar.DAY_OF_MONTH, 1)
-//        }
-//        return filterUndupList(works)
-//    }
-
     suspend fun set(work: Work): Boolean = suspendCoroutine { cont ->
         GlobalScope.launch {
             cont.resume(FirebaseDB.instance.set(worksKey, work.id, work.hashMap))
@@ -161,6 +192,8 @@ class WorkCollection {
      */
     suspend fun hasWorkBeforeThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
 
+//        val start = System.currentTimeMillis()
+
         val userDoc = FirebaseDB.instance.userDoc
         if (userDoc != null) {
             if (includesEqual) {
@@ -170,12 +203,14 @@ class WorkCollection {
                 userDoc.collection(worksKey)
                     .whereLessThan(startKey, dateTime.timeInMillis)
             }
-                .get()
-                .addOnSuccessListener {
-                    cont.resume(it.documents.size > 0)
-                }
-                .addOnFailureListener {
-                    cont.resume(false)
+                .limit(1)
+                .addSnapshotListener { qs, _ ->
+                    if (qs == null) {
+                        cont.resume(false)
+                    } else {
+                        cont.resume(!qs.isEmpty)
+                    }
+//                    Log.d(debugTag, "hasWorkBeforeThan took ${System.currentTimeMillis() - start}ms.")
                 }
         } else {
             cont.resume(false)
@@ -188,6 +223,8 @@ class WorkCollection {
      */
     suspend fun hasWorkAfterThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
 
+//        val start = System.currentTimeMillis()
+
         val userDoc = FirebaseDB.instance.userDoc
         if (userDoc != null) {
             if (includesEqual) {
@@ -197,12 +234,14 @@ class WorkCollection {
                 userDoc.collection(worksKey)
                     .whereGreaterThan(startKey, dateTime.timeInMillis)
             }
-                .get()
-                .addOnSuccessListener {
-                    cont.resume(it.documents.size > 0)
-                }
-                .addOnFailureListener {
-                    cont.resume(false)
+                .limit(1)
+                .addSnapshotListener { qs, _ ->
+                    if (qs == null) {
+                        cont.resume(false)
+                    } else {
+                        cont.resume(!qs.isEmpty)
+                    }
+//                    Log.d(debugTag, "hasWorkAfterThan took ${System.currentTimeMillis() - start}ms.")
                 }
         } else {
             cont.resume(false)
@@ -217,12 +256,13 @@ class WorkCollection {
             userDoc.collection(worksKey)
                 .whereGreaterThanOrEqualTo(key, start.timeInMillis)
                 .whereLessThanOrEqualTo(key, end.timeInMillis)
-                .get()
-                .addOnSuccessListener {
-                    cont.resume(it.documents.size > 0)
-                }
-                .addOnFailureListener {
-                    cont.resume(false)
+                .limit(1)
+                .addSnapshotListener { snapshot, _ ->
+                    if (snapshot == null) {
+                        cont.resume(false)
+                    } else {
+                        cont.resume(!snapshot.isEmpty)
+                    }
                 }
         } else {
             cont.resume(false)
@@ -230,10 +270,15 @@ class WorkCollection {
     }
 
     suspend fun hasWorkInDateTimeRange(start: Calendar, end: Calendar):Boolean = suspendCoroutine {  cont ->
+
+//        val funStart  = System.currentTimeMillis()
+
         GlobalScope.launch {
             val byWorkStart  = hasWorkInDateTimeRange(start, end, true)
             val byWorkEnd = hasWorkInDateTimeRange(start, end, false)
             cont.resume(byWorkStart || byWorkEnd)
+
+//            Log.d(debugTag, "hasWorkInDateTimeRange, took ${System.currentTimeMillis() - funStart}ms.")
         }
     }
 

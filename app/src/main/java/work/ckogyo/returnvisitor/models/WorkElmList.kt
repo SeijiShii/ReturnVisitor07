@@ -94,14 +94,24 @@ class WorkElmList {
         elms = updateDateBorders(elms)
 
         elms.sortBy { e -> e.dateTime.timeInMillis }
+        refreshIsVisitInWork(elms)
 
         return elms
     }
 
-    private suspend fun generateListByDate(date: Calendar): ArrayList<WorkElement> = suspendCoroutine { cont ->
+    suspend fun generateListByDate(date: Calendar): ArrayList<WorkElement> = suspendCoroutine { cont ->
         GlobalScope.launch {
             val works = WorkCollection.instance.loadAllWorksInDate(date)
             val visits = VisitCollection.instance.loadVisitsByDate(date)
+
+            cont.resume(generateList(works, visits))
+        }
+    }
+
+    suspend fun generateListByDateRange(start: Calendar, end: Calendar): ArrayList<WorkElement> = suspendCoroutine { cont ->
+        GlobalScope.launch {
+            val works = WorkCollection.instance.loadWorksByDateRange(start, end)
+            val visits = VisitCollection.instance.loadVisitsByDateRange(start, end)
 
             cont.resume(generateList(works, visits))
         }
@@ -162,28 +172,28 @@ class WorkElmList {
         }
     }
 
-    suspend fun getListOfToday(): ArrayList<WorkElement>? =  suspendCoroutine { cont ->
-
-        GlobalScope.launch {
-            val firstDate = getRecordedDateAtEnd(getFirst = true)
-            if (firstDate == null) {
-                cont.resume(null)
-            } else {
-                val dateCounter = Calendar.getInstance()
-                val visitColl = VisitCollection.instance
-                val workColl = WorkCollection.instance
-
-                while (isDateAfter(dateCounter, firstDate, true)) {
-                    if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
-                        cont.resume(generateListByDate(dateCounter))
-                        return@launch
-                    }
-                    dateCounter.add(Calendar.DAY_OF_MONTH, -1)
-                }
-                cont.resume(null)
-            }
-        }
-    }
+//    suspend fun getListOfToday(): ArrayList<WorkElement>? =  suspendCoroutine { cont ->
+//
+//        GlobalScope.launch {
+//            val firstDate = getRecordedDateAtEnd(getFirst = true)
+//            if (firstDate == null) {
+//                cont.resume(null)
+//            } else {
+//                val dateCounter = Calendar.getInstance()
+//                val visitColl = VisitCollection.instance
+//                val workColl = WorkCollection.instance
+//
+//                while (isDateAfter(dateCounter, firstDate, true)) {
+//                    if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
+//                        cont.resume(generateListByDate(dateCounter))
+//                        return@launch
+//                    }
+//                    dateCounter.add(Calendar.DAY_OF_MONTH, -1)
+//                }
+//                cont.resume(null)
+//            }
+//        }
+//    }
 
 //    fun getNeighboringDateAsync(date: Calendar, previous: Boolean): Deferred<Calendar?> {
 //
@@ -192,7 +202,31 @@ class WorkElmList {
 //        }
 //    }
 
+    suspend fun getNearestDateWithData(date: Calendar): Calendar? = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+            if (aDayHasElmAsync(date).await()) {
+                cont.resume(date)
+            } else {
+                val previous = getPreviouslyNeighboringDate(date)
+                if (previous != null) {
+                    cont.resume(previous)
+                } else {
+                    val next = getNextNeighboringDate(date)
+                    if (next != null) {
+                        cont.resume(next)
+                    } else {
+                        cont.resume(null)
+                    }
+                }
+            }
+        }
+    }
+
     private suspend fun getPreviouslyNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
+
+        val start = System.currentTimeMillis()
+
         GlobalScope.launch {
 
             val limitDate = date.cloneWith0Time()
@@ -234,11 +268,15 @@ class WorkElmList {
             }
 
             cont.resume(getEndDateWithData(firstDate, limitDate, firstEnd = false))
+            Log.d(debugTag, "getPreviouslyNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
             return@launch
         }
     }
 
     private suspend fun getNextNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
+
+        val start = System.currentTimeMillis()
+
         GlobalScope.launch {
 
             val limitDate = date.cloneWith0Time()
@@ -258,7 +296,7 @@ class WorkElmList {
             val lastVisitDate = visitColl.getRecordedDateAtEnd(false)
             val lastWorkDate = workColl.getRecordedDateAtEnd(false)
 
-            var lastDate = Calendar.getInstance()
+            val lastDate: Calendar
             when {
                 lastVisitDate != null && lastWorkDate != null -> {
                     lastDate = if (lastVisitDate.after(lastWorkDate)) {
@@ -280,6 +318,8 @@ class WorkElmList {
             }
 
             cont.resume(getEndDateWithData(limitDate, lastDate, firstEnd = true))
+
+            Log.d(debugTag, "getNextNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
             return@launch
         }
     }
@@ -299,7 +339,8 @@ class WorkElmList {
 
     private fun getEndDateWithData(start: Calendar, end: Calendar, firstEnd: Boolean): Calendar? {
 
-        Log.d(debugTag, "start: ${start.toDateTimeText()}, end: ${end.toDateTimeText()}")
+        val funStart = System.currentTimeMillis()
+//        Log.d(debugTag, "start: ${start.toDateTimeText()}, end: ${end.toDateTimeText()}")
         if (areSameDates(start, end)) {
             return if (firstEnd) start else end
         } else {
@@ -313,8 +354,9 @@ class WorkElmList {
             val frontHalfHasData = hasDataInDateTimeRange(start, frontEnd)
             val latterHalfHasData = hasDataInDateTimeRange(latterStart, end)
 
-            if (firstEnd) {
-                return when {
+            Log.d(debugTag, "getEndDateWithData, took ${System.currentTimeMillis() - funStart}ms.")
+            return if (firstEnd) {
+                when {
                     frontHalfHasData && latterHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
                     frontHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
                     latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
@@ -323,7 +365,7 @@ class WorkElmList {
                     }
                 }
             } else {
-                return when {
+                when {
                     frontHalfHasData && latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
                     latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
                     frontHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)

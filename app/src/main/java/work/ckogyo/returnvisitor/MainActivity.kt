@@ -35,6 +35,7 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.utils.*
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -159,44 +160,50 @@ class MainActivity : AppCompatActivity() {
 
     fun showWorkFragment() {
 
-        switchProgressOverlay(true, getString(R.string.loading_works))
-        GlobalScope.launch {
+//        switchProgressOverlay(true, getString(R.string.loading_works))
 
-            val elmList = WorkElmList.instance
+        val transaction = supportFragmentManager.beginTransaction()
+        val workFragment = WorkFragment(Calendar.getInstance())
+        transaction.addToBackStack(null)
+        transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
+        transaction.commit()
 
-            val latestDateElms = elmList.getListOfToday()
-            if (latestDateElms == null) {
-                handler.post {
-                    Toast.makeText(this@MainActivity, R.string.no_data_recoreded, Toast.LENGTH_SHORT).show()
-                }
-            } else {
+//        switchProgressOverlay(false)
 
-                val date = WorkElmList.getDate(latestDateElms)!!
-//                val previousDateElms = elmList.getListOfNeighboringDate(date, true)
-//                val nextDateElms = elmList.getListOfNeighboringDate(date, false)
+
+//        GlobalScope.launch {
 //
-//                var merged = ArrayList<WorkElement>(latestDateElms)
-//                if (previousDateElms != null) {
-//                    merged = WorkElmList.mergeAvoidingDup(merged, previousDateElms)
-//                }
+//            handler.post{
 //
-//                if (nextDateElms != null) {
-//                    merged = WorkElmList.mergeAvoidingDup(merged, nextDateElms)
+//            }
+//
+//            val elmList = WorkElmList.instance
+//
+//            val latestDateElms = elmList.getListOfToday()
+//            if (latestDateElms == null) {
+//                handler.post {
+//                    Toast.makeText(this@MainActivity, R.string.no_data_recoreded, Toast.LENGTH_SHORT).show()
 //                }
-
-                WorkElmList.refreshIsVisitInWork(latestDateElms)
-
-                handler.post{
-                    val transaction = supportFragmentManager.beginTransaction()
-                    val workFragment = WorkFragment(latestDateElms, date)
-                    transaction.addToBackStack(null)
-                    transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
-                    transaction.commit()
-
-                    switchProgressOverlay(false)
-                }
-            }
-        }
+//            } else {
+//
+//                val date = WorkElmList.getDate(latestDateElms)!!
+////                val previousDateElms = elmList.getListOfNeighboringDate(date, true)
+////                val nextDateElms = elmList.getListOfNeighboringDate(date, false)
+////
+////                var merged = ArrayList<WorkElement>(latestDateElms)
+////                if (previousDateElms != null) {
+////                    merged = WorkElmList.mergeAvoidingDup(merged, previousDateElms)
+////                }
+////
+////                if (nextDateElms != null) {
+////                    merged = WorkElmList.mergeAvoidingDup(merged, nextDateElms)
+////                }
+//
+//                WorkElmList.refreshIsVisitInWork(latestDateElms)
+//
+//
+//            }
+//        }
     }
 
     fun checkPermissionAndEnableMyLocation(googleMap: GoogleMap?) {

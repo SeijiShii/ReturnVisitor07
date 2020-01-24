@@ -27,13 +27,14 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.absoluteValue
 
-class WorkFragment(private val dataElms: ArrayList<WorkElement>,
-                   private var workDateToShow: Calendar) : Fragment(), DatePickerDialog.OnDateSetListener {
+class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateSetListener {
 
     private val handler = Handler()
     private lateinit var adapter: WorkElmAdapter
     private val mainActivity: MainActivity?
         get() = context as? MainActivity
+
+    private var date: Calendar = initialDate
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,11 +47,6 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = WorkElmAdapter(context!!, dataElms)
-
-        workListView.adapter = adapter
-        workListView.layoutManager = SmoothScrollingLayoutManager(context!!)
-
         view.setOnTouchListener { _, _ -> true }
 
         workListView.addOnScrollListener(object : RecyclerView.OnScrollListener(){
@@ -59,41 +55,96 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
 //                    Log.d(debugTag, "onScrollStateChanged: SCROLL_STATE_IDLE")
                     GlobalScope.launch {
-                        addNeighboringDateElmsIfNeededAsync(workDateToShow, true).await()
-                        addNeighboringDateElmsIfNeededAsync(workDateToShow, false).await()
+                        addNeighboringDateElmsIfNeededAsync(date, true).await()
+                        addNeighboringDateElmsIfNeededAsync(date, false).await()
                     }
                     updateWorkDateToShowByWorkList()
                 }
             }
         })
 
-        val position = adapter.getPositionByDate(workDateToShow)
-        if (position > 0) {
-            workListView.layoutManager!!.scrollToPosition(position)
-        }
+
 
         workDateText.setOnClick {
             showDatePicker()
         }
 
         // 全体が表示されたなら前後日のデータを取得して表示する。
-        view.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-//                Log.d(debugTag, "view.width: ${view.width}, view.height: ${view.height}")
-                view.viewTreeObserver.removeOnGlobalLayoutListener(this)
+//        view.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+////                Log.d(debugTag, "view.width: ${view.width}, view.height: ${view.height}")
+//                view.viewTreeObserver.removeOnGlobalLayoutListener(this)
+//
+//                loadingWorkProgressSmall.fadeVisibility(true)
+//
+//                GlobalScope.launch {
+//                    addNeighboringDateElmsIfNeededAsync(workDateToShow, true).await()
+//                    addNeighboringDateElmsIfNeededAsync(workDateToShow, false).await()
+//                    handler.post {
+//                        loadingWorkProgressSmall.fadeVisibility(false)
+//                    }
+//                }
+//                updateWorkDateToShowByWorkList()
+//            }
+//        })
 
-                loadingWorkProgress.fadeVisibility(true)
+        refreshWorkList()
+    }
 
-                GlobalScope.launch {
-                    addNeighboringDateElmsIfNeededAsync(workDateToShow, true).await()
-                    addNeighboringDateElmsIfNeededAsync(workDateToShow, false).await()
-                    handler.post {
-                        loadingWorkProgress.fadeVisibility(false)
-                    }
+    private fun refreshWorkList() {
+
+        val start = System.currentTimeMillis()
+
+        switchLoadingWorkOverlay(true)
+        GlobalScope.launch {
+            val nearestDate = WorkElmList.instance.getNearestDateWithData(date)
+
+            if (nearestDate == null) {
+                handler.post {
+                    noWorkFrame.fadeVisibility(true)
+                    workListView.fadeVisibility(false)
                 }
-                updateWorkDateToShowByWorkList()
+                return@launch
             }
-        })
+
+            // 指定した日の最近日を中心に前後2日(最大5日)分のデータを取得する
+            val dates = arrayListOf(nearestDate)
+
+            for (i in 0 until 2) {
+                val previous = WorkElmList.instance.getNeighboringDate(dates[0], true)
+                if (previous != null) {
+                    dates.add(0, previous)
+                }
+
+                val next = WorkElmList.instance.getNeighboringDate(dates[dates.size - 1], false)
+                if (next != null) {
+                    dates.add(next)
+                }
+            }
+
+            for(i in 0 until dates.size) {
+                Log.d(debugTag, "Loaded dates[$i]: ${dates[i].toDateText()}")
+            }
+            Log.d(debugTag, "Loading dates with data, took ${System.currentTimeMillis() - start}ms.")
+
+            val dataElms = WorkElmList.instance.generateListByDateRange(dates[0], dates[dates.size - 1])
+            adapter = WorkElmAdapter(context!!, dataElms)
+
+            handler.post {
+                workListView.adapter = adapter
+                workListView.layoutManager = SmoothScrollingLayoutManager(context!!)
+
+                val position = adapter.getPositionByDate(date)
+                if (position > 0) {
+                    workListView.layoutManager!!.scrollToPosition(position)
+                }
+
+                switchLoadingWorkOverlay(false)
+
+                val duration = System.currentTimeMillis() - start
+                Log.d(debugTag, "refreshWorkList took ${duration}ms.")
+            }
+        }
     }
 
     private fun addNeighboringDateElmsIfNeededAsync(date: Calendar, previous: Boolean):Deferred<Unit> {
@@ -136,12 +187,12 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
         val layoutManager = workListView.layoutManager as LinearLayoutManager
         val topPos = layoutManager.findFirstCompletelyVisibleItemPosition()
         val topCell = layoutManager.findViewByPosition(topPos) as WorkElmCell
-        workDateToShow = topCell.dataElm?.dateTime ?: workDateToShow
+        date = topCell.dataElm?.dateTime ?: date
         updateWorkDateText()
     }
 
     private fun updateWorkDateText() {
-        workDateText.text = workDateToShow.toDateText()
+        workDateText.text = date.toDateText()
     }
 
 
@@ -150,9 +201,9 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
 
         DatePickerDialog(context!!,
             this,
-            workDateToShow.get(Calendar.YEAR),
-            workDateToShow.get(Calendar.MONTH),
-            workDateToShow.get(Calendar.DAY_OF_MONTH)).show()
+            date.get(Calendar.YEAR),
+            date.get(Calendar.MONTH),
+            date.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
@@ -200,6 +251,12 @@ class WorkFragment(private val dataElms: ArrayList<WorkElement>,
     private fun scrollByDate(date: Calendar) {
         val pos = adapter.getPositionByDate(date)
         workListView.smoothScrollToPosition(pos)
+    }
+
+    private fun switchLoadingWorkOverlay(loading: Boolean) {
+
+        loadingWorkOverlay.fadeVisibility(loading)
+        workListView.fadeVisibility(!loading, addTouchBlockerOnFadeIn = false)
     }
 
     class WorkElmAdapter(private val context: Context,

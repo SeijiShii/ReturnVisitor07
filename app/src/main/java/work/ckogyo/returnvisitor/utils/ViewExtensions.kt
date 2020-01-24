@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ScrollView
-import kotlinx.android.synthetic.main.main_activity.*
 
 fun View.getViewCapture(): Bitmap {
     this.isDrawingCacheEnabled = true
@@ -79,14 +78,14 @@ fun View.setOnClick(onClick: (View) -> Unit) {
 }
 
 fun View.fadeVisibility(fadeIn: Boolean,
-                        touchListener: View.OnTouchListener? = null,
-                        onAnimationFinished: (() -> Unit)? = null) {
-
-    val touchListener2 = touchListener?:View.OnTouchListener { p0, p1 -> true }
+                        addTouchBlockerOnFadeIn: Boolean = true,
+                        onAnimationFinished: ((fadedIn: Boolean) -> Unit)? = null) {
 
     val target = if (fadeIn) {
         this.visibility = View.VISIBLE
-        this.setOnTouchListener(touchListener2)
+        if (addTouchBlockerOnFadeIn) {
+            this.setOnTouchListener { _, _ -> true }
+        }
         1f
     } else {
         this.setOnTouchListener(null)
@@ -107,7 +106,7 @@ fun View.fadeVisibility(fadeIn: Boolean,
             if (!fadeIn) {
                 this@fadeVisibility.visibility = View.GONE
             }
-            onAnimationFinished?.invoke()
+            onAnimationFinished?.invoke(fadeIn)
         }
 
         override fun onAnimationCancel(p0: Animator?) {}

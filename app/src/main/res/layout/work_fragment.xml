@@ -17,7 +17,7 @@
             android:layout_height="40dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:id="@+id/loadingWorkProgress"
+            android:id="@+id/loadingWorkProgressSmall"
             android:alpha="0"/>
 
         <TextView
@@ -64,7 +64,46 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="10dp"
-                android:background="@drawable/gradient_shadow"/>
+                android:background="@drawable/gradient_shadow"
+                android:layout_alignParentTop="true"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/loadingWorkOverlay"
+            android:alpha="0">
+
+            <ProgressBar
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_centerInParent="true"
+                android:id="@+id/loadingWorkProgressCenter"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/darkGray"
+                android:layout_below="@id/loadingWorkProgressCenter"
+                android:layout_centerHorizontal="true"
+                android:text="@string/loading_works"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/noWorkFrame"
+            android:alpha="0">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:textSize="20sp"
+                android:textColor="@color/lightGray"
+                android:text="@string/no_data_recorded"/>
 
         </RelativeLayout>
 
