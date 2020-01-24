@@ -121,7 +121,7 @@ class WorkCollection {
 
     suspend fun getRecordedDateAtEnd(getFirst: Boolean): Calendar? = suspendCoroutine { cont ->
 
-        val start = System.currentTimeMillis()
+//        val start = System.currentTimeMillis()
 
         val userDoc = FirebaseDB.instance.userDoc
         if (userDoc == null) {
@@ -139,7 +139,7 @@ class WorkCollection {
                         val work = Work()
                         work.initFromHashMap(data)
                         cont.resume(if (getFirst) work.start else work.end)
-                        Log.d(debugTag, "Work getRecordedDateAtEnd, took ${System.currentTimeMillis() - start}ms.")
+//                        Log.d(debugTag, "Work getRecordedDateAtEnd, took ${System.currentTimeMillis() - start}ms.")
                     } else {
                         cont.resume(null)
                     }

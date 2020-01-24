@@ -128,7 +128,7 @@ class VisitCollection {
 
     suspend fun getRecordedDateAtEnd(getFirst: Boolean): Calendar? = suspendCoroutine { cont ->
 
-        val start = System.currentTimeMillis()
+//        val start = System.currentTimeMillis()
 
         val db = FirebaseDB.instance
         if (db.userDoc == null) {
@@ -146,7 +146,7 @@ class VisitCollection {
                         GlobalScope.launch {
                             visit.initVisitFromHashMap(data)
                             cont.resume(visit.dateTime)
-                            Log.d(debugTag, "Visit getRecordedDateAtEnd, took ${System.currentTimeMillis() - start}ms.")
+//                            Log.d(debugTag, "Visit getRecordedDateAtEnd, took ${System.currentTimeMillis() - start}ms.")
                         }
                     } else {
                         cont.resume(null)
@@ -157,23 +157,6 @@ class VisitCollection {
             }
         }
     }
-
-
-//    suspend fun loadVisitsByDateRange(startDate: Calendar, endDate: Calendar): ArrayList<Visit> {
-//
-//        val visits = ArrayList<Visit>()
-//        val dateCounter = startDate.clone() as Calendar
-//
-//        while (isDateBefore(
-//                dateCounter,
-//                endDate
-//            )
-//        ) {
-//            visits.addAll(loadVisitsOfDay(dateCounter))
-//            dateCounter.add(Calendar.DAY_OF_MONTH, 1)
-//        }
-//        return filterUndupList(visits)
-//    }
 
 
     private fun setAsync(visit: Visit): Deferred<Boolean> {

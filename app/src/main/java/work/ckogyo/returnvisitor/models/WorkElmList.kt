@@ -9,6 +9,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.absoluteValue
 
 class WorkElmList {
 
@@ -209,15 +210,18 @@ class WorkElmList {
                 cont.resume(date)
             } else {
                 val previous = getPreviouslyNeighboringDate(date)
-                if (previous != null) {
-                    cont.resume(previous)
-                } else {
-                    val next = getNextNeighboringDate(date)
-                    if (next != null) {
-                        cont.resume(next)
-                    } else {
-                        cont.resume(null)
+                val next = getNextNeighboringDate(date)
+
+                when {
+                    previous != null && next != null -> {
+                        val prevDiff = date.getDaysDiff(previous).absoluteValue
+                        val nextDiff = date.getDaysDiff(next).absoluteValue
+
+                        cont.resume(if (prevDiff < nextDiff) previous else next)
                     }
+                    previous != null -> cont.resume(previous)
+                    next != null -> cont.resume(next)
+                    else -> cont.resume(null)
                 }
             }
         }
@@ -225,7 +229,7 @@ class WorkElmList {
 
     private suspend fun getPreviouslyNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
 
-        val start = System.currentTimeMillis()
+//        val start = System.currentTimeMillis()
 
         GlobalScope.launch {
 
@@ -268,14 +272,14 @@ class WorkElmList {
             }
 
             cont.resume(getEndDateWithData(firstDate, limitDate, firstEnd = false))
-            Log.d(debugTag, "getPreviouslyNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
+//            Log.d(debugTag, "getPreviouslyNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
             return@launch
         }
     }
 
     private suspend fun getNextNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
 
-        val start = System.currentTimeMillis()
+//        val start = System.currentTimeMillis()
 
         GlobalScope.launch {
 
@@ -319,7 +323,7 @@ class WorkElmList {
 
             cont.resume(getEndDateWithData(limitDate, lastDate, firstEnd = true))
 
-            Log.d(debugTag, "getNextNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
+//            Log.d(debugTag, "getNextNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
             return@launch
         }
     }
@@ -339,7 +343,7 @@ class WorkElmList {
 
     private fun getEndDateWithData(start: Calendar, end: Calendar, firstEnd: Boolean): Calendar? {
 
-        val funStart = System.currentTimeMillis()
+//        val funStart = System.currentTimeMillis()
 //        Log.d(debugTag, "start: ${start.toDateTimeText()}, end: ${end.toDateTimeText()}")
         if (areSameDates(start, end)) {
             return if (firstEnd) start else end
@@ -354,7 +358,7 @@ class WorkElmList {
             val frontHalfHasData = hasDataInDateTimeRange(start, frontEnd)
             val latterHalfHasData = hasDataInDateTimeRange(latterStart, end)
 
-            Log.d(debugTag, "getEndDateWithData, took ${System.currentTimeMillis() - funStart}ms.")
+//            Log.d(debugTag, "getEndDateWithData, took ${System.currentTimeMillis() - funStart}ms.")
             return if (firstEnd) {
                 when {
                     frontHalfHasData && latterHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
