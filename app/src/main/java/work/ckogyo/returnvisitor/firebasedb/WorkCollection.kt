@@ -4,7 +4,6 @@ import android.util.Log
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*

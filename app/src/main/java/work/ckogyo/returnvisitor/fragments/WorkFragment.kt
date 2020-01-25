@@ -60,8 +60,6 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             }
         })
 
-
-
         workDateText.setOnClick {
             showDatePicker()
         }
@@ -81,6 +79,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 handler.post {
                     noWorkFrame.fadeVisibility(true)
                     workListView.fadeVisibility(false)
+                    loadingWorkOverlay.fadeVisibility(false)
                 }
                 return@launch
             }
@@ -136,8 +135,16 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         }
 
         GlobalScope.launch {
-            val diffToFirstDate = date.getDaysDiff(adapter.firstDate).absoluteValue
-            val diffToLastDate = date.getDaysDiff(adapter.lastDate).absoluteValue
+
+            val layoutManager = workListView.layoutManager as LinearLayoutManager
+
+            val topPos = layoutManager.findFirstVisibleItemPosition()
+            val topCell = layoutManager.findViewByPosition(topPos) as WorkElmCell
+            val diffToFirstDate = topCell.dataElm!!.dateTime.getDaysDiff(adapter.firstDate).absoluteValue
+
+            val lastPos = layoutManager.findLastVisibleItemPosition()
+            val lastCell = layoutManager.findViewByPosition(lastPos) as WorkElmCell
+            val diffToLastDate = lastCell.dataElm!!.dateTime.getDaysDiff(adapter.lastDate).absoluteValue
 
             val elmsToAdd = ArrayList<WorkElement>()
 
