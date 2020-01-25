@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
@@ -186,68 +187,6 @@ class WorkCollection {
         }
     }
 
-    /**
-     * 指定した日時より前のWorkが存在するか。
-     * Workの開始日時で判定する。
-     */
-    suspend fun hasWorkBeforeThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
-
-//        val start = System.currentTimeMillis()
-
-        val userDoc = FirebaseDB.instance.userDoc
-        if (userDoc != null) {
-            if (includesEqual) {
-                userDoc.collection(worksKey)
-                    .whereLessThanOrEqualTo(startKey, dateTime.timeInMillis)
-            } else {
-                userDoc.collection(worksKey)
-                    .whereLessThan(startKey, dateTime.timeInMillis)
-            }
-                .limit(1)
-                .addSnapshotListener { qs, _ ->
-                    if (qs == null) {
-                        cont.resume(false)
-                    } else {
-                        cont.resume(!qs.isEmpty)
-                    }
-//                    Log.d(debugTag, "hasWorkBeforeThan took ${System.currentTimeMillis() - start}ms.")
-                }
-        } else {
-            cont.resume(false)
-        }
-    }
-
-    /**
-     * 指定した日時より後のWorkが存在するか。
-     * Workの終了日時で判定する。
-     */
-    suspend fun hasWorkAfterThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
-
-//        val start = System.currentTimeMillis()
-
-        val userDoc = FirebaseDB.instance.userDoc
-        if (userDoc != null) {
-            if (includesEqual) {
-                userDoc.collection(worksKey)
-                    .whereGreaterThanOrEqualTo(startKey, dateTime.timeInMillis)
-            } else {
-                userDoc.collection(worksKey)
-                    .whereGreaterThan(startKey, dateTime.timeInMillis)
-            }
-                .limit(1)
-                .addSnapshotListener { qs, _ ->
-                    if (qs == null) {
-                        cont.resume(false)
-                    } else {
-                        cont.resume(!qs.isEmpty)
-                    }
-//                    Log.d(debugTag, "hasWorkAfterThan took ${System.currentTimeMillis() - start}ms.")
-                }
-        } else {
-            cont.resume(false)
-        }
-    }
-
     private suspend fun hasWorkInDateTimeRange(start: Calendar, end: Calendar, byWorkStart: Boolean): Boolean = suspendCoroutine { cont ->
 
         val userDoc = FirebaseDB.instance.userDoc
@@ -279,6 +218,46 @@ class WorkCollection {
             cont.resume(byWorkStart || byWorkEnd)
 
 //            Log.d(debugTag, "hasWorkInDateTimeRange, took ${System.currentTimeMillis() - funStart}ms.")
+        }
+    }
+
+    suspend fun getNeighboringDateWithData(date: Calendar, before: Boolean): Calendar? = suspendCoroutine {  cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc == null) {
+            cont.resume(null)
+        } else {
+
+            val dateStartMillis = date.cloneWith0Time().timeInMillis
+            val dateEnd = date.cloneWith0Time()
+            dateEnd.add(Calendar.DAY_OF_MONTH, 1)
+            dateEnd.add(Calendar.MILLISECOND, -1)
+            val dateEndMillis = dateEnd.timeInMillis
+
+            val key = if (before) startKey else endKey
+
+            if (before) {
+                userDoc.collection(worksKey)
+                    .whereLessThan(key, dateStartMillis)
+            } else {
+                userDoc.collection(worksKey)
+                    .whereGreaterThan(key, dateEndMillis)
+            }
+                .orderBy(key, if (before) Query.Direction.DESCENDING else Query.Direction.ASCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener {
+                    if (it.documents.isEmpty()) {
+                        cont.resume(null)
+                    } else {
+                        val map = it.documents[0].data as HashMap<String, Any>
+                        val work = Work()
+                        work.initFromHashMap(map)
+                        cont.resume(if (before) work.start else work.end)
+                    }
+                }.addOnFailureListener {
+                    cont.resume(null)
+                }
         }
     }
 

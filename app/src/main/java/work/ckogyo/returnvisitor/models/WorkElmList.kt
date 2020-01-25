@@ -1,6 +1,5 @@
 package work.ckogyo.returnvisitor.models
 
-import android.util.Log
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
@@ -159,225 +158,65 @@ class WorkElmList {
         return tmp
     }
 
-    private suspend fun getRecordedDateAtEnd(getFirst: Boolean): Calendar? = suspendCoroutine { cont ->
-
-        GlobalScope.launch {
-            val firstVisitDate = VisitCollection.instance.getRecordedDateAtEnd(getFirst)
-            val firstWorkDate = WorkCollection.instance.getRecordedDateAtEnd(getFirst)
-
-            when {
-                firstVisitDate == null && firstWorkDate == null -> cont.resume(null)
-                firstVisitDate == null -> cont.resume(firstWorkDate)
-                else -> cont.resume(firstVisitDate)
-            }
-        }
-    }
-
-//    suspend fun getListOfToday(): ArrayList<WorkElement>? =  suspendCoroutine { cont ->
-//
-//        GlobalScope.launch {
-//            val firstDate = getRecordedDateAtEnd(getFirst = true)
-//            if (firstDate == null) {
-//                cont.resume(null)
-//            } else {
-//                val dateCounter = Calendar.getInstance()
-//                val visitColl = VisitCollection.instance
-//                val workColl = WorkCollection.instance
-//
-//                while (isDateAfter(dateCounter, firstDate, true)) {
-//                    if (visitColl.aDayHasVisit(dateCounter) || workColl.aDayHasWork(dateCounter)) {
-//                        cont.resume(generateListByDate(dateCounter))
-//                        return@launch
-//                    }
-//                    dateCounter.add(Calendar.DAY_OF_MONTH, -1)
-//                }
-//                cont.resume(null)
-//            }
-//        }
-//    }
-
-//    fun getNeighboringDateAsync(date: Calendar, previous: Boolean): Deferred<Calendar?> {
-//
-//        return GlobalScope.async {
-//            getNeighboringDate(date, previous)
-//        }
-//    }
 
     suspend fun getNearestDateWithData(date: Calendar): Calendar? = suspendCoroutine { cont ->
 
         GlobalScope.launch {
+
             if (aDayHasElmAsync(date).await()) {
-                cont.resume(date)
-            } else {
-                val previous = getPreviouslyNeighboringDate(date)
-                val next = getNextNeighboringDate(date)
-
-                when {
-                    previous != null && next != null -> {
-                        val prevDiff = date.getDaysDiff(previous).absoluteValue
-                        val nextDiff = date.getDaysDiff(next).absoluteValue
-
-                        cont.resume(if (prevDiff < nextDiff) previous else next)
-                    }
-                    previous != null -> cont.resume(previous)
-                    next != null -> cont.resume(next)
-                    else -> cont.resume(null)
-                }
+                cont.resume(date.cloneWith0Time())
+                return@launch
             }
+
+            val previousDate = getNeighboringDate(date, true)
+            val nextDate = getNeighboringDate(date, false)
+
+            val dateToReturn = when {
+                previousDate != null && nextDate != null -> {
+                    val prevDiff = date.getDaysDiff(previousDate).absoluteValue
+                    val nextDiff = date.getDaysDiff(nextDate).absoluteValue
+
+                    if (prevDiff < nextDiff) previousDate else nextDate
+                }
+                previousDate != null -> previousDate
+                nextDate != null -> nextDate
+                else -> null
+            }
+
+            cont.resume(dateToReturn)
+            return@launch
+
         }
     }
 
-    private suspend fun getPreviouslyNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
+    suspend fun getNeighboringDate(date: Calendar, previous: Boolean): Calendar? = suspendCoroutine { cont ->
 
 //        val start = System.currentTimeMillis()
 
         GlobalScope.launch {
 
-            val limitDate = date.cloneWith0Time()
-            limitDate.timeInMillis -= 1
+            val visitDateTask
+                    = GlobalScope.async { VisitCollection.instance.getNeighboringDateWithData(date, previous) }
+            val workDateTask
+                    = GlobalScope.async { WorkCollection.instance.getNeighboringDateWithData(date, previous) }
 
-            val visitColl = VisitCollection.instance
-            val workColl = WorkCollection.instance
+            val visitDate  = visitDateTask.await()
+            val workDate = workDateTask.await()
 
-            val hasVisitBefore = visitColl.hasVisitBeforeThan(date, includesEqual = true)
-            val hasWorkBefore = workColl.hasWorkBeforeThan(date, includesEqual = true)
-
-            if (!hasVisitBefore && !hasWorkBefore) {
-                cont.resume(null)
-                return@launch
-            }
-
-            val firstVisitDate = visitColl.getRecordedDateAtEnd(true)
-            val firstWorkDate = workColl.getRecordedDateAtEnd(true)
-
-            var firstDate = Calendar.getInstance()
-            when {
-                firstVisitDate != null && firstWorkDate != null -> {
-                    firstDate = if (firstVisitDate.before(firstWorkDate)) {
-                        firstVisitDate
+            val nextDate = when {
+                visitDate != null && workDate != null -> {
+                    if (previous) {
+                        if (visitDate.after(workDate)) visitDate else workDate
                     } else {
-                        firstWorkDate
+                        if (visitDate.before(workDate)) visitDate else workDate
                     }
                 }
-                firstVisitDate != null -> {
-                    firstDate = firstVisitDate
-                }
-                firstWorkDate != null -> {
-                    firstDate = firstWorkDate
-                }
-                else -> {
-                    cont.resume(null)
-                    return@launch
-                }
+                visitDate != null -> visitDate
+                workDate != null -> workDate
+                else -> null
             }
 
-            cont.resume(getEndDateWithData(firstDate, limitDate, firstEnd = false))
-//            Log.d(debugTag, "getPreviouslyNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
-            return@launch
-        }
-    }
-
-    private suspend fun getNextNeighboringDate(date: Calendar): Calendar? = suspendCoroutine { cont ->
-
-//        val start = System.currentTimeMillis()
-
-        GlobalScope.launch {
-
-            val limitDate = date.cloneWith0Time()
-            limitDate.add(Calendar.DAY_OF_YEAR, 1)
-
-            val visitColl = VisitCollection.instance
-            val workColl = WorkCollection.instance
-
-            val hasVisitAfter = visitColl.hasVisitAfterThan(date, includesEqual = true)
-            val hasWorkAfter = workColl.hasWorkAfterThan(date, includesEqual = true)
-
-            if (!hasVisitAfter && !hasWorkAfter) {
-                cont.resume(null)
-                return@launch
-            }
-
-            val lastVisitDate = visitColl.getRecordedDateAtEnd(false)
-            val lastWorkDate = workColl.getRecordedDateAtEnd(false)
-
-            val lastDate: Calendar
-            when {
-                lastVisitDate != null && lastWorkDate != null -> {
-                    lastDate = if (lastVisitDate.after(lastWorkDate)) {
-                        lastVisitDate
-                    } else {
-                        lastWorkDate
-                    }
-                }
-                lastVisitDate != null -> {
-                    lastDate = lastVisitDate
-                }
-                lastWorkDate != null -> {
-                    lastDate = lastWorkDate
-                }
-                else -> {
-                    cont.resume(null)
-                    return@launch
-                }
-            }
-
-            cont.resume(getEndDateWithData(limitDate, lastDate, firstEnd = true))
-
-//            Log.d(debugTag, "getNextNeighboringDate, took ${System.currentTimeMillis() - start}ms.")
-            return@launch
-        }
-    }
-
-    suspend fun getNeighboringDate(date: Calendar, previous: Boolean): Calendar? = suspendCoroutine {  cont ->
-        GlobalScope.launch {
-            if (previous) {
-                cont.resume(getPreviouslyNeighboringDate(date))
-                return@launch
-            } else {
-                cont.resume(getNextNeighboringDate(date))
-                return@launch
-            }
-        }
-    }
-
-
-    private fun getEndDateWithData(start: Calendar, end: Calendar, firstEnd: Boolean): Calendar? {
-
-//        val funStart = System.currentTimeMillis()
-//        Log.d(debugTag, "start: ${start.toDateTimeText()}, end: ${end.toDateTimeText()}")
-        if (areSameDates(start, end)) {
-            return if (firstEnd) start else end
-        } else {
-            val boundaryInMillis = (start.timeInMillis + end.timeInMillis) / 2
-            val frontEnd = Calendar.getInstance()
-            frontEnd.timeInMillis = boundaryInMillis
-
-            val latterStart = Calendar.getInstance()
-            latterStart.timeInMillis = boundaryInMillis + 1
-
-            val frontHalfHasData = hasDataInDateTimeRange(start, frontEnd)
-            val latterHalfHasData = hasDataInDateTimeRange(latterStart, end)
-
-//            Log.d(debugTag, "getEndDateWithData, took ${System.currentTimeMillis() - funStart}ms.")
-            return if (firstEnd) {
-                when {
-                    frontHalfHasData && latterHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
-                    frontHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
-                    latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
-                    else -> {
-                        null
-                    }
-                }
-            } else {
-                when {
-                    frontHalfHasData && latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
-                    latterHalfHasData -> getEndDateWithData(latterStart, end, firstEnd)
-                    frontHalfHasData -> getEndDateWithData(start, frontEnd, firstEnd)
-                    else -> {
-                        null
-                    }
-                }
-            }
+            cont.resume(nextDate)
         }
     }
 
@@ -392,7 +231,7 @@ class WorkElmList {
         return hasVisit || hasWork
     }
 
-    fun aDayHasElmAsync(date: Calendar): Deferred<Boolean> {
+    private fun aDayHasElmAsync(date: Calendar): Deferred<Boolean> {
         return GlobalScope.async {
             VisitCollection.instance.aDayHasVisit(date) || WorkCollection.instance.aDayHasWork(date)
         }

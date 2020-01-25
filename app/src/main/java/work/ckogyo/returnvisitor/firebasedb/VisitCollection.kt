@@ -1,6 +1,5 @@
 package work.ckogyo.returnvisitor.firebasedb
 
-import android.util.Log
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.Deferred
@@ -234,59 +233,6 @@ class VisitCollection {
         }
     }
 
-    suspend fun hasVisitBeforeThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
-//        val start = System.currentTimeMillis()
-
-        val userDoc = FirebaseDB.instance.userDoc
-        if (userDoc != null) {
-            val query = if (includesEqual) {
-                userDoc.collection(visitsKey)
-                    .whereLessThanOrEqualTo(dateTimeMillisKey, dateTime.timeInMillis)
-            } else {
-                userDoc.collection(visitsKey)
-                    .whereLessThan(dateTimeMillisKey, dateTime.timeInMillis)
-            }
-            query.limit(1)
-                .addSnapshotListener{ qs, _ ->
-                    if (qs == null) {
-                        cont.resume(false)
-                    } else {
-                        cont.resume(!qs.isEmpty)
-                    }
-//                    Log.d(debugTag, "hasVisitBeforeThan took ${System.currentTimeMillis() - start}ms.")
-                }
-        } else {
-            cont.resume(false)
-        }
-    }
-
-    suspend fun hasVisitAfterThan(dateTime: Calendar, includesEqual: Boolean = false): Boolean = suspendCoroutine { cont ->
-
-//        val start = System.currentTimeMillis()
-
-        val userDoc = FirebaseDB.instance.userDoc
-        if (userDoc != null) {
-            val query = if (includesEqual) {
-                userDoc.collection(visitsKey)
-                    .whereGreaterThanOrEqualTo(dateTimeMillisKey, dateTime.timeInMillis)
-            } else {
-                userDoc.collection(visitsKey)
-                    .whereGreaterThan(dateTimeMillisKey, dateTime.timeInMillis)
-            }
-            query.limit(1)
-                .addSnapshotListener{ qs, _ ->
-                    if (qs == null) {
-                        cont.resume(false)
-                    } else {
-                        cont.resume(!qs.isEmpty)
-                    }
-//                    Log.d(debugTag, "hasVisitBeforeThan took ${System.currentTimeMillis() - start}ms.")
-                }
-        } else {
-            cont.resume(false)
-        }
-    }
-
     suspend fun hasVisitInDateTimeRange(start: Calendar, end: Calendar): Boolean = suspendCoroutine { cont ->
 
 //        val funStart = System.currentTimeMillis()
@@ -332,6 +278,46 @@ class VisitCollection {
                     }
                 }.addOnFailureListener {
                     cont.resume(visits)
+                }
+        }
+    }
+
+    suspend fun getNeighboringDateWithData(date: Calendar, before: Boolean): Calendar? = suspendCoroutine {  cont ->
+
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc == null) {
+            cont.resume(null)
+        } else {
+
+            val dateStartMillis = date.cloneWith0Time().timeInMillis
+            val dateEnd = date.cloneWith0Time()
+            dateEnd.add(Calendar.DAY_OF_MONTH, 1)
+            dateEnd.add(Calendar.MILLISECOND, -1)
+            val dateEndMillis = dateEnd.timeInMillis
+
+            if (before) {
+                userDoc.collection(visitsKey)
+                    .whereLessThan(dateTimeMillisKey, dateStartMillis)
+            } else {
+                userDoc.collection(visitsKey)
+                    .whereGreaterThan(dateTimeMillisKey, dateEndMillis)
+            }
+                .orderBy(dateTimeMillisKey, if (before) Query.Direction.DESCENDING else Query.Direction.ASCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener {
+                    if (it.documents.isEmpty()) {
+                        cont.resume(null)
+                    } else {
+                        val map = it.documents[0].data as HashMap<String, Any>
+                        val visit = Visit()
+                        GlobalScope.launch {
+                            visit.initVisitFromHashMap(map)
+                            cont.resume(visit.dateTime)
+                        }
+                    }
+                }.addOnFailureListener {
+                    cont.resume(null)
                 }
         }
     }
