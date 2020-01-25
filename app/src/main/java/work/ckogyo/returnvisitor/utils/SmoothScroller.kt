@@ -1,6 +1,5 @@
 package work.ckogyo.returnvisitor.utils
 
-import android.content.Context
 import android.view.animation.AccelerateInterpolator
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
@@ -17,5 +16,11 @@ class SmoothScroller(recyclerView: RecyclerView): LinearSmoothScroller(recyclerV
             action.interpolator = AccelerateInterpolator(1.5F)
             isScrolled = true
         }
+    }
+
+    // https://qiita.com/nshmura/items/cbf10a2f50a87e1dbd06
+    // 指定した日付が見えるだけでなく、トップまで行くようにした
+    override fun getVerticalSnapPreference(): Int {
+        return if (mTargetVector == null || mTargetVector.y == 0f) SNAP_TO_ANY else SNAP_TO_START
     }
 }
