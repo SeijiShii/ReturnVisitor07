@@ -198,7 +198,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
     }
 
     private fun updateWorkDateText() {
-        workDateText.text = date.toDateText()
+        workDateText.text = date.toDateText(context!!)
     }
 
 

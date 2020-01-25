@@ -1,18 +1,29 @@
 package work.ckogyo.returnvisitor.utils
 
+import android.content.Context
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun Calendar.toDateText(): String {
+fun Calendar.toDateText(context: Context): String {
 
-    val format = SimpleDateFormat("yyyy/MM/dd (EEE)", Locale.getDefault())
+    val format = if (context.resources.configuration.locale == Locale.JAPAN) {
+        SimpleDateFormat("yyyy/MM/dd (EEE)", Locale.getDefault())
+    } else {
+        android.text.format.DateFormat.getMediumDateFormat(context)
+    }
     return format.format(this.time)
 }
 
-fun Calendar.toDateTimeText(): String {
+fun Calendar.toTimeText(context: Context, withSecond: Boolean = false): String {
 
-    val format = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
-    return format.format(this.time)
+    var layout = "HH:mm"
+    if (withSecond) layout += ":ss"
+
+    return SimpleDateFormat(layout, Locale.getDefault()).format(this.time)
+}
+
+fun Calendar.toDateTimeText(context: Context, withSecond: Boolean = false): String {
+    return "${this.toDateText(context)} ${this.toTimeText(context, withSecond)}"
 }
 
 fun Calendar.cloneWith0Time():Calendar {

@@ -10,6 +10,7 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.utils.getTimeText
 import work.ckogyo.returnvisitor.utils.toDP
+import work.ckogyo.returnvisitor.utils.toDateText
 
 class WorkElmCell(context: Context) : FrameLayout(context) {
 
@@ -51,7 +52,7 @@ class WorkElmCell(context: Context) : FrameLayout(context) {
         dataElm ?: return
         dateBorderCellFrame.visibility = View.VISIBLE
 
-        dateBorderText.text = android.text.format.DateFormat.getMediumDateFormat(context).format(dataElm!!.dateTime.time)
+        dateBorderText.text = dataElm!!.dateTime.toDateText(context)
     }
 
     private fun refreshWorkCellFrame() {

@@ -138,14 +138,7 @@ class Visit : BaseDataModel {
 
         // TODO: いろいろな情報
 
-        return toDateTimeString(context)
-    }
-
-    fun toDateTimeString(context: Context):String {
-        val dateFormat = android.text.format.DateFormat.getDateFormat(context)
-        val timeFormat = android.text.format.DateFormat.getTimeFormat(context)
-
-        return "${dateFormat.format(dateTime.time)} ${timeFormat.format(dateTime.time)}"
+        return dateTime.toDateTimeText(context)
     }
 
 }
