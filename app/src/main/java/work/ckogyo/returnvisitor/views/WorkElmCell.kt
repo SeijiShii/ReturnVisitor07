@@ -13,7 +13,7 @@ import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 
-class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnTimeSetListener {
+class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDialog.OnTimeSetListener {
 
     init {
         View.inflate(context, R.layout.work_elm_cell, this)
@@ -31,6 +31,29 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
     }
 
     var onWorkTimeChange: ((Work, WorkElement.Category) -> Unit)? = null
+
+    override val collapseHeight: Int
+        get() = 0
+    override val extractHeight: Int
+        get() {
+            dataElm ?: return context.toDP(60)
+
+            return when(dataElm!!.category) {
+                WorkElement.Category.DateBorder -> context.toDP(30)
+                else -> context.toDP(60)
+            }
+        }
+    override val cellId: String
+        get() {
+            dataElm ?: return ""
+
+            return when(dataElm!!.category) {
+                WorkElement.Category.DateBorder -> "date_border_${dataElm!!.dateTime.timeInMillis}"
+                WorkElement.Category.WorkStart -> "${dataElm!!.work!!.id}_start_cell"
+                WorkElement.Category.WorkEnd -> "${dataElm!!.work!!.id}_end_cell"
+                else -> "${dataElm!!.visit!!.id}_cell"
+            }
+        }
 
     private fun onSetDateElm() {
 

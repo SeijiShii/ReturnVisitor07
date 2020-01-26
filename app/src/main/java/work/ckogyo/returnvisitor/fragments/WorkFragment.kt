@@ -3,7 +3,6 @@ package work.ckogyo.returnvisitor.fragments
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
@@ -17,6 +16,7 @@ import kotlinx.android.synthetic.main.work_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.models.WorkElement
@@ -364,24 +364,52 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             }
 
             if (work.duration < minInMillis) {
-                confirmAndDeleteShortWork(work)
+                // いじった後のWorkの長さが1分以下になったら削除するか確認
+                confirmAndDeleteShortWork(work){
+                    val handler = Handler()
+                    GlobalScope.launch {
+                        val startCellTask = GlobalScope.async {
+                            val startPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
+                            val startCell = recyclerView.findViewHolderForAdapterPosition(startPos)?.itemView as? WorkElmCell
+                            handler.post {
+                                startCell?.collapseToHeight0 ()
+                            }
+
+                        }
+
+                        val endCellTask = GlobalScope.async {
+                            val endPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
+                            val endCell = recyclerView.findViewHolderForAdapterPosition(endPos)?.itemView as? WorkElmCell
+                            handler.post {
+                                endCell?.collapseToHeight0 {}
+                            }
+                        }
+                        startCellTask.await()
+                        endCellTask.await()
+
+                        deleteWorkElms(work)
+                        WorkElmList.refreshIsVisitInWork(dataElms)
+                        val updated = WorkElmList.instance.updateDateBorders(dataElms)
+                        dataElms.clear()
+                        dataElms.addAll(updated)
+
+                        WorkCollection.instance.delete(work.id)
+
+                        handler.postDelayed({
+                            notifyDataSetChanged()
+                        }, 500)
+                    }
+                }
             }
         }
 
-        private fun confirmAndDeleteShortWork(work: Work) {
+        private fun confirmAndDeleteShortWork(work: Work, onDeleteConfirmed: () -> Unit) {
 
             AlertDialog.Builder(context)
                 .setTitle(R.string.delete_work)
                 .setMessage(R.string.delete_short_work_message)
                 .setPositiveButton(R.string.delete){ _, _ ->
-                    deleteWorkElms(work)
-                    WorkElmList.refreshIsVisitInWork(dataElms)
-                    val updated = WorkElmList.instance.updateDateBorders(dataElms)
-                    dataElms.clear()
-                    dataElms.addAll(updated)
-
-                    // TODO: その日の要素が1つもなくなったならdateBorderも消さなくてはならない
-                    notifyDataSetChanged()
+                    onDeleteConfirmed()
                 }
                 .setNegativeButton(R.string.cancel){_, _ -> }
                 .show()

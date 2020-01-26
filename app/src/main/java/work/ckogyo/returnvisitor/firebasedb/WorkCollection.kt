@@ -260,4 +260,11 @@ class WorkCollection {
         }
     }
 
+    suspend fun delete(id: String): Boolean = suspendCoroutine { cont ->
+        GlobalScope.launch {
+            cont.resume(FirebaseDB.instance.delete(worksKey, id))
+
+        }
+    }
+
 }
