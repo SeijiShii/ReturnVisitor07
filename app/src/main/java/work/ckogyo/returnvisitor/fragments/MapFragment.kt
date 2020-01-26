@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.map_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
@@ -375,6 +376,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         refreshSignOutButton()
         initTimeCountButton()
         initWorkButton()
+        initAddWorkButton()
     }
 
     private fun refreshDrawer() {
@@ -500,6 +502,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         workButton.setOnClickListener {
             switchDrawer()
             mainActivity?.showWorkFragment()
+        }
+    }
+
+    private fun initAddWorkButton() {
+        addWorkButton.setOnClickListener {
+
+            val fm = mainActivity?.supportFragmentManager
+            fm ?: return@setOnClickListener
+
+            AddWorkDialog().show(fm, AddWorkDialog::class.java.simpleName)
         }
     }
 

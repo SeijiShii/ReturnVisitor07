@@ -105,21 +105,33 @@
                         android:id="@+id/timeCountButton"/>
 
                 <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/colorPrimaryDark"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
 
                 <Button
-                        android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:id="@+id/workButton"
-                        android:text="@string/work"
-                        style="@style/DarkGreenButton"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/workButton"
+                    android:text="@string/work"
+                    style="@style/DarkGreenButton"/>
 
                 <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/colorPrimaryDark"/>
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/addWorkButton"
+                    android:text="@string/add_work"
+                    style="@style/DarkGreenButton"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
 
             </LinearLayout>
 
