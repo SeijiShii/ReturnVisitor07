@@ -152,3 +152,7 @@ fun Calendar.isDateTimeAfter(other: Calendar, allowSame: Boolean): Boolean {
     return  isDateAfter(other, allowSame) && isTimeAfter(other, allowSame)
 }
 
+const val secInMillis = 1000L
+const val minInMillis = secInMillis * 60
+const val hourInMillis = minInMillis * 60
+

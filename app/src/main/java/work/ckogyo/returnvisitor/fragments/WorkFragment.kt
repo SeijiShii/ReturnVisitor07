@@ -1,7 +1,9 @@
 package work.ckogyo.returnvisitor.fragments
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
@@ -360,6 +362,35 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 val startCell = recyclerView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
                 startCell?.updateDurationText()
             }
+
+            if (work.duration < minInMillis) {
+                confirmAndDeleteShortWork(work)
+            }
+        }
+
+        private fun confirmAndDeleteShortWork(work: Work) {
+
+            AlertDialog.Builder(context)
+                .setTitle(R.string.delete_work)
+                .setMessage(R.string.delete_short_work_message)
+                .setPositiveButton(R.string.delete){ _, _ ->
+                    deleteWorkElms(work)
+                    // TODO: その日の要素が1つもなくなったならdateBorderも消さなくてはならない
+                    notifyDataSetChanged()
+                }
+                .setNegativeButton(R.string.cancel){_, _ -> }
+                .show()
+        }
+
+        private fun deleteWorkElms(work: Work) {
+            val tmp = ArrayList<WorkElement>()
+            for (elm in dataElms) {
+                if (elm.work == null || elm.work!! != work) {
+                    tmp.add(elm)
+                }
+            }
+            dataElms.clear()
+            dataElms.addAll(tmp)
         }
 
         private fun getPositionByWorkAndCategory(work: Work, category: WorkElement.Category): Int {
