@@ -30,7 +30,7 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
         onSetDateElm()
     }
 
-    var onWorkTimeChange: ((Work) -> Unit)? = null
+    var onWorkTimeChange: ((Work, WorkElement.Category) -> Unit)? = null
 
     private fun onSetDateElm() {
 
@@ -136,14 +136,14 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
         }
 
         // TODO: WorkEndのセルで時間が変更されたときWorkStart側のdurationTextが更新される必要がある。
-        onWorkTimeChange?.invoke(work)
+        onWorkTimeChange?.invoke(work, dataElm!!.category)
     }
 
     private fun updateTimeText() {
         timeText.text = dataElm!!.dateTime.toTimeText(context, false)
     }
 
-    private fun updateDurationText() {
+    fun updateDurationText() {
         durationText.text = resources.getString(R.string.duration_placeholder, dataElm!!.work!!.duration.toDurationText())
     }
 

@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.utils.*
@@ -111,7 +112,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 //            Log.d(debugTag, "Loading dates with data, took ${System.currentTimeMillis() - start}ms.")
 
             val dataElms = WorkElmList.instance.generateListByDateRange(dates[0], dates[dates.size - 1])
-            adapter = WorkElmAdapter(context!!, dataElms)
+            adapter = WorkElmAdapter(context!!, dataElms, workListView)
 
             handler.post {
                 workListView.adapter = adapter
@@ -220,40 +221,6 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         scrollByDateOrRefresh(date)
 
-//        GlobalScope.launch {
-//            val dateHasElm = WorkElmList.instance.aDayHasElmAsync(date).await()
-//            if (!dateHasElm) {
-//                val cp0 = System.currentTimeMillis()
-//                val previousDate = WorkElmList.instance.getNeighboringDate(date, true)
-//
-//                val cp1 = System.currentTimeMillis()
-//                Log.d(debugTag, "Loading previousDate took: ${cp1 - cp0}ms.")
-//                val nextDate = WorkElmList.instance.getNeighboringDate(date, false)
-//
-//                val cp2 = System.currentTimeMillis()
-//                Log.d(debugTag, "Loading nextDate took: ${cp2 - cp1}ms.")
-//
-//                when {
-//                    previousDate == null && nextDate == null -> {
-//                        // Do nothing.
-//                    }
-//                    previousDate == null -> {
-//                        scrollByDate(nextDate!!)
-//                    }
-//                    nextDate == null -> {
-//                        scrollByDate(previousDate)
-//                    }
-//                    else -> {
-//
-//                        val prevDiff = date.getDaysDiff(previousDate)
-//                        val nextDiff = date.getDaysDiff(nextDate)
-//
-//                        val dateToScroll = if (prevDiff.absoluteValue < nextDiff.absoluteValue) previousDate else nextDate
-//                        scrollByDate(dateToScroll)
-//                    }
-//                }
-//            }
-//        }
     }
 
     private fun scrollByDateOrRefresh(date: Calendar) {
@@ -279,11 +246,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                     }
                 }
             }
-
-
         }
-
-
     }
 
     private fun switchLoadingWorkOverlay(loading: Boolean) {
@@ -294,11 +257,14 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
     }
 
     class WorkElmAdapter(private val context: Context,
-                         private val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+                         private val dataElms: ArrayList<WorkElement>,
+                         private val recyclerView: RecyclerView): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return WorkElmViewHolder(WorkElmCell(context))
+            return WorkElmViewHolder(WorkElmCell(context).apply {
+                this.onWorkTimeChange = this@WorkElmAdapter::onWorkTimeChangedInCell
+            })
         }
 
         override fun getItemCount(): Int {
@@ -386,6 +352,27 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         fun hasElmsOfDate(date: Calendar): Boolean {
             return getPositionByDate(date) >= 0
         }
+
+        private fun onWorkTimeChangedInCell(work: Work, category: WorkElement.Category) {
+
+            if (category == WorkElement.Category.WorkEnd) {
+                val startCellPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
+                val startCell = recyclerView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
+                startCell?.updateDurationText()
+            }
+        }
+
+        private fun getPositionByWorkAndCategory(work: Work, category: WorkElement.Category): Int {
+            for (i in 0 until dataElms.size) {
+                dataElms[i].work ?: continue
+                if (dataElms[i].work == work && dataElms[i].category == category) {
+                    return i
+                }
+            }
+            return -1
+        }
+
+
 
         val firstDate: Calendar
             get() {
