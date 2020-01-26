@@ -42,7 +42,7 @@ class WorkElmList {
                             && elm2.work == elm.work
                         || elm2.category == WorkElement.Category.DateBorder
                             && elm.category == WorkElement.Category.DateBorder
-                            && areSameDates(elm2.dateTime, elm.dateTime)) {
+                            && elm2.dateTime.isSameDate(elm.dateTime)) {
                         contained = true
                     }
                 }
@@ -142,7 +142,7 @@ class WorkElmList {
 
             if (tmp.size > 1) {
                 for (i in 0 until tmp.size - 1) {
-                    if (!areSameDates(tmp[i].dateTime, tmp[i + 1].dateTime)) {
+                    if (!tmp[i].dateTime.isSameDate(tmp[i + 1].dateTime)) {
 
                         val borderElm2 = WorkElement(WorkElement.Category.DateBorder)
                         borderElm2.dateTime = (tmp[i + 1].dateTime).cloneWith0Time()

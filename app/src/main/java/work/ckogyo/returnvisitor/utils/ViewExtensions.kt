@@ -57,7 +57,12 @@ fun View.getPositionInAncestor(ancestor: View): Point {
     return leftTopSum
 }
 
-fun View.setOnClick(onClick: (View) -> Unit) {
+fun View.setOnClick(onClick: ((View) -> Unit)?) {
+
+    if (onClick == null) {
+        setOnTouchListener(null)
+        return
+    }
 
     setOnTouchListener { _, e ->
 

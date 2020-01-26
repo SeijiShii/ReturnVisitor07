@@ -17,7 +17,7 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
-import work.ckogyo.returnvisitor.utils.getDurationString
+import work.ckogyo.returnvisitor.utils.toDurationText
 import java.util.*
 
 
@@ -164,7 +164,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
     private fun initNotification(duration: Long) {
 
-        val durationText = getString(R.string.duration_placeholder, getDurationString(duration, true))
+        val durationText = getString(R.string.duration_placeholder, duration.toDurationText(true))
 
         mBuilder = NotificationCompat.Builder(this)
             .setSmallIcon(R.mipmap.rv_logo)
@@ -189,7 +189,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
     private fun updateNotification(duration: Long) {
 
-        val durationText = getString(R.string.duration_placeholder, getDurationString(duration, true))
+        val durationText = getString(R.string.duration_placeholder, duration.toDurationText(true))
         mBuilder!!.setContentText(durationText)
 
         // キャンセルできないようにする

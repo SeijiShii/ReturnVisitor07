@@ -68,6 +68,14 @@
             android:layout_gravity="center"
             android:background="@drawable/whitesmoke_round"/>
 
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:id="@+id/durationText"
+            android:textColor="#FFF"
+            android:gravity="center"
+            android:layout_gravity="center"/>
+
 
     </LinearLayout>
 

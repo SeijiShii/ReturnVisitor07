@@ -337,7 +337,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         fun getPositionByDate(date: Calendar): Int {
             for (i in 0 until dataElms.size) {
-                if (areSameDates(date, dataElms[i].dateTime)) {
+                if (date.isSameDate(dataElms[i].dateTime)) {
                     return i
                 }
             }

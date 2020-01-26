@@ -67,3 +67,18 @@ suspend fun requestAddressIfNeeded(place: Place, context: Context):String = susp
     }
 }
 
+fun Long.toDurationText(withSeconds: Boolean = false): String {
+
+    val secUnit = 1000
+    val minUnit = secUnit * 60
+    val hourUnit = minUnit * 60
+
+    val h = this / hourUnit
+    val m = this % hourUnit / minUnit
+    val s = this % minUnit / secUnit
+
+    var txt = "$h:${String.format("%02d", m)}"
+    if (withSeconds) txt += String.format("%02d", s)
+    return txt
+}
+
