@@ -4,11 +4,11 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import android.widget.TimePicker
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.work_elm_cell.view.*
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
@@ -29,6 +29,8 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
 
         onSetDateElm()
     }
+
+    var onWorkTimeChange: ((Work) -> Unit)? = null
 
     private fun onSetDateElm() {
 
@@ -68,7 +70,7 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
             WorkElement.Category.WorkStart -> {
                 timeLabel.text = context.getText(R.string.start)
                 durationText.visibility = View.VISIBLE
-                durationText.text = resources.getString(R.string.duration_placeholder, dataElm!!.work!!.duration.toDurationText())
+                updateDurationText()
                 (layoutParams as RecyclerView.LayoutParams).topMargin = context.toDP(3)
             }
             WorkElement.Category.WorkEnd -> {
@@ -77,7 +79,7 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
             }
         }
 
-        timeText.text = dataElm!!.dateTime.toTimeText(context, false)
+        updateTimeText()
         timeText.setOnClick {
             showTimePicker()
         }
@@ -108,17 +110,42 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
 
         val work = dataElm!!.work!!
 
-        val timeToSet = if (dataElm!!.category == WorkElement.Category.WorkStart) work.start else work.end
+        val timeToSet = (if (dataElm!!.category == WorkElement.Category.WorkStart) work.start.clone()
+                                    else work.end.clone()) as Calendar
+        timeToSet.set(Calendar.HOUR_OF_DAY, hourOfDay)
+        timeToSet.set(Calendar.MINUTE, minute)
 
         if (dataElm!!.category == WorkElement.Category.WorkStart) {
-
-
+            if (timeToSet.isTimeAfter(work.end, true)) {
+                timeToSet.set(Calendar.HOUR_OF_DAY, work.end.get(Calendar.HOUR_OF_DAY))
+                timeToSet.set(Calendar.MINUTE, work.end.get(Calendar.MINUTE))
+            }
+            work.start = timeToSet
 
         } else {
-
+            if (timeToSet.isTimeBefore(work.start, true)) {
+                timeToSet.set(Calendar.HOUR_OF_DAY, work.start.get(Calendar.HOUR_OF_DAY))
+                timeToSet.set(Calendar.MINUTE, work.start.get(Calendar.MINUTE))
+            }
+            work.end = timeToSet
         }
+
+        updateTimeText()
+        if (dataElm!!.category == WorkElement.Category.WorkStart) {
+            updateDurationText()
+        }
+
+        // TODO: WorkEndのセルで時間が変更されたときWorkStart側のdurationTextが更新される必要がある。
+        onWorkTimeChange?.invoke(work)
     }
 
+    private fun updateTimeText() {
+        timeText.text = dataElm!!.dateTime.toTimeText(context, false)
+    }
+
+    private fun updateDurationText() {
+        durationText.text = resources.getString(R.string.duration_placeholder, dataElm!!.work!!.duration.toDurationText())
+    }
 
     private fun refreshVisitCellFrame() {
         dataElm ?: return
