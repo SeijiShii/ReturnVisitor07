@@ -123,7 +123,7 @@ class WorkElmList {
         }
     }
 
-    private fun updateDateBorders(elms: ArrayList<WorkElement>): ArrayList<WorkElement> {
+    fun updateDateBorders(elms: ArrayList<WorkElement>): ArrayList<WorkElement> {
 
         val tmp = ArrayList<WorkElement>()
         for (elm in elms) {

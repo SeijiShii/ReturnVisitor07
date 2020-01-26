@@ -375,6 +375,11 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 .setMessage(R.string.delete_short_work_message)
                 .setPositiveButton(R.string.delete){ _, _ ->
                     deleteWorkElms(work)
+                    WorkElmList.refreshIsVisitInWork(dataElms)
+                    val updated = WorkElmList.instance.updateDateBorders(dataElms)
+                    dataElms.clear()
+                    dataElms.addAll(updated)
+
                     // TODO: その日の要素が1つもなくなったならdateBorderも消さなくてはならない
                     notifyDataSetChanged()
                 }
