@@ -265,7 +265,8 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             return WorkElmViewHolder(WorkElmCell(context).apply {
-                this.onWorkTimeChange = this@WorkElmAdapter::onWorkTimeChangedInCell
+                onWorkTimeChange = this@WorkElmAdapter::onWorkTimeChangedInCell
+                onDeleteWorkConfirmed = this@WorkElmAdapter::deleteWorkAfterConfirm
             })
         }
 
@@ -362,57 +363,45 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 val startCell = recyclerView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
                 startCell?.updateDurationText()
             }
-
-            if (work.duration < minInMillis) {
-                // いじった後のWorkの長さが1分以下になったら削除するか確認
-                confirmAndDeleteShortWork(work){
-                    val handler = Handler()
-                    GlobalScope.launch {
-                        val startCellTask = GlobalScope.async {
-                            val startPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
-                            val startCell = recyclerView.findViewHolderForAdapterPosition(startPos)?.itemView as? WorkElmCell
-                            handler.post {
-                                startCell?.collapseToHeight0 ()
-                            }
-
-                        }
-
-                        val endCellTask = GlobalScope.async {
-                            val endPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
-                            val endCell = recyclerView.findViewHolderForAdapterPosition(endPos)?.itemView as? WorkElmCell
-                            handler.post {
-                                endCell?.collapseToHeight0 {}
-                            }
-                        }
-                        startCellTask.await()
-                        endCellTask.await()
-
-                        deleteWorkElms(work)
-                        WorkElmList.refreshIsVisitInWork(dataElms)
-                        val updated = WorkElmList.instance.updateDateBorders(dataElms)
-                        dataElms.clear()
-                        dataElms.addAll(updated)
-
-                        WorkCollection.instance.delete(work.id)
-
-                        handler.postDelayed({
-                            notifyDataSetChanged()
-                        }, 500)
-                    }
-                }
-            }
         }
 
-        private fun confirmAndDeleteShortWork(work: Work, onDeleteConfirmed: () -> Unit) {
 
-            AlertDialog.Builder(context)
-                .setTitle(R.string.delete_work)
-                .setMessage(R.string.delete_short_work_message)
-                .setPositiveButton(R.string.delete){ _, _ ->
-                    onDeleteConfirmed()
+
+        private fun deleteWorkAfterConfirm(work: Work) {
+
+            val handler = Handler()
+            GlobalScope.launch {
+                val startCellTask = GlobalScope.async {
+                    val startPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
+                    val startCell = recyclerView.findViewHolderForAdapterPosition(startPos)?.itemView as? WorkElmCell
+                    handler.post {
+                        startCell?.collapseToHeight0 ()
+                    }
                 }
-                .setNegativeButton(R.string.cancel){_, _ -> }
-                .show()
+
+                val endCellTask = GlobalScope.async {
+                    val endPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
+                    val endCell = recyclerView.findViewHolderForAdapterPosition(endPos)?.itemView as? WorkElmCell
+                    handler.post {
+                        endCell?.collapseToHeight0 {}
+                    }
+                }
+
+                startCellTask.await()
+                endCellTask.await()
+
+                deleteWorkElms(work)
+                WorkElmList.refreshIsVisitInWork(dataElms)
+                val updated = WorkElmList.instance.updateDateBorders(dataElms)
+                dataElms.clear()
+                dataElms.addAll(updated)
+
+                WorkCollection.instance.delete(work.id)
+
+                handler.postDelayed({
+                    notifyDataSetChanged()
+                }, 500)
+            }
         }
 
         private fun deleteWorkElms(work: Work) {
