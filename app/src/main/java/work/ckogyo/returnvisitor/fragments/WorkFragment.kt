@@ -67,6 +67,10 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             showDatePicker()
         }
 
+        backToMapButton.setOnClick {
+            mainActivity?.supportFragmentManager?.popBackStack()
+        }
+
         refreshWorkList()
     }
 
@@ -114,6 +118,8 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 //            Log.d(debugTag, "Loading dates with data, took ${System.currentTimeMillis() - start}ms.")
 
             val dataElms = WorkElmList.instance.generateListByDateRange(dates[0], dates[dates.size - 1])
+            context?:return@launch
+
             adapter = WorkElmAdapter(context!!, dataElms, workListView)
 
             handler.post {
