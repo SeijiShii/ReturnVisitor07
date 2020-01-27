@@ -180,9 +180,10 @@ class WorkCollection {
     }
 
 
-    suspend fun set(work: Work): Boolean = suspendCoroutine { cont ->
+    suspend fun set(work: Work): Unit = suspendCoroutine {
         GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.set(worksKey, work.id, work.hashMap))
+            FirebaseDB.instance.set(worksKey, work.id, work.hashMap)
+            it.resume(Unit)
         }
     }
 

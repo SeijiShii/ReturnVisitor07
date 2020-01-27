@@ -33,7 +33,7 @@ class PersonCollection {
         }
     }
 
-    fun setAsync(person: Person): Deferred<Boolean> {
+    fun setAsync(person: Person): Deferred<Unit> {
         return GlobalScope.async {
             FirebaseDB.instance.set(personsKey, person.id, person.hashMap)
         }

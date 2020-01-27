@@ -29,6 +29,7 @@ import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
+import java.util.*
 
 
 class MapFragment : Fragment(), OnMapReadyCallback {
@@ -501,17 +502,23 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun initWorkButton() {
         workButton.setOnClickListener {
             switchDrawer()
-            mainActivity?.showWorkFragment()
+            mainActivity?.showWorkFragment(Calendar.getInstance())
         }
     }
 
     private fun initAddWorkButton() {
         addWorkButton.setOnClickListener {
 
+            switchDrawer()
+
             val fm = mainActivity?.supportFragmentManager
             fm ?: return@setOnClickListener
 
-            AddWorkDialog().show(fm, AddWorkDialog::class.java.simpleName)
+            AddWorkDialog().apply {
+                onWorkAdded = {work ->
+                    mainActivity?.showWorkFragment(work.start)
+                }
+            }.show(fm, AddWorkDialog::class.java.simpleName)
         }
     }
 

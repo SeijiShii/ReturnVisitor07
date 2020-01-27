@@ -158,12 +158,12 @@ class MainActivity : AppCompatActivity() {
         hideKeyboard(this)
     }
 
-    fun showWorkFragment() {
+    fun showWorkFragment(dateToShow: Calendar) {
 
 //        switchProgressOverlay(true, getString(R.string.loading_works))
 
         val transaction = supportFragmentManager.beginTransaction()
-        val workFragment = WorkFragment(Calendar.getInstance())
+        val workFragment = WorkFragment(dateToShow)
         transaction.addToBackStack(null)
         transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
         transaction.commit()

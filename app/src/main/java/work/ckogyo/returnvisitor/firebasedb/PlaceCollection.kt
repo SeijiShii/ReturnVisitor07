@@ -48,7 +48,7 @@ class PlaceCollection {
         }
     }
 
-    private fun setAsync(place: Place): Deferred<Boolean> {
+    private fun setAsync(place: Place): Deferred<Unit> {
         return GlobalScope.async {
             FirebaseDB.instance.set(placesKey, place.id, place.hashMap)
         }
@@ -64,7 +64,7 @@ class PlaceCollection {
         }
     }
 
-    fun saveAsync(place: Place): Deferred<Boolean> {
+    fun saveAsync(place: Place): Deferred<Unit> {
         return GlobalScope.async {
             place.refreshRatingByVisitsAsync().await()
             setAsync(place).await()

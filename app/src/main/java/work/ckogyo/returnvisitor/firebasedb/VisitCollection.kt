@@ -158,7 +158,7 @@ class VisitCollection {
     }
 
 
-    private fun setAsync(visit: Visit): Deferred<Boolean> {
+    private fun setAsync(visit: Visit): Deferred<Unit> {
         return GlobalScope.async{
             FirebaseDB.instance.set(visitsKey, visit.id, visit.hashMap)
         }

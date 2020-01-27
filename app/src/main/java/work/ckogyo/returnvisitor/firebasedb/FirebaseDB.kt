@@ -108,17 +108,13 @@ class FirebaseDB {
 
     suspend fun set(collName: String,
                     id:String, map:
-                    HashMap<String, Any>): Boolean = suspendCoroutine { cont ->
+                    HashMap<String, Any>) = suspendCoroutine<Unit> {
 
-        if (userDoc == null) {
-            cont.resume(false)
-        } else {
-            userDoc!!.collection(collName).document(id).set(map).addOnSuccessListener {
-                cont.resume(true)
-            }.addOnFailureListener {
-                cont.resume(false)
-            }
+        if (userDoc != null) {
+            userDoc!!.collection(collName).document(id).set(map)
         }
+
+        it.resume(Unit)
     }
 
     suspend fun delete(collName: String,

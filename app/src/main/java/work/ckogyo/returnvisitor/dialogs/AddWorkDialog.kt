@@ -5,6 +5,7 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,11 @@ import android.widget.TimePicker
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.add_work_dialog.*
 import kotlinx.android.synthetic.main.add_work_dialog.view.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
@@ -25,6 +30,8 @@ class AddWorkDialog : DialogFragment(),
     private lateinit var dialog: AlertDialog
     private lateinit var contentView: View
     private lateinit var work: Work
+
+    var onWorkAdded: ((Work) -> Unit)? = null
 
     private enum class TimeCategory {
         Start,
@@ -42,11 +49,19 @@ class AddWorkDialog : DialogFragment(),
         work.end.add(Calendar.MINUTE, 5)
 
         contentView = View.inflate(context, R.layout.add_work_dialog, null)
+        val handler = Handler()
 
         dialog = AlertDialog.Builder(context)
             .setTitle(R.string.add_work)
             .setView(contentView)
-            .setPositiveButton(R.string.add){_, _ -> }
+            .setPositiveButton(R.string.add){_, _ ->
+                GlobalScope.launch {
+                    WorkCollection.instance.set(work)
+                    handler.post {
+                        onWorkAdded?.invoke(work)
+                    }
+                }
+            }
             .setNegativeButton(R.string.cancel){_, _ -> }
             .create()
 
