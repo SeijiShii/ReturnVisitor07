@@ -152,6 +152,19 @@ fun Calendar.isDateTimeAfter(other: Calendar, allowSame: Boolean): Boolean {
     return  isDateAfter(other, allowSame) && isTimeAfter(other, allowSame)
 }
 
+fun Calendar.copyDateFrom(other: Calendar) {
+    set(Calendar.YEAR, other.get(Calendar.YEAR))
+    set(Calendar.MONTH, other.get(Calendar.MONTH))
+    set(Calendar.DAY_OF_MONTH, other.get(Calendar.DAY_OF_MONTH))
+}
+
+fun Calendar.copyTimeFrom(other: Calendar) {
+    set(Calendar.HOUR_OF_DAY, other.get(Calendar.HOUR_OF_DAY))
+    set(Calendar.MINUTE, other.get(Calendar.MINUTE))
+    set(Calendar.SECOND, other.get(Calendar.SECOND))
+    set(Calendar.MILLISECOND, other.get(Calendar.MILLISECOND))
+}
+
 const val secInMillis = 1000L
 const val minInMillis = secInMillis * 60
 const val hourInMillis = minInMillis * 60
