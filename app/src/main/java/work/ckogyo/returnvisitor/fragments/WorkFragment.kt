@@ -1,6 +1,5 @@
 package work.ckogyo.returnvisitor.fragments
 
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
@@ -9,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.DatePicker
+import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.work_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
@@ -69,6 +70,10 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         backToMapButton.setOnClick {
             mainActivity?.supportFragmentManager?.popBackStack()
+        }
+
+        workFragmentMenuButton.setOnClick {
+            showMenuPopup()
         }
 
         refreshWorkList()
@@ -140,6 +145,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
     private fun addNeighboringDateElmsIfNeeded() {
 
         handler.post {
+            loadingWorkProgressSmall ?: return@post
             loadingWorkProgressSmall.fadeVisibility(true)
         }
 
@@ -181,6 +187,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             }
 
             handler.post {
+                workListView ?: return@post
                 val layoutManager = workListView.layoutManager as LinearLayoutManager
                 val currTopPos = layoutManager.findFirstVisibleItemPosition()
                 val topView = layoutManager.findViewByPosition(currTopPos)
@@ -193,7 +200,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
                 val offsetY = posInFrame?.y ?: 0
                 layoutManager.scrollToPositionWithOffset(nextTopPos, offsetY)
-                loadingWorkProgressSmall.fadeVisibility(false)
+                loadingWorkProgressSmall?.fadeVisibility(false)
             }
         }
     }
@@ -264,6 +271,35 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         workDateText.isEnabled = !loading
     }
 
+    private fun showMenuPopup() {
+
+        val popup = PopupMenu(context, workFragmentMenuButton)
+        popup.menuInflater.inflate(R.menu.work_fragment_menu, popup.menu)
+        popup.setOnMenuItemClickListener {
+            when(it.itemId) {
+                R.id.add_work -> {
+                    mainActivity ?: return@setOnMenuItemClickListener true
+
+                    AddWorkDialog().apply {
+                        onWorkAdded = { work ->
+                            val workElms = WorkElement.fromWork(work)
+                            var index = -1
+                            for (elm in workElms) {
+                                index = adapter.insertElm(elm)
+                            }
+
+                            if (index >= 1) {
+                                this@WorkFragment.workListView.smoothScrollToPosition(index)
+                            }
+                        }
+                    }.show(mainActivity!!.supportFragmentManager, AddWorkDialog::class.java.simpleName)
+                }
+            }
+            return@setOnMenuItemClickListener true
+        }
+        popup.show()
+    }
+
     class WorkElmAdapter(private val context: Context,
                          private val dataElms: ArrayList<WorkElement>,
                          private val recyclerView: RecyclerView): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -271,8 +307,8 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             return WorkElmViewHolder(WorkElmCell(context).apply {
-                onWorkTimeChange = this@WorkElmAdapter::onWorkTimeChangedInCell
-                onDeleteWorkConfirmed = this@WorkElmAdapter::deleteWorkAfterConfirm
+                onWorkTimeChanged = this@WorkElmAdapter::onWorkTimeChangedInCell
+                onDeleteWorkClicked = this@WorkElmAdapter::onDeleteWorkClickedInCell
             })
         }
 
@@ -372,15 +408,18 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         }
 
 
-
-        private fun deleteWorkAfterConfirm(work: Work) {
+        /**
+         * WorkCell内でWork削除ボタンが押されたときのためのコールバック
+         * この関数内でFirebaseDBからの削除も行う
+         */
+        private fun onDeleteWorkClickedInCell(work: Work) {
 
             val handler = Handler()
             GlobalScope.launch {
                 val startCellTask = GlobalScope.async {
                     val startPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
                     val startCell = recyclerView.findViewHolderForAdapterPosition(startPos)?.itemView as? WorkElmCell
-                    handler.post {
+                    recyclerView.handler.post {
                         startCell?.collapseToHeight0 ()
                     }
                 }
@@ -398,9 +437,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
                 deleteWorkElms(work)
                 WorkElmList.refreshIsVisitInWork(dataElms)
-                val updated = WorkElmList.instance.updateDateBorders(dataElms)
-                dataElms.clear()
-                dataElms.addAll(updated)
+                deleteDateBorderIfADayHasNoElm(work.start)
 
                 WorkCollection.instance.delete(work.id)
 
@@ -409,6 +446,36 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 }, 500)
             }
         }
+
+        private fun deleteDateBorderIfADayHasNoElm(date: Calendar) {
+            GlobalScope.launch {
+                if (WorkElmList.instance.aDayHasElm(date)) return@launch
+
+                val dateBorderElm = getDateBorderElmByDate(date)
+                dateBorderElm ?: return@launch
+
+                val pos = dataElms.indexOf(dateBorderElm)
+                if (pos < 0) return@launch
+
+                val cell = recyclerView.findViewHolderForAdapterPosition(pos)?.itemView as? WorkElmCell
+                recyclerView.handler.post {
+                    cell?.collapseToHeight0 {
+                        dataElms.remove(dateBorderElm)
+                    }
+                }
+            }
+        }
+
+        private fun getDateBorderElmByDate(date: Calendar): WorkElement? {
+            for(elm in dataElms) {
+                if (date.isSameDate(elm.dateTime) && elm.category == WorkElement.Category.DateBorder) {
+                    return elm
+                }
+            }
+            return null
+        }
+
+
 
         private fun deleteWorkElms(work: Work) {
             val tmp = ArrayList<WorkElement>()
@@ -431,6 +498,15 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             return -1
         }
 
+        fun insertElm(elm: WorkElement): Int {
+
+            dataElms.add(elm)
+            dataElms.sortBy { elm2 -> elm2.dateTime.timeInMillis }
+            val index = dataElms.indexOf(elm)
+
+            notifyItemInserted(index)
+            return index
+        }
 
 
         val firstDate: Calendar

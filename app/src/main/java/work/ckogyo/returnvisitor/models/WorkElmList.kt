@@ -233,7 +233,13 @@ class WorkElmList {
 
     private fun aDayHasElmAsync(date: Calendar): Deferred<Boolean> {
         return GlobalScope.async {
-            VisitCollection.instance.aDayHasVisit(date) || WorkCollection.instance.aDayHasWork(date)
+            aDayHasElm(date)
+        }
+    }
+
+    suspend fun aDayHasElm(date: Calendar):Boolean = suspendCoroutine {  cont ->
+        GlobalScope.launch {
+            cont.resume(VisitCollection.instance.aDayHasVisit(date) || WorkCollection.instance.aDayHasWork(date))
         }
     }
 

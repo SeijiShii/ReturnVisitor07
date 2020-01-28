@@ -4,12 +4,9 @@ import android.app.AlertDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.PopupMenu
 import android.widget.TimePicker
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.visit_cell.view.*
 import kotlinx.android.synthetic.main.work_elm_cell.view.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
@@ -34,8 +31,11 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
         onSetDateElm()
     }
 
-    var onDeleteWorkConfirmed: ((Work) -> Unit)? = null
-    var onWorkTimeChange: ((Work, WorkElement.Category) -> Unit)? = null
+    /**
+     * WorkCellにおいて削除ボタンが押されたときに呼ばれる。これが発火した時点ではFirebaseDBに対する操作はされていない。
+     */
+    var onDeleteWorkClicked: ((Work) -> Unit)? = null
+    var onWorkTimeChanged: ((Work, WorkElement.Category) -> Unit)? = null
 
     override val collapseHeight: Int
         get() = 0
@@ -142,7 +142,7 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
             .setTitle(R.string.delete_work)
             .setMessage(R.string.delete_work_message)
             .setPositiveButton(R.string.delete){ _, _ ->
-                onDeleteWorkConfirmed?.invoke(dataElm!!.work!!)
+                onDeleteWorkClicked?.invoke(dataElm!!.work!!)
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -203,7 +203,7 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
         }
 
         // TODO: WorkEndのセルで時間が変更されたときWorkStart側のdurationTextが更新される必要がある。
-        onWorkTimeChange?.invoke(work, dataElm!!.category)
+        onWorkTimeChanged?.invoke(work, dataElm!!.category)
     }
 
     private fun updateTimeText() {
