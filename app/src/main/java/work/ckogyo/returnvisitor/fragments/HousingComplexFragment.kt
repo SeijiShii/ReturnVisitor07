@@ -20,6 +20,7 @@ import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.RoomCell
 
@@ -60,6 +61,8 @@ class HousingComplexFragment : Fragment() {
             GlobalScope.launch {
                 PlaceCollection.instance.saveAsync(hComplex).await()
                 onOk?.invoke(hComplex)
+
+                mainActivity ?: return@launch
                 hideKeyboard(mainActivity!!)
             }
         }
@@ -161,11 +164,46 @@ class HousingComplexFragment : Fragment() {
         room.latLng = hComplex.latLng
         room.name = searchOrAddRoomNumText.text.toString()
 
+        searchOrAddRoomNumText.setText("")
+
         mainActivity?.showRecordVisitFragmentForNew(room, this::onFinishEditVisit)
     }
 
     private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
 
+        val handler = Handler()
+
+        when(param) {
+            OnFinishEditParam.Canceled -> {}
+            OnFinishEditParam.Done -> {
+
+                mainActivity?.switchProgressOverlay(true, getString(R.string.updating))
+                GlobalScope.launch {
+
+                    VisitCollection.instance.saveVisitAsync(visit).await()
+                    PlaceCollection.instance.saveAsync(visit.place).await()
+
+                    rooms.remove(visit.place)
+                    rooms.add(visit.place)
+
+                    handler.post{
+                        refreshRoomList()
+                        mainActivity?.switchProgressOverlay(false)
+                    }
+
+                    // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+                    TimeCountIntentService.saveWorkIfActive()
+                }
+            }
+            OnFinishEditParam.Deleted -> {
+
+                GlobalScope.launch {
+//                    VisitCollection.instance.deleteAsync(visit).await()
+//                    handler.post {
+//                    }
+                }
+            }
+        }
     }
 
 

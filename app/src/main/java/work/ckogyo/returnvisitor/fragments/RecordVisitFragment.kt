@@ -62,42 +62,16 @@ class RecordVisitFragment : Fragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        addPersonButton.setOnClickListener {
-            val addPersonDialog = EditPersonDialog()
-            addPersonDialog.mode = EditMode.Add
-            addPersonDialog.onOk = this::onOkInAddPersonDialog
-            mainActivity?.showDialog(addPersonDialog)
-        }
-
         deleteButtonRow.visibility = if (mode == EditMode.Add) {
             View.GONE
         } else {
             View.VISIBLE
         }
 
-        cancelButton.setOnClickListener {
-            onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Canceled)
-            mainActivity?.supportFragmentManager?.popBackStack()
-            hideKeyboard(mainActivity!!)
-        }
-
-        okButton.setOnClickListener {
-
-            visit.description = descriptionText.text.toString()
-            visit.place.name = placeNameText.text.toString()
-
-            onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Done)
-            mainActivity?.supportFragmentManager?.popBackStack()
-            hideKeyboard(mainActivity!!)
-        }
-
-        deleteButton.setOnClickListener {
-            confirmDeleteVisit(context!!, visit) {
-                onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Deleted)
-                mainActivity?.supportFragmentManager?.popBackStack()
-                hideKeyboard(mainActivity!!)
-            }
-        }
+        addPersonButton.setOnClickListener(this::onAddPersonClicked)
+        cancelButton.setOnClickListener(this::onCancelClicked)
+        okButton.setOnClickListener(this::onOkClicked)
+        deleteButton.setOnClickListener (this::onDeleteClicked)
 
         val handler = Handler()
         GlobalScope.launch {
@@ -130,6 +104,36 @@ class RecordVisitFragment : Fragment(),
             val pvCell = PersonVisitCell(pv, context!!)
             personVisitContainer.addView(pvCell)
         }
+    }
+
+    private fun onCancelClicked(v: View){
+        onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Canceled)
+        mainActivity?.supportFragmentManager?.popBackStack()
+        hideKeyboard(mainActivity!!)
+    }
+
+    private fun onOkClicked(v: View) {
+        visit.description = descriptionText.text.toString()
+        visit.place.name = placeNameText.text.toString()
+
+        onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Done)
+        mainActivity?.supportFragmentManager?.popBackStack()
+        hideKeyboard(mainActivity!!)
+    }
+
+    private fun onDeleteClicked(v: View) {
+        confirmDeleteVisit(context!!, visit) {
+            onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Deleted)
+            mainActivity?.supportFragmentManager?.popBackStack()
+            hideKeyboard(mainActivity!!)
+        }
+    }
+
+    private fun onAddPersonClicked(v: View) {
+        val addPersonDialog = EditPersonDialog()
+        addPersonDialog.mode = EditMode.Add
+        addPersonDialog.onOk = this::onOkInAddPersonDialog
+        mainActivity?.showDialog(addPersonDialog)
     }
 
     private fun onOkInAddPersonDialog(person: Person) {
