@@ -171,11 +171,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun showPlaceDialog(place: Place) {
-        val dialog = PlaceDialog(place)
-        dialog.onClose = this::onClosePlaceDialog
-        dialog.onRefreshPlace = this::onRefreshPlaceInPlaceDialog
-        dialog.onEditVisitInvoked = this::onEditVisitInvokedInPlaceDialog
-        dialog.onRecordNewVisitInvoked = this::onRecordNewVisitInvokedInPlaceDialog
+        val dialog = PlaceDialog(place).apply {
+            onClose = this@MapFragment::onClosePlaceDialog
+            onRefreshPlace = this@MapFragment::onRefreshPlaceInPlaceDialog
+            onEditVisitInvoked = this@MapFragment::onEditVisitInvokedInPlaceDialog
+            onRecordNewVisitInvoked = this@MapFragment::onRecordNewVisitInvokedInPlaceDialog
+        }
         mainActivity?.showDialog(dialog)
     }
 

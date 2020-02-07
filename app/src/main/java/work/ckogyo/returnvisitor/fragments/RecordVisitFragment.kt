@@ -139,6 +139,8 @@ class RecordVisitFragment : Fragment(),
     private fun onOkInAddPersonDialog(person: Person) {
 
         val pv = PersonVisit(person)
+        // 初めて会えて追加した人は「会えた」
+        pv.seen = true
         visit.personVisits.add(pv)
 
         val pvCell = PersonVisitCell(pv, context!!)

@@ -9,7 +9,7 @@ import work.ckogyo.returnvisitor.utils.sexKey
 open class Person : BaseDataModel {
 
     enum class Sex{
-        UnKnown,
+        Unknown,
         Male,
         Female
     }
@@ -51,7 +51,7 @@ open class Person : BaseDataModel {
         age = Age.valueOf(map[ageKey].toString())
     }
 
-    var sex = Sex.UnKnown
+    var sex = Sex.Unknown
     var age = Age.Unknown
 
     override val jsonObject: JSONObject
@@ -92,7 +92,7 @@ open class Person : BaseDataModel {
             name
         } else {
             val sexStr = when(sex) {
-                Sex.UnKnown -> context.getString(R.string.unknown)
+                Sex.Unknown -> context.getString(R.string.unknown)
                 Sex.Male -> context.getString(R.string.male)
                 Sex.Female -> context.getString(R.string.female)
             }

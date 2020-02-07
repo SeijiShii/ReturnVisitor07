@@ -29,12 +29,12 @@
 
     <RelativeLayout
         android:layout_width="40dp"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:id="@+id/roomMenuButton">
 
         <ImageView
             android:layout_width="25dp"
             android:layout_height="25dp"
-            android:id="@+id/roomMenuButton"
             android:background="@drawable/ic_more_horiz_black_24dp"
             android:contentDescription="@string/menu_button_description"
             android:layout_centerInParent="true"/>

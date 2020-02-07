@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="ageArray">
-        <item>Unknown</item>
+        <item>不明</item>
         <item>~10</item>
         <item>11~20</item>
         <item>21~30</item>

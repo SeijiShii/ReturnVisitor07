@@ -15,6 +15,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
@@ -70,6 +71,10 @@ class HousingComplexFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+                if (s != null) {
+                    refreshRoomList(s.toString())
+                }
                 refreshAddRoomButton()
             }
         })
@@ -157,6 +162,7 @@ class HousingComplexFragment : Fragment() {
         // TODO: 条件の追加
         addInputRoomNumButton.isEnabled = searchOrAddRoomNumText.text.isNotEmpty()
                                             && !isLoadingRooms
+                                            && roomListFrame.childCount <= 0
     }
 
     private fun onClickAddNewRoom() {
@@ -230,12 +236,25 @@ class HousingComplexFragment : Fragment() {
             roomListFrame.fadeVisibility(false)
         } else {
             for (room in roomsToShow) {
-                val cell = RoomCell(context!!, room)
+                val cell = RoomCell(context!!, room).apply{
+                    onClickShowRoom = this@HousingComplexFragment::showPlaceDialogForRoom
+                    onDeleted = {
+                        rooms.remove(it)
+                        refreshRoomList(searchWord)
+                    }
+                }
                 roomListFrame.addView(cell)
             }
             noRoomRegisteredFrame.fadeVisibility(false)
             roomListFrame.fadeVisibility(true)
         }
+    }
+
+    private fun showPlaceDialogForRoom(room: Place) {
+        val dialog = PlaceDialog(room).apply {
+
+        }
+        mainActivity?.showDialog(dialog)
     }
 
 

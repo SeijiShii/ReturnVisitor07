@@ -21,8 +21,6 @@ class EditPersonDialog :DialogFrameFragment() {
         field = value.clone()
     }
 
-
-
     var mode = EditMode.Add
 
     override fun onOkClick() {
@@ -44,6 +42,7 @@ class EditPersonDialog :DialogFrameFragment() {
         when(mode) {
             EditMode.Add -> {
                 setTitle(R.string.add_person)
+                ageSpinner.setSelection(-1)
             }
             EditMode.Edit -> {
                 setTitle(R.string.edit_person)
