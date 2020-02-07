@@ -117,6 +117,10 @@ class PlaceCollection {
         cont.resume(Unit)
     }
 
-
-
+    suspend fun housingComplexHasRooms(hcId: String): Boolean = suspendCoroutine { cont ->
+        GlobalScope.launch {
+            var rooms = loadRoomsByParentId(hcId)
+            cont.resume(rooms.size > 0)
+        }
+    }
 }

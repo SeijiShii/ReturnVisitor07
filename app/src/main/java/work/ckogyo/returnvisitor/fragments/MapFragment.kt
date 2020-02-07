@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +14,6 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
-import kotlinx.android.synthetic.main.main_activity.*
 import kotlinx.android.synthetic.main.map_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
@@ -115,9 +113,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
                                 onOk = this@MapFragment::onOkInHousingComplexFragment,
                                 onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
-                                onCancel = {
-                                    placeMarkers.refreshMarker(place)
-                                })
+                                onClose = this@MapFragment::onCloseHousingComplexFragment,
+                                isNewHC = false)
                         }
                     }
                 }
@@ -140,6 +137,36 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun onDeletedInHousingComplexFragment(hComplex: Place) {
         handler.post {
             placeMarkers.remove(hComplex)
+        }
+    }
+
+    private fun onCloseHousingComplexFragment(hComplex: Place, isNewHC: Boolean) {
+        mainActivity?.switchProgressOverlay(true)
+        GlobalScope.launch {
+            val placeColl = PlaceCollection.instance
+            if (placeColl.housingComplexHasRooms(hComplex.id)) {
+                hComplex.refreshRatingByVisitsAsync().await()
+                placeColl.saveAsync(hComplex).await()
+                handler.post {
+                    placeMarkers.refreshMarker(hComplex)
+                }
+            } else {
+                if (isNewHC) {
+                    placeColl.deleteAsync(hComplex).await()
+                    handler.post {
+                        placeMarkers.remove(hComplex)
+                    }
+                } else {
+                    hComplex.refreshRatingByVisitsAsync().await()
+                    placeColl.saveAsync(hComplex).await()
+                    handler.post{
+                        placeMarkers.refreshMarker(hComplex)
+                    }
+                }
+            }
+            handler.post{
+                mainActivity?.switchProgressOverlay(false)
+            }
         }
     }
 
@@ -219,10 +246,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
                 onOk = this::onOkInHousingComplexFragment,
                 onDeleted = this::onDeletedInHousingComplexFragment,
-                onCancel = {
-                    // 新規追加した集合住宅ということ
-                    placeMarkers.remove(it)
-                })
+                onClose = this::onCloseHousingComplexFragment,
+                isNewHC = true)
         }
 
     }

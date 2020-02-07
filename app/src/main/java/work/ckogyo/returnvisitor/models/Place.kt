@@ -95,22 +95,33 @@ class Place : BaseDataModel{
     fun refreshRatingByVisitsAsync():Deferred<Unit> {
 
         return GlobalScope.async {
-            val visits = VisitCollection.instance.loadVisitsOfPlace(this@Place)
 
-            if (visits.isEmpty()) {
-                rating = Visit.Rating.None
-            } else {
-                visits.sortByDescending { v -> v.dateTime.timeInMillis }
-                for (v in visits) {
-                    if (v.rating == Visit.Rating.None || v.rating == Visit.Rating.NotHome) {
-                        continue
+            rating = Visit.Rating.None
+
+            if (category == Category.HousingComplex) {
+                val rooms = PlaceCollection.instance.loadRoomsByParentId(id)
+                for (room in rooms) {
+                    room.refreshRatingByVisitsAsync().await()
+                    if (room.rating.ordinal > rating.ordinal) {
+                        rating = room.rating
                     }
-                    rating = v.rating
-                    break
                 }
+            } else {
+                val visits = VisitCollection.instance.loadVisitsOfPlace(this@Place)
 
-                if (rating == Visit.Rating.None) {
-                    rating = visits[0].rating
+                if (visits.isNotEmpty()) {
+                    visits.sortByDescending { v -> v.dateTime.timeInMillis }
+                    for (v in visits) {
+                        if (v.rating == Visit.Rating.None || v.rating == Visit.Rating.NotHome) {
+                            continue
+                        }
+                        rating = v.rating
+                        break
+                    }
+
+                    if (rating == Visit.Rating.None) {
+                        rating = visits[0].rating
+                    }
                 }
             }
             Unit

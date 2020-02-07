@@ -32,8 +32,6 @@ import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
 import work.ckogyo.returnvisitor.fragments.WorkFragment
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
-import work.ckogyo.returnvisitor.models.WorkElement
-import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 
@@ -142,19 +140,25 @@ class MainActivity : AppCompatActivity() {
         hideKeyboard(this)
     }
 
+    // 新規集合住宅を追加後、「閉じる」の場合はキャンセルとみなし、部屋が1つもなければ集合住宅を削除する
     fun showHousingComplexFragment(hComplex: Place,
                                    onOk: (hComplex: Place) -> Unit,
                                    onDeleted: (hComplex: Place) -> Unit,
-                                   onCancel: (hComplex: Place) -> Unit) {
-        val transaction = supportFragmentManager.beginTransaction()
-        val hcFragment = HousingComplexFragment()
-        hcFragment.hComplex = hComplex
-        hcFragment.onOk = onOk
-        hcFragment.onCancel = onCancel
-        hcFragment.onDeleted = onDeleted
-        transaction.addToBackStack(null)
-        transaction.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
-        transaction.commit()
+                                   onClose: (hComplex: Place, isNewHC: Boolean) -> Unit,
+                                   isNewHC: Boolean) {
+        val hcFragment = HousingComplexFragment().also {
+            it.hComplex = hComplex
+            it.onOk = onOk
+            it.onClose = onClose
+            it.onDeleted = onDeleted
+            it.isNewHC = isNewHC
+        }
+
+        supportFragmentManager.beginTransaction().let {
+            it.addToBackStack(null)
+            it.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
+            it.commit()
+        }
         hideKeyboard(this)
     }
 

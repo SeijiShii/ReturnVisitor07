@@ -11,7 +11,6 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.housing_complex_fragment.*
-import kotlinx.android.synthetic.main.place_dialog.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
@@ -27,8 +26,10 @@ import work.ckogyo.returnvisitor.views.RoomCell
 class HousingComplexFragment : Fragment() {
 
     var onOk: ((hComplex: Place) -> Unit)? = null
-    var onCancel: ((hComplex: Place) -> Unit)? = null
+    var onClose: ((hComplex: Place, isNewHC: Boolean) -> Unit)? = null
     var onDeleted: ((hComplex: Place) -> Unit)? = null
+
+    var isNewHC = false
 
     private val rooms = ArrayList<Place>()
     private var isLoadingRooms = false
@@ -56,22 +57,8 @@ class HousingComplexFragment : Fragment() {
             }
         }
 
-        okButton.setOnClickListener {
-            mainActivity?.supportFragmentManager?.popBackStack()
-            GlobalScope.launch {
-                PlaceCollection.instance.saveAsync(hComplex).await()
-                onOk?.invoke(hComplex)
-
-                mainActivity ?: return@launch
-                hideKeyboard(mainActivity!!)
-            }
-        }
-
-        cancelButton.setOnClickListener {
-            mainActivity?.supportFragmentManager?.popBackStack()
-            onCancel?.invoke(hComplex)
-            hideKeyboard(mainActivity!!)
-        }
+        okButton.setOnClickListener(this::onClickOk)
+        closeButton.setOnClickListener(this::onClickClose)
 
         housingComplexMenuButton.setOnClick {
             showMenuPopup()
@@ -112,6 +99,23 @@ class HousingComplexFragment : Fragment() {
                 loadingRoomsProgressFrame.fadeVisibility(false)
             }
         }
+    }
+
+    private fun onClickOk(v: View) {
+        mainActivity?.supportFragmentManager?.popBackStack()
+        GlobalScope.launch {
+            PlaceCollection.instance.saveAsync(hComplex).await()
+            onOk?.invoke(hComplex)
+
+            mainActivity ?: return@launch
+            hideKeyboard(mainActivity!!)
+        }
+    }
+
+    private fun onClickClose(v: View) {
+        mainActivity?.supportFragmentManager?.popBackStack()
+        onClose?.invoke(hComplex, isNewHC)
+        hideKeyboard(mainActivity!!)
     }
 
     private fun showMenuPopup() {

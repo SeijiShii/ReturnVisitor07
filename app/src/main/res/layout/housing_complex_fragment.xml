@@ -152,8 +152,8 @@
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 style="@style/DarkBlueButton"
-                android:text="@string/cancel"
-                android:id="@+id/cancelButton"
+                android:text="@string/close"
+                android:id="@+id/closeButton"
                 android:layout_margin="5dp"/>
 
         <Button
