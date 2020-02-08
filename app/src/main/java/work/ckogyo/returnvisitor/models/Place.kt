@@ -2,18 +2,14 @@ package work.ckogyo.returnvisitor.models
 
 import android.content.Context
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import org.json.JSONArray
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.utils.*
-import kotlin.coroutines.suspendCoroutine
 
 class Place : BaseDataModel{
 
@@ -53,7 +49,7 @@ class Place : BaseDataModel{
     var address = ""
     var latLng = LatLng(0.0, 0.0)
     var category = Category.House
-    var rating = Visit.Rating.None
+    var rating = Visit.Rating.Unoccupied
 
     // Roomだけ
     var parentId = ""
@@ -96,7 +92,7 @@ class Place : BaseDataModel{
 
         return GlobalScope.async {
 
-            rating = Visit.Rating.None
+            rating = Visit.Rating.Unoccupied
 
             if (category == Category.HousingComplex) {
                 val rooms = PlaceCollection.instance.loadRoomsByParentId(id)
@@ -112,14 +108,14 @@ class Place : BaseDataModel{
                 if (visits.isNotEmpty()) {
                     visits.sortByDescending { v -> v.dateTime.timeInMillis }
                     for (v in visits) {
-                        if (v.rating == Visit.Rating.None || v.rating == Visit.Rating.NotHome) {
+                        if (v.rating == Visit.Rating.Unoccupied || v.rating == Visit.Rating.NotHome) {
                             continue
                         }
                         rating = v.rating
                         break
                     }
 
-                    if (rating == Visit.Rating.None) {
+                    if (rating == Visit.Rating.Unoccupied) {
                         rating = visits[0].rating
                     }
                 }

@@ -12,4 +12,14 @@
         <item>71~80</item>
         <item>81~</item>
     </array>
+
+    <array name="raterArray">
+        <item>Unoccupied</item>
+        <item>Negative</item>
+        <item>Indifferent</item>
+        <item>Not Home</item>
+        <item>Fair</item>
+        <item>Interested</item>
+        <item>Strongly Interested</item>
+    </array>
 </resources>

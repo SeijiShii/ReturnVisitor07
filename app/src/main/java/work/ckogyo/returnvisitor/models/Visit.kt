@@ -3,8 +3,6 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.utils.*
@@ -21,7 +19,7 @@ class Visit : BaseDataModel {
     var place = Place()
 
     enum class Rating {
-        None,
+        Unoccupied,
         Negative,
         Indifferent,
         NotHome,
@@ -30,7 +28,7 @@ class Visit : BaseDataModel {
         StronglyInterested,
     }
 
-    var rating = Rating.None
+    var rating = Rating.Unoccupied
 
     constructor() : super(idPrefix)
 

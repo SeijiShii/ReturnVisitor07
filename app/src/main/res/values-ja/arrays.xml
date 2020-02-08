@@ -12,4 +12,15 @@
         <item>71~80</item>
         <item>81~</item>
     </array>
+
+    <array name="raterArray">
+        <item>空家（空室）</item>
+        <item>拒絶</item>
+        <item>無関心</item>
+        <item>留守</item>
+        <item>まあまあ</item>
+        <item>関心がある</item>
+        <item>とても関心がある</item>
+    </array>
 </resources>
+

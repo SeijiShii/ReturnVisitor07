@@ -44,17 +44,6 @@ class RecordVisitFragment : Fragment(),
 
     var mode = EditMode.Add
 
-    private val interestTextIds = arrayOf(
-        R.string.none,
-        R.string.negative,
-        R.string.for_next_covering,
-        R.string.not_home,
-        R.string.fair,
-        R.string.interested,
-        R.string.strongly_interested
-    )
-
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.record_visit_fragment, container, false)
     }
@@ -84,8 +73,9 @@ class RecordVisitFragment : Fragment(),
         interestRater.refresh(visit.rating.ordinal)
         interestRater.onClickButton = {
             visit.rating = Visit.Rating.values()[it]
-            interestStatementText.setText(interestTextIds[it])
+            refreshInterestStatementText()
         }
+        refreshInterestStatementText()
 
         placeNameText.setText(visit.place.name)
 
@@ -200,6 +190,11 @@ class RecordVisitFragment : Fragment(),
 
         val timeFormat = android.text.format.DateFormat.getTimeFormat(context)
         timeText.text = timeFormat.format(visit.dateTime.time)
+    }
+
+    private fun refreshInterestStatementText() {
+        val raterArray = resources.getStringArray(R.array.raterArray)
+        interestStatementText.text = raterArray[visit.rating.ordinal]
     }
 
 }

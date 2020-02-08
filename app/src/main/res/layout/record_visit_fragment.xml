@@ -99,23 +99,23 @@
             </RelativeLayout>
 
             <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp">
+                android:layout_width="match_parent"
+                android:layout_height="50dp">
 
                 <work.ckogyo.returnvisitor.views.Rater
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/interestRater"
-                        android:layout_centerInParent="true"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/interestRater"
+                    android:layout_centerInParent="true" />
 
             </RelativeLayout>
 
             <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:textSize="15sp"
-                    android:gravity="center"
-                    android:id="@+id/interestStatementText"/>
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:textSize="15sp"
+                android:gravity="center"
+                android:id="@+id/interestStatementText"/>
 
             <EditText
                     android:layout_width="match_parent"

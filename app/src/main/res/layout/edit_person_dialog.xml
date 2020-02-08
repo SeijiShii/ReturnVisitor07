@@ -16,26 +16,29 @@
             android:layout_margin="3dp"/>
 
     <RadioGroup
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:orientation="horizontal"
-            android:id="@+id/sexRadioGroup"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp">
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:id="@+id/sexRadioGroup"
+        android:layout_gravity="center"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
 
         <RadioButton
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:text="@string/male"
-                android:id="@+id/maleRadioButton"/>
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/male"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:id="@+id/maleRadioButton"/>
 
         <RadioButton
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:text="@string/female"
-                android:id="@+id/femaleRadioButton"/>
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/female"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:id="@+id/femaleRadioButton"/>
 
     </RadioGroup>
 
