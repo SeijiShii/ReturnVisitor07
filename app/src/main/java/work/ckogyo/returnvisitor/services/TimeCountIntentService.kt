@@ -65,6 +65,13 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
         initBroadcasting()
     }
 
+    // NOTE: アプリがキルされたときに計時サービスを止めるようにしたけれど、いかがなものか
+    // メモリ不足でアプリが殺されたとき、バックグラウンドで計時していたいけれどそれもキルされてしまうのか。
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        cancelNotification()
+    }
+
     private fun initBroadcasting() {
         broadcastManager = LocalBroadcastManager.getInstance(this)
 
@@ -145,9 +152,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
             }
         }
 
-        if (notificationManager != null) {
-            notificationManager!!.cancel(timeNotifyId)
-        }
+        cancelNotification()
 
         work = null
 
@@ -156,6 +161,11 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
     }
 
+    private fun cancelNotification() {
+        if (notificationManager != null) {
+            notificationManager!!.cancel(timeNotifyId)
+        }
+    }
 
 
 

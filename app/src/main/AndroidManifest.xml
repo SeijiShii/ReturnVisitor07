@@ -23,6 +23,8 @@
         </activity>
 
         <service android:name=".services.TimeCountIntentService"/>
+        <service android:name=".services.IntentCatcherDummyService"
+            android:stopWithTask="false"/>
     </application>
 </manifest>
 

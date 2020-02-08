@@ -24,7 +24,7 @@ class IntentCatcherDummyService : Service() {
 
         if (!MainActivity.isAppVisible) {
             val maIntent = Intent(this, MainActivity::class.java)
-            maIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            maIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK.plus(Intent.FLAG_ACTIVITY_SINGLE_TOP)
             startActivity(maIntent)
         }
 

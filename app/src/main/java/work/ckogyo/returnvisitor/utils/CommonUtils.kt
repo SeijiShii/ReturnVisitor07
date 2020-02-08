@@ -78,7 +78,7 @@ fun Long.toDurationText(withSeconds: Boolean = false): String {
     val s = this % minUnit / secUnit
 
     var txt = "$h:${String.format("%02d", m)}"
-    if (withSeconds) txt += String.format("%02d", s)
+    if (withSeconds) txt += String.format(":%02d", s)
     return txt
 }
 
