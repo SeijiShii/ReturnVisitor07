@@ -110,15 +110,18 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
             WorkElement.Category.WorkStart -> {
                 timeLabel.text = context.getText(R.string.start)
                 durationText.visibility = View.VISIBLE
-                workMenuButton.visibility = View.VISIBLE
-                workMenuButton.setOnClick {
-                    showMenuPopup()
-                }
 
                 updateDurationText()
 
                 if (TimeCountIntentService.isWorkTimeCounting(dataElm!!.work!!)) {
                     initBroadcastingReceiver()
+                    workMenuButton.visibility = View.GONE
+                    workMenuButton.setOnClick(null)
+                } else {
+                    workMenuButton.visibility = View.VISIBLE
+                    workMenuButton.setOnClick {
+                        showMenuPopup()
+                    }
                 }
 
                 (layoutParams as RecyclerView.LayoutParams).topMargin = context.toDP(3)
@@ -151,21 +154,10 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
         val popup = PopupMenu(context, workMenuButton)
         popup.menuInflater.inflate(R.menu.work_cell_menu, popup.menu)
 
-        if (dataElm!!.category == WorkElement.Category.WorkStart
-            && TimeCountIntentService.isWorkTimeCounting(dataElm!!.work!!)) {
-            popup.menu.removeItem(R.id.delete_work)
-        } else {
-            popup.menu.removeItem(R.id.stop_time_counting)
-        }
-
         popup.setOnMenuItemClickListener {
             when(it.itemId) {
                 R.id.delete_work -> {
                     confirmDeleteWork()
-                }
-                R.id.stop_time_counting -> {
-                    // TODO: 計時を止める
-                    stopTimeCounting()
                 }
             }
             return@setOnMenuItemClickListener true
@@ -316,6 +308,10 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
                             WorkElement.Category.WorkStart -> {
                                 handler?.post {
                                     updateDurationText()
+                                    workMenuButton.visibility = View.VISIBLE
+                                    workMenuButton.setOnClick {
+                                        showMenuPopup()
+                                    }
                                 }
                             }
                             WorkElement.Category.WorkEnd -> {
@@ -335,8 +331,10 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
 
     private fun stopTimeCounting() {
         TimeCountIntentService.stopTimeCount()
-        stopTimeCountingButton.clearAnimation()
+
         stopButtonBlink?.cancel()
+        stopTimeCountingButton.clearAnimation()
+
         stopTimeCountingButton.visibility = View.GONE
     }
 
