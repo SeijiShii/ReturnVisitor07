@@ -89,6 +89,8 @@ class HousingComplexFragment : Fragment() {
         noRoomRegisteredFrame.alpha = 0f
         roomListFrame.alpha = 0f
 
+        housingComplexNameText.setText(hComplex.name)
+
         GlobalScope.launch {
 
             isLoadingRooms = true
@@ -107,13 +109,21 @@ class HousingComplexFragment : Fragment() {
     }
 
     private fun onClickOk(v: View) {
+
+        mainActivity?.switchProgressOverlay(true)
+        hComplex.name = housingComplexNameText.text.toString()
+        val handler = Handler()
+
         mainActivity?.supportFragmentManager?.popBackStack()
+
+        if(mainActivity != null) {
+            hideKeyboard(mainActivity!!)
+        }
+
         GlobalScope.launch {
             PlaceCollection.instance.saveAsync(hComplex).await()
+            hComplex.refreshRatingByVisitsAsync().await()
             onOk?.invoke(hComplex)
-
-            mainActivity ?: return@launch
-            hideKeyboard(mainActivity!!)
         }
     }
 

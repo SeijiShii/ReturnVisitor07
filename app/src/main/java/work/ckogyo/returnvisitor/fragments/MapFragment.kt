@@ -131,6 +131,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun onOkInHousingComplexFragment(hComplex: Place) {
         handler.post {
             placeMarkers.refreshMarker(hComplex)
+            mainActivity ?: return@post
+            hideKeyboard(mainActivity!!)
+            mainActivity?.switchProgressOverlay(false)
         }
     }
 
