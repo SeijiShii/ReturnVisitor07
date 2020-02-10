@@ -17,6 +17,7 @@ import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
+import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
@@ -28,6 +29,8 @@ import work.ckogyo.returnvisitor.views.WorkElmCell
 import java.lang.IllegalStateException
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.absoluteValue
 
 class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateSetListener {
@@ -341,7 +344,9 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 }
             }
 
-            val cell = VisitCell(context, visit)
+            val cell = VisitCell(context, visit).also {
+                it.onDeleteVisitConfirmed = this::onVisitDeleted
+            }
             visitCells.add(cell)
             return cell
         }
@@ -416,53 +421,67 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             val handler = Handler()
             GlobalScope.launch {
-                val startCellTask = GlobalScope.async {
-                    val startPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
-                    val startCell = recyclerView.findViewHolderForAdapterPosition(startPos)?.itemView as? WorkElmCell
-                    recyclerView.handler.post {
-                        startCell?.collapseToHeight0 ()
-                    }
-                }
 
-                val endCellTask = GlobalScope.async {
-                    val endPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
-                    val endCell = recyclerView.findViewHolderForAdapterPosition(endPos)?.itemView as? WorkElmCell
-                    handler.post {
-                        endCell?.collapseToHeight0 {}
-                    }
-                }
+                // 終了ポジション先取得して削除しないと順番が狂うはず
+                WorkCollection.instance.delete(work.id)
 
-                startCellTask.await()
-                endCellTask.await()
+                val endPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
+                val startPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
 
                 deleteWorkElms(work)
                 WorkElmList.refreshIsVisitInWork(dataElms)
-                deleteDateBorderIfADayHasNoElm(work.start)
 
-                WorkCollection.instance.delete(work.id)
+                val dateBorderPos = deleteDateBorderPositionIfADayHasNoElm(work.start)
 
-                handler.postDelayed({
-                    notifyDataSetChanged()
-                }, 500)
+                handler.post{
+
+                    notifyItemRemoved(endPos)
+                    notifyItemRemoved(startPos)
+                    if (dateBorderPos >= 0) {
+                        notifyItemRemoved(dateBorderPos)
+                    }
+                }
             }
         }
 
-        private fun deleteDateBorderIfADayHasNoElm(date: Calendar) {
+        private fun onVisitDeleted(visit: Visit) {
+            val pos = getPositionByVisit(visit)
+            if (pos < 0) return
+
+            dataElms.removeAt(pos)
+
+            val handler = Handler()
             GlobalScope.launch {
-                if (WorkElmList.instance.aDayHasElm(date)) return@launch
+                VisitCollection.instance.deleteAsync(visit).await()
 
-                val dateBorderElm = getDateBorderElmByDate(date)
-                dateBorderElm ?: return@launch
+                val dateBorderPos = deleteDateBorderPositionIfADayHasNoElm(visit.dateTime)
 
-                val pos = dataElms.indexOf(dateBorderElm)
-                if (pos < 0) return@launch
-
-                val cell = recyclerView.findViewHolderForAdapterPosition(pos)?.itemView as? WorkElmCell
-                recyclerView.handler.post {
-                    cell?.collapseToHeight0 {
-                        dataElms.remove(dateBorderElm)
+                handler.post {
+                    notifyItemRemoved(pos)
+                    if (dateBorderPos >= 0) {
+                        notifyItemRemoved(dateBorderPos)
                     }
                 }
+            }
+        }
+
+        private suspend fun deleteDateBorderPositionIfADayHasNoElm(date: Calendar): Int = suspendCoroutine { cont ->
+            GlobalScope.launch {
+                if (WorkElmList.instance.aDayHasElm(date)) {
+                    cont.resume(-1)
+                    return@launch
+                }
+
+                val dateBorderElm = getDateBorderElmByDate(date)
+                if (dateBorderElm == null) {
+                    cont.resume(-1)
+                    return@launch
+                }
+
+                val pos = dataElms.indexOf(dateBorderElm)
+
+                dataElms.remove(dateBorderElm)
+                cont.resume(pos)
             }
         }
 
@@ -492,6 +511,16 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             for (i in 0 until dataElms.size) {
                 dataElms[i].work ?: continue
                 if (dataElms[i].work == work && dataElms[i].category == category) {
+                    return i
+                }
+            }
+            return -1
+        }
+
+        private fun getPositionByVisit(visit: Visit): Int {
+            for (i in 0 until dataElms.size) {
+                dataElms[i].visit ?: continue
+                if (dataElms[i].visit == visit) {
                     return i
                 }
             }

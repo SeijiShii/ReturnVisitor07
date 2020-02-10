@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.PopupMenu
@@ -260,6 +261,7 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
     }
 
     fun attacheVisitCell(visitCell: VisitCell) {
+        (visitCell.parent as? ViewGroup)?.removeView(visitCell)
         visitCellWrapper.addView(visitCell)
     }
 
