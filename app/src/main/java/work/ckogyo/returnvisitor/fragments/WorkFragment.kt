@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -158,16 +159,21 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             val topPos = layoutManager.findFirstVisibleItemPosition()
             val topCell = layoutManager.findViewByPosition(topPos) as WorkElmCell
-            val diffToFirstDate = topCell.dataElm!!.dateTime.getDaysDiff(adapter.firstDate).absoluteValue
+            val topDate = topCell.dataElm!!.dateTime
+//            Log.d(debugTag, "Top visible cell date: ${topDate.toDateText(context!!)}")
+            val diffToFirstDate = topDate.getDaysDiff(adapter.firstDate).absoluteValue
 
-            val lastPos = layoutManager.findLastVisibleItemPosition()
-            val lastCell = layoutManager.findViewByPosition(lastPos) as WorkElmCell
-            val diffToLastDate = lastCell.dataElm!!.dateTime.getDaysDiff(adapter.lastDate).absoluteValue
+            val bottomPos = layoutManager.findLastVisibleItemPosition()
+            val bottomCell = layoutManager.findViewByPosition(bottomPos) as WorkElmCell
+            val bottomDate = bottomCell.dataElm!!.dateTime
+//            Log.d(debugTag, "Bottom visible cell date: ${bottomDate.toDateText(context!!)}")
+            val diffToLastDate = bottomDate.getDaysDiff(adapter.lastDate).absoluteValue
 
             val elmsToAdd = ArrayList<WorkElement>()
 
             if (diffToFirstDate <= 1 ) {
                 val previous = WorkElmList.instance.getNeighboringDate(adapter.firstDate, true)
+//                Log.d(debugTag, "Previous date with data: ${previous?.toDateText(context!!)}")
                 if (previous != null && !adapter.hasElmsOfDate(previous)) {
                     val elms = WorkElmList.instance.generateListByDate(previous)
                     elmsToAdd.addAll(elms)
@@ -176,6 +182,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             if (diffToLastDate <= 1) {
                 val next = WorkElmList.instance.getNeighboringDate(adapter.lastDate, false)
+//                Log.d(debugTag, "Next date with data: ${next?.toDateText(context!!)}")
                 if (next != null && !adapter.hasElmsOfDate(next)) {
                     val elms = WorkElmList.instance.generateListByDate(next)
                     elmsToAdd.addAll(elms)

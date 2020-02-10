@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.models
 
+import android.util.Log
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
@@ -123,7 +124,7 @@ class WorkElmList {
         }
     }
 
-    fun updateDateBorders(elms: ArrayList<WorkElement>): ArrayList<WorkElement> {
+    private fun updateDateBorders(elms: ArrayList<WorkElement>): ArrayList<WorkElement> {
 
         val tmp = ArrayList<WorkElement>()
         for (elm in elms) {
@@ -202,6 +203,9 @@ class WorkElmList {
 
             val visitDate  = visitDateTask.await()
             val workDate = workDateTask.await()
+
+//            Log.d(debugTag, "Neighboring visit date with data: ${visitDate?.toJPDateText()}, previous: $previous")
+//            Log.d(debugTag, "Neighboring work date with data: ${workDate?.toJPDateText()}, previous: $previous")
 
             val nextDate = when {
                 visitDate != null && workDate != null -> {

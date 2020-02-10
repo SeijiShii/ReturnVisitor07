@@ -14,6 +14,12 @@ fun Calendar.toDateText(context: Context): String {
     return format.format(this.time)
 }
 
+fun Calendar.toJPDateText(): String {
+
+    val format = SimpleDateFormat("yyyy/MM/dd (EEE)", Locale.getDefault())
+    return format.format(this.time)
+}
+
 fun Calendar.toTimeText(context: Context, withSecond: Boolean = false): String {
 
     var layout = "HH:mm"
@@ -29,10 +35,14 @@ fun Calendar.toDateTimeText(context: Context, withSecond: Boolean = false): Stri
 fun Calendar.cloneWith0Time():Calendar {
 
     val date2 = Calendar.getInstance()
+
     date2.timeInMillis = 0
     date2.set(Calendar.YEAR, this.get(Calendar.YEAR))
     date2.set(Calendar.MONTH, this.get(Calendar.MONTH))
     date2.set(Calendar.DAY_OF_MONTH, this.get(Calendar.DAY_OF_MONTH))
+    // 時をセットしないとタイムゾーンで死ぬ。爆死。
+    date2.set(Calendar.HOUR_OF_DAY, 0)
+
     return date2
 }
 
