@@ -34,6 +34,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
         val timeCountingToActivity = TimeCountIntentService::class.java.name + "_time_counting_to_activity"
         val stopTimeCountingToActivity = TimeCountIntentService::class.java.name + "_stop_time_count_to_activity"
         val startTime = TimeCountIntentService::class.java.name + "_start_time"
+        val endTime = TimeCountIntentService::class.java.name + "end_time"
         val duration = TimeCountIntentService::class.java.name + "_duration"
         val countingWorkId = TimeCountIntentService::class.java.name + "_counting_work_id"
         val changeStartTimeToService = TimeCountIntentService::class.java.name + "_change_start_time_to_service"
@@ -46,6 +47,13 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         // companion objectから触れるようにシングルトン的な
         private var work: Work? = null
+
+        fun isWorkTimeCounting(work2: Work): Boolean {
+            if (!isTimeCounting || work == null){
+                return false
+            }
+            return work!! == work2
+        }
 
         /**
          * Workの更新は30秒に1回なのでVisitの編集タイミングなどによってはWork外になってしまうので、データの編集タイミングに合わせて呼ばれる
@@ -92,13 +100,9 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
         broadcastManager!!.registerReceiver(receiver!!, IntentFilter(changeStartTimeToService))
     }
 
-//    fun getWork(): Work? {
-//        return mWork
-//    }
-
     override fun onHandleIntent(intent: Intent?) {
 
-        val db = FirebaseDB.instance
+        val workColl = WorkCollection.instance
 
         if (intent != null) {
 
@@ -106,6 +110,9 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 Toast.makeText(this, "Time count started", Toast.LENGTH_SHORT).show()
                 work = Work()
                 work!!.start = Calendar.getInstance()
+                GlobalScope.launch {
+                    workColl.set(work!!)
+                }
             } else if (intent.action == restartCountToService) {
                 val workId = intent.getStringExtra(countingWorkId)
 //                mWork = WorkList.getInstance().getById(workId)
@@ -130,11 +137,9 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
             }
 
             if (work != null) {
-                val timeBroadCastIntent = Intent()
-                timeBroadCastIntent.action = timeCountingToActivity
-                timeBroadCastIntent.putExtra(startTime, work!!.start.timeInMillis)
-                timeBroadCastIntent.putExtra(duration, work!!.duration)
-                timeBroadCastIntent.putExtra(countingWorkId, work!!.id)
+                val timeBroadCastIntent = Intent(timeCountingToActivity)
+                loadOnIntent(timeBroadCastIntent)
+
                 work!!.end = Calendar.getInstance()
                 broadcastManager!!.sendBroadcast(timeBroadCastIntent)
                 updateNotification(work!!.duration)
@@ -154,11 +159,20 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         cancelNotification()
 
+        val stopIntent = Intent(stopTimeCountingToActivity)
+        loadOnIntent(stopIntent)
+
         work = null
 
-        val stopIntent = Intent(stopTimeCountingToActivity)
         broadcastManager!!.sendBroadcast(stopIntent)
 
+    }
+
+    private fun loadOnIntent(intent: Intent) {
+        intent.putExtra(startTime, work!!.start.timeInMillis)
+        intent.putExtra(endTime, work!!.end.timeInMillis)
+        intent.putExtra(duration, work!!.duration)
+        intent.putExtra(countingWorkId, work!!.id)
     }
 
     private fun cancelNotification() {
@@ -207,6 +221,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         notificationManager!!.notify(timeNotifyId, mBuilder!!.build())
     }
+
 
 
 }

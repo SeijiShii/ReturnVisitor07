@@ -2,15 +2,22 @@ package work.ckogyo.returnvisitor.views
 
 import android.app.AlertDialog
 import android.app.TimePickerDialog
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.PopupMenu
 import android.widget.TimePicker
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.work_elm_cell.view.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.models.WorkElement
+import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 
@@ -69,9 +76,11 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
         visitCellFrame.visibility = View.GONE
         durationText.visibility = View.GONE
         workMenuButton.visibility = View.GONE
+        stopTimeCountingButton.visibility = View.GONE
 
         workMenuButton.setOnClick(null)
         timeText.setOnClick(null)
+        stopTimeCountingButton.setOnClickListener(null)
 
         (layoutParams as RecyclerView.LayoutParams).topMargin = 0
         (layoutParams as RecyclerView.LayoutParams).bottomMargin = 0
@@ -107,11 +116,27 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
                 }
 
                 updateDurationText()
+
+                if (TimeCountIntentService.isWorkTimeCounting(dataElm!!.work!!)) {
+                    initBroadcastingReceiver()
+                }
+
                 (layoutParams as RecyclerView.LayoutParams).topMargin = context.toDP(3)
             }
             WorkElement.Category.WorkEnd -> {
                 timeLabel.text = context.getText(R.string.end)
                 (layoutParams as RecyclerView.LayoutParams).bottomMargin = context.toDP(3)
+
+                if (TimeCountIntentService.isWorkTimeCounting(dataElm!!.work!!)) {
+                    // Workが計時中の場合
+                    timeText.isEnabled = false
+                    stopTimeCountingButton.visibility = View.VISIBLE
+                    stopTimeCountingButton.setOnClick {
+                        stopTimeCounting()
+                    }
+                    startStopCountingButtonBlink()
+                    initBroadcastingReceiver()
+                }
             }
         }
 
@@ -125,10 +150,22 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
 
         val popup = PopupMenu(context, workMenuButton)
         popup.menuInflater.inflate(R.menu.work_cell_menu, popup.menu)
+
+        if (dataElm!!.category == WorkElement.Category.WorkStart
+            && TimeCountIntentService.isWorkTimeCounting(dataElm!!.work!!)) {
+            popup.menu.removeItem(R.id.delete_work)
+        } else {
+            popup.menu.removeItem(R.id.stop_time_counting)
+        }
+
         popup.setOnMenuItemClickListener {
             when(it.itemId) {
                 R.id.delete_work -> {
                     confirmDeleteWork()
+                }
+                R.id.stop_time_counting -> {
+                    // TODO: 計時を止める
+                    stopTimeCounting()
                 }
             }
             return@setOnMenuItemClickListener true
@@ -142,6 +179,10 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
             .setTitle(R.string.delete_work)
             .setMessage(R.string.delete_work_message)
             .setPositiveButton(R.string.delete){ _, _ ->
+
+                dataElm ?: return@setPositiveButton
+                dataElm!!.work ?: return@setPositiveButton
+
                 onDeleteWorkClicked?.invoke(dataElm!!.work!!)
             }
             .setNegativeButton(R.string.cancel, null)
@@ -206,12 +247,12 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
         onWorkTimeChanged?.invoke(work, dataElm!!.category)
     }
 
-    private fun updateTimeText() {
-        timeText.text = dataElm!!.dateTime.toTimeText(context, false)
+    private fun updateTimeText(withSecond: Boolean = false) {
+        timeText.text = dataElm!!.dateTime.toTimeText(context, withSecond)
     }
 
-    fun updateDurationText() {
-        durationText.text = resources.getString(R.string.duration_placeholder, dataElm!!.work!!.duration.toDurationText())
+    fun updateDurationText(withSecond: Boolean = false) {
+        durationText.text = resources.getString(R.string.duration_placeholder, dataElm!!.work!!.duration.toDurationText(withSecond))
     }
 
     private fun refreshVisitCellFrame() {
@@ -234,6 +275,69 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
         visitCellWrapper.removeAllViews()
     }
 
+    private var stopButtonBlink: Animation? = null
+    private fun startStopCountingButtonBlink() {
+        stopButtonBlink = AnimationUtils.loadAnimation(context, R.anim.blink)
+        stopTimeCountingButton.animation = stopButtonBlink
+        stopButtonBlink?.start()
+    }
 
+    private lateinit var receiver: BroadcastReceiver
+
+    private fun initBroadcastingReceiver() {
+        receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+
+                intent ?: return
+
+                val startInMillis = intent.getLongExtra(TimeCountIntentService.startTime, 0)
+                dataElm?.work?.start?.timeInMillis = startInMillis
+
+                val endInMillis = intent.getLongExtra(TimeCountIntentService.endTime, 0)
+                dataElm?.work?.end?.timeInMillis = endInMillis
+
+                when(intent.action) {
+                    TimeCountIntentService.timeCountingToActivity -> {
+                        when(dataElm!!.category) {
+                            WorkElement.Category.WorkStart -> {
+                                handler?.post {
+                                    updateDurationText(true)
+                                }
+                            }
+                            WorkElement.Category.WorkEnd -> {
+                                handler?.post {
+                                    updateTimeText(true)
+                                }
+                            }
+                        }
+                    }
+                    TimeCountIntentService.stopTimeCountingToActivity -> {
+                        when(dataElm!!.category) {
+                            WorkElement.Category.WorkStart -> {
+                                handler?.post {
+                                    updateDurationText()
+                                }
+                            }
+                            WorkElement.Category.WorkEnd -> {
+                                handler?.post {
+                                    timeText.isEnabled = true
+                                    updateTimeText()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        LocalBroadcastManager.getInstance(context).registerReceiver(receiver, IntentFilter(TimeCountIntentService.timeCountingToActivity))
+        LocalBroadcastManager.getInstance(context).registerReceiver(receiver, IntentFilter(TimeCountIntentService.stopTimeCountingToActivity))
+    }
+
+    private fun stopTimeCounting() {
+        TimeCountIntentService.stopTimeCount()
+        stopTimeCountingButton.clearAnimation()
+        stopButtonBlink?.cancel()
+        stopTimeCountingButton.visibility = View.GONE
+    }
 
 }

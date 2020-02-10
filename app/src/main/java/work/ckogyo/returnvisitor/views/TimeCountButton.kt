@@ -53,8 +53,7 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
                 TimeCountIntentService.stopTimeCount()
             }
 
-            animateHeight()
-            refreshButtonText()
+            refreshUIs()
         }
 
         startTimeText.setOnClick {
@@ -63,6 +62,12 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
 
         refreshButtonText()
         initReceiver()
+    }
+
+    private fun refreshUIs() {
+        animateHeight()
+        refreshButtonText()
+        refreshDurationText()
     }
 
     private fun showTimePicker() {
@@ -98,14 +103,26 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
     private fun initReceiver() {
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent?.action == TimeCountIntentService.timeCountingToActivity) {
-                    val duration = intent.getLongExtra(TimeCountIntentService.duration, 0)
-                    durationText.text = context!!.resources.getString(R.string.duration_placeholder,
-                                                                        duration.toDurationText(true))
+                when(intent?.action) {
+                    TimeCountIntentService.timeCountingToActivity -> {
+                        val duration = intent.getLongExtra(TimeCountIntentService.duration, 0)
+                        refreshDurationText(duration)
+                    }
+                    TimeCountIntentService.stopTimeCountingToActivity -> {
+                        isCountingTime = false
+                        isExtracted = false
+                        refreshUIs()
+                    }
                 }
             }
         }
         LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, IntentFilter(TimeCountIntentService.timeCountingToActivity))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, IntentFilter(TimeCountIntentService.stopTimeCountingToActivity))
+    }
+
+    private fun refreshDurationText(duration: Long = 0) {
+        durationText.text = context!!.resources.getString(R.string.duration_placeholder,
+            duration.toDurationText(true))
     }
 
 }

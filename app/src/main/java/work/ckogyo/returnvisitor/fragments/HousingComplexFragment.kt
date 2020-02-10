@@ -112,7 +112,6 @@ class HousingComplexFragment : Fragment() {
 
         mainActivity?.switchProgressOverlay(true)
         hComplex.name = housingComplexNameText.text.toString()
-        val handler = Handler()
 
         mainActivity?.supportFragmentManager?.popBackStack()
 

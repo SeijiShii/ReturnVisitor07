@@ -2,4 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/delete_work"
           android:title="@string/delete_work"/>
+    <item android:id="@+id/stop_time_counting"
+        android:title="@string/stop_time_count"/>
 </menu>
