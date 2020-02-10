@@ -73,7 +73,7 @@ class HousingComplexFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
 
                 if (s != null) {
-                    refreshRoomList(s.toString())
+                    refreshRoomList()
                 }
                 refreshAddRoomButton()
             }
@@ -162,21 +162,38 @@ class HousingComplexFragment : Fragment() {
         // TODO: 条件の追加
         addInputRoomNumButton.isEnabled = searchOrAddRoomNumText.text.isNotEmpty()
                                             && !isLoadingRooms
-                                            && roomListFrame.childCount <= 0
     }
 
+    /**
+     * 検索に完全一致する部屋が存在すればそれを編集する。
+     * なければその名前で新規作成する。
+     */
     private fun onClickAddNewRoom() {
 
-        val room = Place()
-        room.category = Place.Category.Room
-        room.parentId = hComplex.id
-        room.address = hComplex.address
-        room.latLng = hComplex.latLng
-        room.name = searchOrAddRoomNumText.text.toString()
-
+        val searchText = searchOrAddRoomNumText.text.toString()
         searchOrAddRoomNumText.setText("")
+        var roomForSearch: Place? = null
 
-        mainActivity?.showRecordVisitFragmentForNew(room, this::onFinishEditVisit)
+        var existsCompleteMatch = false
+        for (room in rooms) {
+            if (room.name == searchText) {
+                roomForSearch = room
+                existsCompleteMatch = true
+            }
+        }
+
+        if (existsCompleteMatch) {
+            roomForSearch ?: return
+            showPlaceDialogForRoom(roomForSearch)
+        } else {
+            val room = Place()
+            room.category = Place.Category.Room
+            room.parentId = hComplex.id
+            room.address = hComplex.address
+            room.latLng = hComplex.latLng
+            room.name = searchText
+            mainActivity?.showRecordVisitFragmentForNew(room, this::onFinishEditVisit)
+        }
     }
 
     private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
@@ -195,6 +212,7 @@ class HousingComplexFragment : Fragment() {
 
                     rooms.remove(visit.place)
                     rooms.add(visit.place)
+                    rooms.sortBy { r -> r.name }
 
                     handler.post{
                         refreshRoomList()
@@ -217,7 +235,10 @@ class HousingComplexFragment : Fragment() {
     }
 
 
-    private fun refreshRoomList(searchWord: String = "") {
+    private fun refreshRoomList() {
+
+        val searchWord = searchOrAddRoomNumText.text.toString()
+
         roomListFrame.removeAllViews()
 
         val roomsToShow = ArrayList<Place>()
@@ -225,7 +246,7 @@ class HousingComplexFragment : Fragment() {
             roomsToShow.addAll(rooms)
         } else {
             for (room in rooms) {
-                if (room.name == searchWord) {
+                if (room.name.contains(searchWord)) {
                     roomsToShow.add(room)
                 }
             }
@@ -240,7 +261,7 @@ class HousingComplexFragment : Fragment() {
                     onClickShowRoom = this@HousingComplexFragment::showPlaceDialogForRoom
                     onDeleted = {
                         rooms.remove(it)
-                        refreshRoomList(searchWord)
+                        refreshRoomList()
                     }
                 }
                 roomListFrame.addView(cell)

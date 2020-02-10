@@ -93,7 +93,7 @@
                     android:layout_weight="1"
                     android:layout_height="match_parent"
                     style="@style/DarkGreenButton"
-                    android:text="@string/add_room_with_input_num"
+                    android:text="@string/add_or_show_room"
                     android:id="@+id/addInputRoomNumButton"
                     android:layout_margin="5dp"/>
 
