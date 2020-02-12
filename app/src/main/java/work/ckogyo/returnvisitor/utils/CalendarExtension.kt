@@ -112,6 +112,7 @@ fun Calendar.isDateAfter(other: Calendar, allowSame: Boolean = false): Boolean {
 fun Calendar.isSameTime(other: Calendar): Boolean {
     return get(Calendar.HOUR_OF_DAY) == other.get(Calendar.HOUR_OF_DAY)
             && get(Calendar.MINUTE) == other.get(Calendar.MINUTE)
+            && get(Calendar.SECOND) == other.get(Calendar.SECOND)
 }
 
 fun Calendar.isTimeBefore(other: Calendar, allowSame: Boolean): Boolean {
@@ -126,7 +127,13 @@ fun Calendar.isTimeBefore(other: Calendar, allowSame: Boolean): Boolean {
             when {
                 get(Calendar.MINUTE) < other.get(Calendar.MINUTE) -> true
                 get(Calendar.MINUTE) > other.get(Calendar.MINUTE) -> false
-                else -> false
+                else -> {
+                    when {
+                        get(Calendar.SECOND) < other.get(Calendar.SECOND) -> true
+                        get(Calendar.SECOND) > other.get(Calendar.SECOND) -> false
+                        else -> false
+                    }
+                }
             }
         }
     }
@@ -144,10 +151,21 @@ fun Calendar.isTimeAfter(other: Calendar, allowSame: Boolean): Boolean {
             when {
                 get(Calendar.MINUTE) > other.get(Calendar.MINUTE) -> true
                 get(Calendar.MINUTE) < other.get(Calendar.MINUTE) -> false
-                else -> false
+                else -> {
+                    when {
+                        get(Calendar.SECOND) > other.get(Calendar.SECOND) -> true
+                        get(Calendar.SECOND) < other.get(Calendar.SECOND) -> false
+                        else -> false
+                    }
+                }
             }
         }
     }
+}
+
+fun Calendar.isTimeBetween(other1: Calendar, other2: Calendar, allowSame: Boolean): Boolean {
+    return (isTimeAfter(other1, allowSame) && isTimeBefore(other2, allowSame))
+            ||(isTimeAfter(other2, allowSame) && isTimeBefore(other1, allowSame))
 }
 
 fun Calendar.isSameDateTime(other: Calendar): Boolean {

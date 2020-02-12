@@ -43,7 +43,7 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
      * WorkCellにおいて削除ボタンが押されたときに呼ばれる。これが発火した時点ではFirebaseDBに対する操作はされていない。
      */
     var onDeleteWorkClicked: ((Work) -> Unit)? = null
-    var onWorkTimeChanged: ((Work, WorkElement.Category) -> Unit)? = null
+    var onWorkTimeChanged: ((work: Work, category: WorkElement.Category, oldTime: Calendar, newTime: Calendar) -> Unit)? = null
 
     override val collapseHeight: Int
         get() = 0
@@ -92,6 +92,10 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
                 WorkElement.Category.WorkEnd -> refreshWorkCellFrame()
             WorkElement.Category.Visit -> refreshVisitCellFrame()
         }
+    }
+
+    fun refresh() {
+        onSetDateElm()
     }
 
     private fun refreshDateBorderCellFrame() {
@@ -182,6 +186,7 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
             .show()
     }
 
+    private var oldTime: Calendar? = null
     private fun showTimePicker() {
         context?:return
 
@@ -194,6 +199,7 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
 
         val timeToShow
                 = if (dataElm!!.category == WorkElement.Category.WorkStart) work.start else work.end
+        oldTime = timeToShow.clone() as Calendar
         TimePickerDialog(context, this, timeToShow.get(Calendar.HOUR_OF_DAY), timeToShow.get(Calendar.MINUTE), true).show()
 
     }
@@ -237,7 +243,8 @@ class WorkElmCell(context: Context) : HeightAnimationView(context), TimePickerDi
         }
 
         // TODO: WorkEndのセルで時間が変更されたときWorkStart側のdurationTextが更新される必要がある。
-        onWorkTimeChanged?.invoke(work, dataElm!!.category)
+        onWorkTimeChanged?.invoke(work, dataElm!!.category, oldTime!!, timeToSet)
+        oldTime = null
     }
 
     private fun updateTimeText(withSecond: Boolean = false) {

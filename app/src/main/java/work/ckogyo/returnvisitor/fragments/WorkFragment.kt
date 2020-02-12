@@ -139,9 +139,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 if (position > 0) {
                     workListView.layoutManager!!.scrollToPosition(position)
                 }
-
                 switchLoadingWorkOverlay(false)
-
             }
         }
     }
@@ -198,9 +196,9 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             handler.post {
                 workListView ?: return@post
-                val layoutManager = workListView.layoutManager as LinearLayoutManager
-                val currTopPos = layoutManager.findFirstVisibleItemPosition()
-                val topView = layoutManager.findViewByPosition(currTopPos)
+                val lManager = workListView.layoutManager as LinearLayoutManager
+                val currTopPos = lManager.findFirstVisibleItemPosition()
+                val topView = lManager.findViewByPosition(currTopPos)
                 val posInFrame = topView?.getPositionInAncestor(workListView)
 
 //                Log.d(debugTag, "currTopPos: $currTopPos")
@@ -209,7 +207,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 //                Log.d(debugTag, "nextTopPos: $nextTopPos")
 
                 val offsetY = posInFrame?.y ?: 0
-                layoutManager.scrollToPositionWithOffset(nextTopPos, offsetY)
+                lManager.scrollToPositionWithOffset(nextTopPos, offsetY)
                 loadingWorkProgressSmall?.fadeVisibility(false)
             }
         }
@@ -314,6 +312,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                          private val dataElms: ArrayList<WorkElement>,
                          private val recyclerView: RecyclerView): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+        private val mainActivity = context as? MainActivity
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             return WorkElmViewHolder(WorkElmCell(context).apply {
@@ -410,13 +409,102 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             return getPositionByDate(date) >= 0
         }
 
-        private fun onWorkTimeChangedInCell(work: Work, category: WorkElement.Category) {
+        private fun onWorkTimeChangedInCell(work: Work, category: WorkElement.Category, oldTime: Calendar, newTime: Calendar) {
 
             if (category == WorkElement.Category.WorkEnd) {
                 val startCellPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
                 val startCell = recyclerView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
                 startCell?.updateDurationText()
             }
+
+            Log.d(debugTag, "Work time changed oldTime: ${oldTime.toTimeText(context)}, newTime: ${newTime.toTimeText(context)}")
+
+            // TODO: 時間変更後、カブリが発生したら調整する
+            val ownCurrPos = getPositionByWorkAndCategory(work, category)
+            dataElms.sortBy { e -> e.dateTime.timeInMillis }
+            val nextPos = getPositionByDateTime(newTime)
+
+            if (ownCurrPos != nextPos) {
+                notifyItemMoved(ownCurrPos, nextPos)
+            }
+
+            // 読み込み済みのWorkを抽出する
+            val sameDayWorksInElms = ArrayList<Work>()
+            for(elm in dataElms) {
+                if (elm.work != null
+                    && !sameDayWorksInElms.contains(elm.work!!)
+                    && elm.work!!.start.isSameDate(newTime)) {
+                    sameDayWorksInElms.add(elm.work!!)
+                }
+            }
+
+            val worksToRemove = ArrayList<Work>()
+
+            for (work2 in sameDayWorksInElms) {
+                if (work == work2) continue
+                when {
+                    work2.start.isTimeBetween(work.start, work.end, true)
+                            || work2.end.isTimeBetween(work.start, work.end, true) -> {
+                        // 調整後のWorkに他のWork前後どちらかがかぶる場合、比較対象のWorkを削除してしまう。
+                        worksToRemove.add(work2)
+
+                        when {
+                            work2.start.isTimeBetween(work.start, work.end, true)
+                                    && work2.end.isTimeBetween(work.start, work.end, true) -> {
+                                // すっぽり収まる時は削除するだけ
+                            }
+                            work2.start.isTimeBetween(work.start, work.end, true) -> {
+                                work.end = work2.end.clone() as Calendar
+                                val workEndPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
+                                // データの移動があるのでrecyclerView.layoutManager?.findViewByPosition(Int)では正しいポジションがしゅとくできないらしい。
+                                val cell = recyclerView.findViewHolderForAdapterPosition(workEndPos)?.itemView as? WorkElmCell
+                                cell?.refresh()
+                            }
+                            work2.end.isTimeBetween(work.start, work.end, true) -> {
+                                work.start = work2.start.clone() as Calendar
+                                val workStartPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
+                                val cell = recyclerView.findViewHolderForAdapterPosition(workStartPos)?.itemView as? WorkElmCell
+                                cell?.refresh()
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 後ろから削除
+            worksToRemove.sortByDescending { w -> w.start }
+            for (work3 in worksToRemove) {
+                val workEndPos = getPositionByWorkAndCategory(work3, WorkElement.Category.WorkEnd)
+                dataElms.removeAt(workEndPos)
+                notifyItemRemoved(workEndPos)
+
+                val workStartPos = getPositionByWorkAndCategory(work3, WorkElement.Category.WorkStart)
+                dataElms.removeAt(workStartPos)
+                notifyItemRemoved(workStartPos)
+            }
+
+            WorkElmList.refreshIsVisitInWork(dataElms)
+            for (elm in dataElms) {
+                if (elm.category == WorkElement.Category.Visit) {
+                    val pos = getPositionByVisit(elm.visit!!)
+                    val cell = recyclerView.findViewHolderForAdapterPosition(pos)?.itemView as? WorkElmCell
+                    cell?.refresh()
+                }
+            }
+
+            mainActivity?.switchProgressOverlay(true, context.getString(R.string.saving_changes))
+            val handler = Handler()
+            GlobalScope.launch {
+                val workColl = WorkCollection.instance
+                workColl.set(work)
+                for (work4 in worksToRemove) {
+                    workColl.delete(work4.id)
+                }
+                handler.post {
+                    mainActivity?.switchProgressOverlay(false)
+                }
+            }
+
         }
 
 
@@ -514,6 +602,9 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             dataElms.addAll(tmp)
         }
 
+        /**
+         * 現状のdataElms内でのポジションを取得
+         */
         private fun getPositionByWorkAndCategory(work: Work, category: WorkElement.Category): Int {
             for (i in 0 until dataElms.size) {
                 dataElms[i].work ?: continue
@@ -522,6 +613,31 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 }
             }
             return -1
+        }
+
+        private fun getDataElmByWorkAndCategory(work: Work, category: WorkElement.Category):WorkElement? {
+            val pos = getPositionByWorkAndCategory(work, category)
+            if (pos < 0) return null
+            return dataElms[pos]
+        }
+
+        /**
+         * dataElmsが日時でソートされていることを前提で取得
+         */
+        private fun getPositionByDateTime(dateTime: Calendar): Int {
+
+            var pos = 0
+
+//            Log.d(debugTag, "dateTime: ${dateTime.toTimeText(context)}, ${dateTime.timeInMillis}")
+
+            while (pos < dataElms.size) {
+//                Log.d(debugTag, "dataElms[$pos].dateTime: ${dataElms[pos].dateTime.toTimeText(context)}, ${dataElms[pos].dateTime.timeInMillis}")
+                if (dateTime.timeInMillis <= dataElms[pos].dateTime.timeInMillis) {
+                    break
+                }
+                pos++
+            }
+            return pos
         }
 
         private fun getPositionByVisit(visit: Visit): Int {
