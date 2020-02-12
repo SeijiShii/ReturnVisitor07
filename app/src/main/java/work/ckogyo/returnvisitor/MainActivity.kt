@@ -26,6 +26,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.fragments.HousingComplexFragment
 import work.ckogyo.returnvisitor.fragments.MapFragment
 import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
@@ -117,14 +118,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showRecordVisitFragmentForNew(place: Place, onFinishEditVisit: (Visit, EditMode, OnFinishEditParam) -> Unit) {
-        val transaction = supportFragmentManager.beginTransaction()
-        val rvFragment = RecordVisitFragment()
-        rvFragment.visit.place = place
-        rvFragment.onFinishEdit = onFinishEditVisit
-        rvFragment.mode = EditMode.Add
-        transaction.addToBackStack(null)
-        transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
-        transaction.commit()
+
+        // 訪問は初めてだが、過去に訪問したことのある場所であれば過去のデータを元に下準備する
+        switchProgressOverlay(true, getString(R.string.preparing_visit))
+        val handler = Handler()
+        GlobalScope.launch {
+            val visit = VisitCollection.instance.prepareNextVisit(place)
+
+            handler.post {
+                val rvFragment = RecordVisitFragment().also {
+                    it.visit = visit ?: Visit(place)
+                    it.onFinishEdit = onFinishEditVisit
+                    it.mode = EditMode.Add
+                }
+
+                supportFragmentManager.beginTransaction().also {
+                    it.addToBackStack(null)
+                    it.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
+                    it.commit()
+                }
+                switchProgressOverlay(false)
+            }
+        }
         hideKeyboard(this)
     }
 

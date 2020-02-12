@@ -195,12 +195,13 @@ class HousingComplexFragment : Fragment() {
             roomForSearch ?: return
             showPlaceDialogForRoom(roomForSearch)
         } else {
-            val room = Place()
-            room.category = Place.Category.Room
-            room.parentId = hComplex.id
-            room.address = hComplex.address
-            room.latLng = hComplex.latLng
-            room.name = searchText
+            val room = Place().also {
+                it.category = Place.Category.Room
+                it.parentId = hComplex.id
+                it.address = hComplex.address
+                it.latLng = hComplex.latLng
+                it.name = searchText
+            }
             mainActivity?.showRecordVisitFragmentForNew(room, this::onFinishEditVisit)
         }
     }
@@ -208,12 +209,13 @@ class HousingComplexFragment : Fragment() {
     private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
 
         val handler = Handler()
+        mainActivity?.switchProgressOverlay(true, getString(R.string.updating))
 
         when(param) {
             OnFinishEditParam.Canceled -> {}
             OnFinishEditParam.Done -> {
 
-                mainActivity?.switchProgressOverlay(true, getString(R.string.updating))
+
                 GlobalScope.launch {
 
                     VisitCollection.instance.saveVisitAsync(visit).await()
@@ -222,6 +224,8 @@ class HousingComplexFragment : Fragment() {
                     rooms.remove(visit.place)
                     rooms.add(visit.place)
                     rooms.sortBy { r -> r.name }
+
+                    visit.place.refreshRatingByVisitsAsync().await()
 
                     handler.post{
                         refreshRoomList()
@@ -235,9 +239,15 @@ class HousingComplexFragment : Fragment() {
             OnFinishEditParam.Deleted -> {
 
                 GlobalScope.launch {
-//                    VisitCollection.instance.deleteAsync(visit).await()
-//                    handler.post {
-//                    }
+                    VisitCollection.instance.deleteAsync(visit).await()
+                    visit.place.refreshRatingByVisitsAsync().await()
+                    handler.post {
+                        refreshRoomList()
+                        mainActivity?.switchProgressOverlay(false)
+                    }
+
+                    // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+                    TimeCountIntentService.saveWorkIfActive()
                 }
             }
         }
@@ -282,10 +292,38 @@ class HousingComplexFragment : Fragment() {
 
     private fun showPlaceDialogForRoom(room: Place) {
         val dialog = PlaceDialog(room).apply {
-
+            onEditVisitInvoked = {
+                mainActivity?.showRecordVisitFragmentForEdit(it, this@HousingComplexFragment::onFinishEditVisit)
+            }
+            onRecordNewVisitInvoked = {
+                mainActivity?.showRecordVisitFragmentForNew(it, this@HousingComplexFragment::onFinishEditVisit)
+            }
         }
         mainActivity?.showDialog(dialog)
     }
+
+//    private fun onFisishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
+//        mainActivity?.switchProgressOverlay(true, getString(R.string.saving_changes))
+//        val handler = Handler()
+//        when(param) {
+//            OnFinishEditParam.Done -> {
+//                GlobalScope.launch {
+//                    VisitCollection.instance.saveVisitAsync(visit).await()
+//                    handler.post {
+//                        mainActivity?.switchProgressOverlay(false)
+//                    }
+//                }
+//            }
+//            OnFinishEditParam.Deleted -> {
+//                GlobalScope.launch {
+//                    VisitCollection.instance.deleteAsync(visit).await()
+//                    handler.post {
+//                        mainActivity?.switchProgressOverlay(false)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 
 }

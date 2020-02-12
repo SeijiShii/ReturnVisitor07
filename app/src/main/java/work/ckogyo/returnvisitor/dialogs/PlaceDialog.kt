@@ -92,7 +92,9 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
             handler.post {
 
-                visitListContent.removeAllViews()
+                visitListContent ?: return@post
+
+                visitListContent?.removeAllViews()
                 for (visit in visits) {
                     addVisitCell(visit)
                 }
@@ -102,9 +104,10 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     }
 
     private fun addVisitCell(visit: Visit) {
-        val visitCell = VisitCell(context!!, visit)
-        visitCell.onClickEditVisit = this::onClickEditVisitInCell
-        visitCell.onDeleteVisitConfirmed = this::onDeleteConfirmedInCell
+        val visitCell = VisitCell(context!!, visit).also {
+            it.onClickEditVisit = this::onClickEditVisitInCell
+            it.onDeleteVisitConfirmed = this::onDeleteConfirmedInCell
+        }
         visitListContent.addView(visitCell)
     }
 
@@ -115,11 +118,14 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun onDeleteConfirmedInCell(visit: Visit) {
 
+        val handler = Handler()
         GlobalScope.launch {
             VisitCollection.instance.deleteAsync(visit).await()
-            onRefreshPlace?.invoke(place)
-
-            refreshColorMark()
+            
+            handler.post {
+                onRefreshPlace?.invoke(place)
+                refreshColorMark()
+            }
         }
     }
 

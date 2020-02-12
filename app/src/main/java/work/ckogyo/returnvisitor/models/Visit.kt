@@ -43,6 +43,10 @@ class Visit : BaseDataModel {
         }
     }
 
+    constructor(place: Place): this() {
+        this.place = place
+    }
+
     fun turnToNotHome(){
         rating = Rating.NotHome
         for (pv in personVisits) {

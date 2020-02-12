@@ -417,9 +417,9 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 startCell?.updateDurationText()
             }
 
-            Log.d(debugTag, "Work time changed oldTime: ${oldTime.toTimeText(context)}, newTime: ${newTime.toTimeText(context)}")
+//            Log.d(debugTag, "Work time changed oldTime: ${oldTime.toTimeText(context)}, newTime: ${newTime.toTimeText(context)}")
 
-            // TODO: 時間変更後、カブリが発生したら調整する
+            // 時間変更後、カブリが発生したら調整する
             val ownCurrPos = getPositionByWorkAndCategory(work, category)
             dataElms.sortBy { e -> e.dateTime.timeInMillis }
             val nextPos = getPositionByDateTime(newTime)

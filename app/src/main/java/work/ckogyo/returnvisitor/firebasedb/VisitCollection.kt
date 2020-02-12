@@ -322,4 +322,21 @@ class VisitCollection {
         }
     }
 
+    /**
+     * 指定した場所に過去のVisitが存在すれば、最後のものを基準にVisitを準備する
+     * なければnullを返す
+     */
+    suspend fun prepareNextVisit(place: Place): Visit? = suspendCoroutine {  cont ->
+        GlobalScope.launch {
+            val lastVisit = loadLatestVisitOfPlace(place)
+            if (lastVisit == null) {
+                cont.resume(null)
+                return@launch
+            }
+
+            val visit = Visit(lastVisit)
+            cont.resume(visit)
+        }
+    }
+
 }

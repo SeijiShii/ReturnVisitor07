@@ -125,7 +125,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         loadCameraPosition()
 
         isMapReady = true
-
     }
 
     private fun onOkInHousingComplexFragment(hComplex: Place) {
