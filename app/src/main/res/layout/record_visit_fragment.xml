@@ -89,12 +89,27 @@
                     android:layout_margin="3dp">
 
                 <Button
-                        android:layout_width="100dp"
-                        android:layout_height="match_parent"
-                        style="@style/DarkGreenButton"
-                        android:id="@+id/addPersonButton"
-                        android:layout_alignParentRight="true"
-                        android:text="@string/add_person"/>
+                    android:layout_width="150dp"
+                    android:layout_height="match_parent"
+                    style="@style/DarkGreenButton"
+                    android:id="@+id/addPersonButton"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/add_person"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_margin="3dp">
+
+                <Button
+                    android:layout_width="150dp"
+                    android:layout_height="match_parent"
+                    style="@style/DarkGreenButton"
+                    android:id="@+id/addPlacementButton"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/add_placement"/>
 
             </RelativeLayout>
 

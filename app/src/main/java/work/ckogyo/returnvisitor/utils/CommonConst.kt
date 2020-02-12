@@ -11,6 +11,7 @@ const val placesKey = "places"
 const val personsKey = "persons"
 const val visitsKey = "visits"
 const val worksKey = "works"
+const val placementsKey = "placements"
 
 const val returnVisitorPrefsKey = "return_visitor_prefs"
 const val zoomLevelKey = "zoom_level"
@@ -42,6 +43,11 @@ const val personVisitsKey = "person_visits"
 
 const val startKey = "start"
 const val endKey = "end"
+
+const val yearKey = "year"
+const val numberKey = "number"
+const val magazineTypeKey = "magazine_type"
+const val lastUsedAtInMillisKey = "last_used_at_in_millis"
 
 val pinMarkerIds = arrayOf(
     R.mipmap.gray_pin,

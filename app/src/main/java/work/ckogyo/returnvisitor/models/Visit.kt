@@ -29,6 +29,7 @@ class Visit : BaseDataModel {
     }
 
     var rating = Rating.Unoccupied
+    val placements = ArrayList<Placement>()
 
     constructor() : super(idPrefix)
 
@@ -65,26 +66,41 @@ class Visit : BaseDataModel {
         dateTime = Calendar.getInstance()
         dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
 
-        val pvMapList = map[personVisitsKey] as ArrayList<HashMap<String, Any>>
-        personVisits.clear()
-
-        GlobalScope.launch {
-            for (pvm in pvMapList) {
-                val pv = PersonVisit().initFromHashMap(pvm, PersonCollection.instance)
-                personVisits.add(pv)
-            }
-
-            val placeId = map[placeIdKey].toString()
-
-            if (place2 != null) {
-                place = place2
-            } else {
-                val place3 = PlaceCollection.instance.loadById(placeId)
-                if (place3 != null) {
-                    place = place3
+        val plcMapList = map[placementsKey] as? ArrayList<HashMap<String, Any>>
+        if (plcMapList != null) {
+            placements.clear()
+            for (plcMap in plcMapList) {
+                val plc = Placement().also {
+                    it.initFromHashMap(plcMap)
                 }
+                placements.add(plc)
             }
-            cont.resume(this@Visit)
+        }
+
+        val pvMapList = map[personVisitsKey] as? ArrayList<HashMap<String, Any>>
+
+        if (pvMapList != null) {
+            personVisits.clear()
+            GlobalScope.launch {
+                for (pvm in pvMapList) {
+                    val pv = PersonVisit().initFromHashMap(pvm, PersonCollection.instance)
+                    personVisits.add(pv)
+                }
+
+                val placeId = map[placeIdKey].toString()
+
+                if (place2 != null) {
+                    place = place2
+                } else {
+                    val place3 = PlaceCollection.instance.loadById(placeId)
+                    if (place3 != null) {
+                        place = place3
+                    }
+                }
+                cont.resume(this@Visit)
+            }
+        } else {
+            cont.resume(this)
         }
     }
 
@@ -101,6 +117,12 @@ class Visit : BaseDataModel {
             }
             map[personVisitsKey] = personVisitList
             map[placeIdKey] = place.id
+
+            val plcList = ArrayList<HashMap<String, Any>>()
+            for (plc in placements) {
+                plcList.add(plc.hashMap)
+            }
+            map[placementsKey] = plcList
 
             return map
         }

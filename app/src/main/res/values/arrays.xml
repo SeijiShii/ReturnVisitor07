@@ -22,4 +22,15 @@
         <item>Interested</item>
         <item>Strongly Interested</item>
     </array>
+
+    <array name="placementCategory">
+        <item>None</item>
+        <item>Bible</item>
+        <item>Book</item>
+        <item>Magazine</item>
+        <item>Tract</item>
+        <item>ContactCard</item>
+        <item>WebLink</item>
+        <item>ShowVideo</item>
+    </array>
 </resources>

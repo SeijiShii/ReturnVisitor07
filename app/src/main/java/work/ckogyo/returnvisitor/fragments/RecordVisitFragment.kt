@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.record_visit_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
+import work.ckogyo.returnvisitor.PlacementDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
 import work.ckogyo.returnvisitor.models.Person
@@ -58,6 +59,7 @@ class RecordVisitFragment : Fragment(),
         }
 
         addPersonButton.setOnClickListener(this::onAddPersonClicked)
+        addPlacementButton.setOnClickListener(this::onClickAddPlacement)
         cancelButton.setOnClickListener(this::onCancelClicked)
         okButton.setOnClickListener(this::onOkClicked)
         deleteButton.setOnClickListener (this::onDeleteClicked)
@@ -197,4 +199,8 @@ class RecordVisitFragment : Fragment(),
         interestStatementText.text = raterArray[visit.rating.ordinal]
     }
 
+    private fun onClickAddPlacement(v: View) {
+        val plcDialog = PlacementDialog()
+        mainActivity?.showDialog(plcDialog)
+    }
 }

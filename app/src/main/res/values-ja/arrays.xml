@@ -22,5 +22,16 @@
         <item>関心がある</item>
         <item>とても関心がある</item>
     </array>
+
+    <array name="placementCategory">
+        <item>なし</item>
+        <item>聖書</item>
+        <item>書籍</item>
+        <item>雑誌</item>
+        <item>小冊子・パンフ</item>
+        <item>コンタクトカード</item>
+        <item>Webリンク</item>
+        <item>ビデオ再生</item>
+    </array>
 </resources>
 

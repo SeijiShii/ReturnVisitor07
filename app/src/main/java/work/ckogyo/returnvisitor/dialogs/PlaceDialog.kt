@@ -121,7 +121,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
         val handler = Handler()
         GlobalScope.launch {
             VisitCollection.instance.deleteAsync(visit).await()
-            
+
             handler.post {
                 onRefreshPlace?.invoke(place)
                 refreshColorMark()
