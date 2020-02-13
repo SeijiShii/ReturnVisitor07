@@ -150,6 +150,10 @@ class Visit : BaseDataModel {
             cloned.personVisits.add(pv.clone())
         }
 
+        for (plc in placements) {
+            cloned.placements.add(plc.clone())
+        }
+
         cloned.dateTime = dateTime.clone() as Calendar
 
         cloned.place = place

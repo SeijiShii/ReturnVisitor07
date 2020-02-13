@@ -25,6 +25,7 @@ import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.PersonVisitCell
 import work.ckogyo.returnvisitor.views.PlacementTagView
 import java.util.*
+import kotlin.collections.ArrayList
 
 class RecordVisitFragment : Fragment(),
                             DatePickerDialog.OnDateSetListener,
@@ -82,6 +83,7 @@ class RecordVisitFragment : Fragment(),
         refreshDateTimeTexts()
 
         initPVCells()
+        initPlacementTagViewContainer()
 
         descriptionText.setText(visit.description)
     }
@@ -206,12 +208,19 @@ class RecordVisitFragment : Fragment(),
 
     private fun onAddPlacementInPlcDialog(plc: Placement) {
         visit.placements.add(plc)
-        val plcTagView = PlacementTagView(context!!, plc).also {  tagView ->
-            tagView.onRemoved = {
-                placementTagViewContainer.removeTagView(tagView)
-                visit.placements.remove(it)
+        val plcTagView = PlacementTagView(context!!, plc)
+        placementTagViewContainer.also {
+            it.onTagViewRemoved = { tagView ->
+                visit.placements.remove((tagView as PlacementTagView).placement)
             }
+        }.addTagView(plcTagView)
+    }
+
+    private fun initPlacementTagViewContainer() {
+        val tagViews = ArrayList<PlacementTagView>()
+        for (plc in visit.placements) {
+            tagViews.add(PlacementTagView(context!!, plc))
         }
-        placementTagViewContainer.addTagView(plcTagView)
+        placementTagViewContainer.addTagViews(tagViews)
     }
 }

@@ -14,9 +14,10 @@ import work.ckogyo.returnvisitor.utils.debugTag
 
 class TagViewContainer : LinearLayout {
 
-    private val tagViews = ArrayList<View>()
-    private val tagWidthList = ArrayList<Int>()
+    var onTagViewRemoved: ((TagView) -> Unit)? = null
 
+    private val tagViews = ArrayList<TagView>()
+    private val tagWidthList = ArrayList<Int>()
 
     constructor(context: Context?) : super(context) {initCommon()}
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {initCommon()}
@@ -33,7 +34,7 @@ class TagViewContainer : LinearLayout {
     private fun updateTagViews() {
 
         for (tagView in tagViews) {
-            (tagView.parent as? ViewGroup)?.removeView(tagView)
+            tagView.removeFromParent()
         }
 
         removeAllViews()
@@ -45,7 +46,7 @@ class TagViewContainer : LinearLayout {
         addView(dummyFrame)
 
         for (tagView in tagViews) {
-            dummyFrame.addView(tagView)
+            tagView.addToParent(dummyFrame)
         }
 
         GlobalScope.launch {
@@ -59,7 +60,7 @@ class TagViewContainer : LinearLayout {
             tagWidthList.clear()
             for(tagView in tagViews) {
 //                Log.d(debugTag, "tagView.width: ${tagView.width}")
-                tagWidthList.add(tagView.width)
+                tagWidthList.add(tagView.viewWidth)
             }
 
             handler.post {
@@ -71,11 +72,13 @@ class TagViewContainer : LinearLayout {
 
                 for (i in 0 until tagViews.size) {
 
+                    tagViews[i].onRemoved = this@TagViewContainer::removeTagView
+
                     if (i == 0 || widthSum + tagWidthList[i] > containerWidth) {
                         rowFrame = generateAndAddRowFrame()
                         widthSum = 0
                     }
-                    rowFrame.addView(tagViews[i])
+                    tagViews[i].addToParent(rowFrame)
                     widthSum += tagWidthList[i]
                 }
             }
@@ -91,13 +94,24 @@ class TagViewContainer : LinearLayout {
         }
     }
 
-    fun addTagView(tagView: View) {
+    fun <T: TagView>addTagView(tagView: T) {
         tagViews.add(tagView)
         updateTagViews()
     }
 
-    fun removeTagView(tagView: View) {
+    fun <T: TagView>addTagViews(tagViews2: ArrayList<T>, clearBeforeAdd: Boolean = true) {
+        if (clearBeforeAdd) {
+            tagViews.clear()
+            removeAllViews()
+        }
+
+        tagViews.addAll(tagViews2)
+        updateTagViews()
+    }
+
+    private fun removeTagView(tagView: TagView) {
         tagViews.remove(tagView)
+        onTagViewRemoved?.invoke(tagView)
         updateTagViews()
     }
 }

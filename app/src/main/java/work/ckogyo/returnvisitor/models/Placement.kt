@@ -43,7 +43,7 @@ class Placement: BaseDataModel {
      */
     var lastUsedAt: Calendar = Calendar.getInstance()
 
-    override fun clone(): BaseDataModel {
+    override fun clone(): Placement {
         val cloned = Placement()
         super.cloneBaseProperties(cloned)
 
