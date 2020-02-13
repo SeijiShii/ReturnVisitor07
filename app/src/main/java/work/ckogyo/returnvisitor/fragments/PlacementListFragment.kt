@@ -22,6 +22,8 @@ import kotlin.coroutines.suspendCoroutine
 class PlacementListFragment : Fragment() {
 
     var onPlacementLoaded: ((count: Int) -> Unit)? = null
+    var onPlacementSelected: ((Placement) -> Unit)? = null
+
     private val placements = ArrayList<Placement>()
     private val handler = Handler()
     private var isLoadingPlacements = false
@@ -89,7 +91,11 @@ class PlacementListFragment : Fragment() {
     inner class PlacementListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return PlacementListCellViewHolder(PlacementListCell(context!!))
+            return PlacementListCellViewHolder(PlacementListCell(context!!).also {
+                it.onSelected = { plc ->
+                    this@PlacementListFragment.onPlacementSelected?.invoke(plc)
+                }
+            })
         }
 
         override fun getItemCount(): Int {

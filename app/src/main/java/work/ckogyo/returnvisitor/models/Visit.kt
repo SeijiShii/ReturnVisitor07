@@ -5,6 +5,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
+import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -66,22 +67,21 @@ class Visit : BaseDataModel {
         dateTime = Calendar.getInstance()
         dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
 
-        val plcMapList = map[placementsKey] as? ArrayList<HashMap<String, Any>>
-        if (plcMapList != null) {
-            placements.clear()
-            for (plcMap in plcMapList) {
-                val plc = Placement().also {
-                    it.initFromHashMap(plcMap)
+        GlobalScope.launch {
+            val plcIdList = map[placementIdsKey] as? ArrayList<String>
+            if (plcIdList != null) {
+                placements.clear()
+                for (plcId in plcIdList) {
+                    val plc = PlacementCollection.instance.loadById(plcId)
+                    plc ?: continue
+                    placements.add(plc)
                 }
-                placements.add(plc)
             }
-        }
 
-        val pvMapList = map[personVisitsKey] as? ArrayList<HashMap<String, Any>>
+            val pvMapList = map[personVisitsKey] as? ArrayList<HashMap<String, Any>>
 
-        if (pvMapList != null) {
-            personVisits.clear()
-            GlobalScope.launch {
+            if (pvMapList != null) {
+                personVisits.clear()
                 for (pvm in pvMapList) {
                     val pv = PersonVisit().initFromHashMap(pvm, PersonCollection.instance)
                     personVisits.add(pv)
@@ -97,11 +97,11 @@ class Visit : BaseDataModel {
                         place = place3
                     }
                 }
-                cont.resume(this@Visit)
             }
-        } else {
-            cont.resume(this)
+            cont.resume(this@Visit)
         }
+
+
     }
 
     override val hashMap: HashMap<String, Any>
@@ -118,11 +118,11 @@ class Visit : BaseDataModel {
             map[personVisitsKey] = personVisitList
             map[placeIdKey] = place.id
 
-            val plcList = ArrayList<HashMap<String, Any>>()
+            val plcIdList = ArrayList<String>()
             for (plc in placements) {
-                plcList.add(plc.hashMap)
+                plcIdList.add(plc.id)
             }
-            map[placementsKey] = plcList
+            map[placementIdsKey] = plcIdList
 
             return map
         }

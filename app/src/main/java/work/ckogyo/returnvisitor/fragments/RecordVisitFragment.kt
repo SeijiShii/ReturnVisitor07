@@ -206,7 +206,12 @@ class RecordVisitFragment : Fragment(),
 
     private fun onAddPlacementInPlcDialog(plc: Placement) {
         visit.placements.add(plc)
-        val plcTagView = PlacementTagView(context!!, plc)
+        val plcTagView = PlacementTagView(context!!, plc).also {  tagView ->
+            tagView.onRemoved = {
+                placementTagViewContainer.removeTagView(tagView)
+                visit.placements.remove(it)
+            }
+        }
         placementTagViewContainer.addTagView(plcTagView)
     }
 }

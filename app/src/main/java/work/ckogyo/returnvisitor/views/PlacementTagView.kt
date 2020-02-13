@@ -14,7 +14,9 @@ class PlacementTagView(context: Context, private val placement: Placement) : Fra
     var onRemoved: ((Placement) -> Unit)? = null
 
     init {
-        View.inflate(context, R.layout.placement_tag_view, this)
+        View.inflate(context, R.layout.placement_tag_view, this).also {
+            layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
+        }
         placementText.text = placement.toShortString(context)
         removePlcButton.setOnClick {
             onRemoved?.invoke(placement)

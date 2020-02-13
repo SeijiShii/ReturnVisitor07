@@ -36,7 +36,7 @@ class PlacementDialog :DialogFrameFragment() {
 
     override fun onOkClick() {
         val plc = addPlacementFragment.onClickOKInDialog()
-        onClickOkInAddPlacementFragment(plc)
+        onPlacementSelectedInFragment(plc)
     }
 
     override fun inflateContentView(): View {
@@ -140,7 +140,7 @@ class PlacementDialog :DialogFrameFragment() {
         }
     }
 
-    private fun onClickOkInAddPlacementFragment(plc: Placement) {
+    private fun onPlacementSelectedInFragment(plc: Placement) {
         onAddPlacement?.invoke(plc)
         GlobalScope.launch {
             plc.lastUsedAt = Calendar.getInstance()
@@ -160,6 +160,11 @@ class PlacementDialog :DialogFrameFragment() {
         private val items = arrayOf(
             PlacementListFragment().also {
                 it.onPlacementLoaded = this@PlacementDialog::onPlacementLoadedInFragment
+                it.onPlacementSelected = { plc ->
+                    this@PlacementDialog.onPlacementSelectedInFragment(plc)
+                    this@PlacementDialog.close()
+                }
+
             },
             addPlacementFragment
         )

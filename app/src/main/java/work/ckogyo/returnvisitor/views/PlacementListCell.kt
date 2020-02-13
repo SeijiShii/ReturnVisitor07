@@ -14,6 +14,8 @@ class PlacementListCell(context: Context) : LinearLayout(context) {
 
     private lateinit var placement: Placement
 
+    var onSelected: ((Placement) -> Unit)? = null
+
     init {
 
         View.inflate(context, R.layout.placement_list_cell, this)
@@ -28,7 +30,7 @@ class PlacementListCell(context: Context) : LinearLayout(context) {
         }
 
         setOnClick {
-
+            onSelected?.invoke(placement)
         }
     }
 

@@ -1,6 +1,5 @@
 package work.ckogyo.returnvisitor.firebasedb
 
-import android.app.DownloadManager
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -8,6 +7,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Placement
 import work.ckogyo.returnvisitor.utils.lastUsedAtInMillisKey
+import work.ckogyo.returnvisitor.utils.placementIdsKey
 import work.ckogyo.returnvisitor.utils.placementsKey
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -18,6 +18,19 @@ class PlacementCollection {
         private val innerInstance = PlacementCollection()
         val instance: PlacementCollection
             get() = innerInstance
+    }
+
+    suspend fun loadById(id: String): Placement? = suspendCoroutine {
+        GlobalScope.launch {
+            val map = FirebaseDB.instance.loadById(placementsKey, id)
+            if (map == null) {
+                it.resume(null)
+            } else {
+                val plc = Placement()
+                plc.initFromHashMap(map)
+                it.resume(plc)
+            }
+        }
     }
 
     fun setAsync(plc: Placement): Deferred<Unit> {

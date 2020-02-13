@@ -12,6 +12,7 @@ const val personsKey = "persons"
 const val visitsKey = "visits"
 const val worksKey = "works"
 const val placementsKey = "placements"
+const val placementIdsKey = "placement_ids"
 
 const val returnVisitorPrefsKey = "return_visitor_prefs"
 const val zoomLevelKey = "zoom_level"

@@ -45,7 +45,7 @@ class VisitCollection {
         }
     }
 
-    suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
+    private suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
 
         GlobalScope.launch {
             val visits = loadVisitsOfPlace(place)
