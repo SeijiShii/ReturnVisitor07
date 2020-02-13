@@ -98,7 +98,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
                 for (visit in visits) {
                     addVisitCell(visit)
                 }
-                loadingVisitsOfPlaceProgress.fadeVisibility(false)
+                loadingVisitsOfPlaceProgress.fadeVisibility(false, addTouchBlockerOnFadeIn = true)
             }
         }
     }

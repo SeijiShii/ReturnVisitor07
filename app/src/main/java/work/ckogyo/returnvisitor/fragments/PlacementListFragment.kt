@@ -79,7 +79,7 @@ class PlacementListFragment : Fragment() {
     }
 
     private fun fadeLoadingPlacementOverlay() {
-        loadingPlacementOverlay.fadeVisibility(isLoadingPlacements)
+        loadingPlacementOverlay.fadeVisibility(isLoadingPlacements, addTouchBlockerOnFadeIn = true)
     }
 
     private fun fadeNoPlacementOverlay() {

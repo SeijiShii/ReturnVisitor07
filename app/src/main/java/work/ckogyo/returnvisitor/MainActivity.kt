@@ -307,7 +307,7 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(debugTag, "signInWithCredential:success")
-                    loginOverlay.fadeVisibility(!isLoggedIn)
+                    loginOverlay.fadeVisibility(!isLoggedIn, addTouchBlockerOnFadeIn = true)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(debugTag, "signInWithCredential:failure", task.exception)
@@ -335,7 +335,7 @@ class MainActivity : AppCompatActivity() {
 
         // Google sign out
         googleSignInClient.signOut().addOnCompleteListener(this) {
-            loginOverlay.fadeVisibility(!isLoggedIn)
+            loginOverlay.fadeVisibility(!isLoggedIn, addTouchBlockerOnFadeIn = true)
         }
     }
 
@@ -346,7 +346,7 @@ class MainActivity : AppCompatActivity() {
         // Google revoke access
         googleSignInClient.revokeAccess().addOnCompleteListener(this) {
 //            refreshGoogleSignInButton(null)
-            loginOverlay.fadeVisibility(!isLoggedIn)
+            loginOverlay.fadeVisibility(!isLoggedIn, addTouchBlockerOnFadeIn = true)
         }
     }
 
@@ -375,7 +375,7 @@ class MainActivity : AppCompatActivity() {
                 if (show != oldShow) {
                     handler.post {
                         oldShow = show
-                        adOuterFrame.fadeVisibility(show)
+                        adOuterFrame.fadeVisibility(show, addTouchBlockerOnFadeIn = true)
                     }
                 }
             }
@@ -383,7 +383,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun switchProgressOverlay(show: Boolean, message: String = "") {
-        progressOverlay.fadeVisibility(show)
+        progressOverlay.fadeVisibility(show, addTouchBlockerOnFadeIn = true)
         progressMessage.text = if (show) {
              message
         } else {

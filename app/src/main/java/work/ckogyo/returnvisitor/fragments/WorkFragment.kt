@@ -148,7 +148,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         handler.post {
             loadingWorkProgressSmall ?: return@post
-            loadingWorkProgressSmall.fadeVisibility(true)
+            loadingWorkProgressSmall.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
         }
 
         GlobalScope.launch {

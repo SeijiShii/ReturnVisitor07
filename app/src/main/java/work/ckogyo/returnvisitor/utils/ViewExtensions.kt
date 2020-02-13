@@ -69,24 +69,26 @@ fun View.setOnClick(onClick: ((View) -> Unit)?) {
         when(e.action) {
             MotionEvent.ACTION_DOWN -> {
                 alpha = 0.3f
+                return@setOnTouchListener true
             }
             MotionEvent.ACTION_UP -> {
                 onClick(this)
                 alpha = 1f
+                return@setOnTouchListener true
             }
             MotionEvent.ACTION_CANCEL -> {
                 alpha = 1f
+                return@setOnTouchListener true
             }
-            MotionEvent.ACTION_MOVE -> {
+            else -> {
                 return@setOnTouchListener false
             }
         }
-        return@setOnTouchListener true
     }
 }
 
 fun View.fadeVisibility(fadeIn: Boolean,
-                        addTouchBlockerOnFadeIn: Boolean = true,
+                        addTouchBlockerOnFadeIn: Boolean = false,
                         onAnimationFinished: ((fadedIn: Boolean) -> Unit)? = null) {
 
     val target = if (fadeIn) {

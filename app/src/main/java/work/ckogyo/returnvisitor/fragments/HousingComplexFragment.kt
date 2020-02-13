@@ -85,7 +85,7 @@ class HousingComplexFragment : Fragment() {
 
         refreshAddRoomButton()
 
-        loadingRoomsProgressFrame.fadeVisibility(true)
+        loadingRoomsProgressFrame.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
         noRoomRegisteredFrame.alpha = 0f
         roomListFrame.alpha = 0f
 
@@ -103,7 +103,7 @@ class HousingComplexFragment : Fragment() {
                 refreshRoomList()
                 isLoadingRooms = false
                 refreshAddRoomButton()
-                loadingRoomsProgressFrame.fadeVisibility(false)
+                loadingRoomsProgressFrame.fadeVisibility(false, addTouchBlockerOnFadeIn = true)
             }
         }
     }
