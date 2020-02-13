@@ -18,6 +18,7 @@ import work.ckogyo.returnvisitor.fragments.AddPlacementFragment
 import work.ckogyo.returnvisitor.fragments.PlacementListFragment
 import work.ckogyo.returnvisitor.models.Placement
 import work.ckogyo.returnvisitor.utils.setOnClick
+import java.util.*
 
 class PlacementDialog :DialogFrameFragment() {
 
@@ -31,7 +32,12 @@ class PlacementDialog :DialogFrameFragment() {
 
     var onAddPlacement: ((Placement) -> Unit)? = null
 
-    override fun onOkClick() {}
+    private val addPlacementFragment = AddPlacementFragment(this)
+
+    override fun onOkClick() {
+        val plc = addPlacementFragment.onClickOKInDialog()
+        onClickOkInAddPlacementFragment(plc)
+    }
 
     override fun inflateContentView(): View {
         return View.inflate(context,
@@ -44,7 +50,6 @@ class PlacementDialog :DialogFrameFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        showCloseButtonOnly = true
         allowScroll = false
 
         super.onViewCreated(view, savedInstanceState)
@@ -71,6 +76,7 @@ class PlacementDialog :DialogFrameFragment() {
                 DialogState.AddNew
             switchBar()
             switchPager()
+            refreshShowOnlyCloseButton()
         }
 
         mainActivity ?: return
@@ -80,6 +86,7 @@ class PlacementDialog :DialogFrameFragment() {
                 childFragmentManager
             )
         switchPager()
+        refreshShowOnlyCloseButton()
 
         placementPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener{
             override fun onPageScrollStateChanged(state: Int) {
@@ -97,6 +104,7 @@ class PlacementDialog :DialogFrameFragment() {
             override fun onPageSelected(position: Int) {
                 state = if (position == 0) DialogState.RecentUsed else DialogState.AddNew
                 switchBar()
+                refreshShowOnlyCloseButton()
             }
         })
     }
@@ -133,11 +141,15 @@ class PlacementDialog :DialogFrameFragment() {
     }
 
     private fun onClickOkInAddPlacementFragment(plc: Placement) {
-        close()
         onAddPlacement?.invoke(plc)
         GlobalScope.launch {
+            plc.lastUsedAt = Calendar.getInstance()
             PlacementCollection.instance.setAsync(plc)
         }
+    }
+
+    private fun refreshShowOnlyCloseButton() {
+        showCloseButtonOnly = state == DialogState.RecentUsed
     }
 
     inner class PlacementDialogAdapter(fm: FragmentManager): FragmentStatePagerAdapter(fm) {
@@ -149,9 +161,7 @@ class PlacementDialog :DialogFrameFragment() {
             PlacementListFragment().also {
                 it.onPlacementLoaded = this@PlacementDialog::onPlacementLoadedInFragment
             },
-            AddPlacementFragment().also {
-                it.onOk = this@PlacementDialog::onClickOkInAddPlacementFragment
-            }
+            addPlacementFragment
         )
 
         override fun getItem(position: Int): Fragment {

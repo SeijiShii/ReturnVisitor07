@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.placement_list_fragment.*
 import kotlinx.android.synthetic.main.work_fragment.*
 import kotlinx.coroutines.GlobalScope
@@ -14,6 +15,7 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
 import work.ckogyo.returnvisitor.models.Placement
 import work.ckogyo.returnvisitor.utils.fadeVisibility
+import work.ckogyo.returnvisitor.views.PlacementListCell
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -70,8 +72,8 @@ class PlacementListFragment : Fragment() {
         // TODO: refreshPlacementList
         if (placements.size <= 0) {
             placementListView.fadeVisibility(false)
-            placementListView.removeAllViews()
         } else {
+            placementListView.adapter = PlacementListAdapter()
             placementListView.fadeVisibility(true)
         }
     }
@@ -82,6 +84,26 @@ class PlacementListFragment : Fragment() {
 
     private fun fadeNoPlacementOverlay() {
         noPlacementFrame.fadeVisibility(placements.size <= 0)
+    }
+
+    inner class PlacementListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            return PlacementListCellViewHolder(PlacementListCell(context!!))
+        }
+
+        override fun getItemCount(): Int {
+            return placements.size
+        }
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            val cell = (holder.itemView as? PlacementListCell)
+            cell?.refresh(placements[position])
+        }
+    }
+
+    inner class PlacementListCellViewHolder(plcCell: PlacementListCell): RecyclerView.ViewHolder(plcCell) {
+
     }
 
 }

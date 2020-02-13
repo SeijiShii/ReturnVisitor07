@@ -19,6 +19,10 @@ import kotlin.concurrent.thread
 abstract class DialogFrameFragment : Fragment() {
 
     protected var showCloseButtonOnly = false
+    set(value) {
+        field = value
+        refreshCloseOrOkButton()
+    }
     protected var allowScroll = true
     protected var allowResize = true
 
@@ -80,17 +84,25 @@ abstract class DialogFrameFragment : Fragment() {
             }
         })
 
-        if (showCloseButtonOnly) {
-            okButton.layoutParams.width = 0
-            cancelButton.layoutParams.width = 0
-        } else {
-            closeButton.layoutParams.width = 0
-        }
+        refreshCloseOrOkButton()
 
         // すべてをブロックする無敵のタッチリスナ
         dialogOuterFrame.setOnTouchListener{ _, _ -> true }
 
         watchOverlaySizeAndResize()
+    }
+
+    private fun refreshCloseOrOkButton() {
+
+        if (showCloseButtonOnly) {
+            okButton.visibility = View.GONE
+            cancelButton.visibility = View.GONE
+            closeButton.visibility = View.VISIBLE
+        } else {
+            okButton.visibility = View.VISIBLE
+            cancelButton.visibility = View.VISIBLE
+            closeButton.visibility = View.GONE
+        }
     }
 
 
@@ -106,9 +118,15 @@ abstract class DialogFrameFragment : Fragment() {
 //        dialogContentFrame.addView(view)
 //    }
 
+    private var isAlreadyClosed = false
     open fun close() {
         hideKeyboard(context as Activity)
-        (context as AppCompatActivity).supportFragmentManager.popBackStack()
+
+        // 間違えて2回呼んでも余計なフラグメントを消さないように
+        if (!isAlreadyClosed) {
+            isAlreadyClosed = true
+            (context as AppCompatActivity).supportFragmentManager.popBackStack()
+        }
     }
 
     private abstract class OnButtonClickListener(val view: View, val dialog: DialogFrameFragment): View.OnTouchListener {

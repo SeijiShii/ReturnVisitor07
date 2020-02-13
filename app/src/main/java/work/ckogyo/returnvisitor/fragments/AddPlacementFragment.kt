@@ -8,18 +8,20 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.add_placement_fragment.*
+import kotlinx.android.synthetic.main.dialog_frame_framgent.*
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.models.Placement
 import java.util.*
 
-class AddPlacementFragment : Fragment() {
+class AddPlacementFragment(private val dialog: DialogFrameFragment) : Fragment() {
 
     companion object {
         private const val maxYearCount = 10
         private const val maxNumber = 3
     }
 
-    var onOk: ((Placement) -> Unit)? = null
+//    var onOk: ((Placement) -> Unit)? = null
 
     private var placement = Placement()
 
@@ -38,7 +40,6 @@ class AddPlacementFragment : Fragment() {
         initMagazineTypeSpinner()
         initYearSpinner()
         initNumberSpinner()
-        addPlacementOKButton.setOnClickListener(this::onClickOK)
         refreshOKButton()
         refreshMagazineRows()
     }
@@ -150,7 +151,7 @@ class AddPlacementFragment : Fragment() {
     }
 
     private fun refreshOKButton() {
-        addPlacementOKButton.isEnabled = placement.category != Placement.Category.None
+        dialog.okButton.isEnabled = placement.category != Placement.Category.None
     }
 
     private fun refreshMagazineRows() {
@@ -159,11 +160,12 @@ class AddPlacementFragment : Fragment() {
         yearNumberRow.visibility = visibility
     }
 
-    private fun onClickOK(view: View) {
+    fun onClickOKInDialog(): Placement {
 
-        onOk?.invoke(placement)
-        placement = Placement()
+        placement.name = placementNameText.text.toString()
+        placement.description = placementDescText.text.toString()
 
+        return placement
     }
 
 

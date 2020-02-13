@@ -77,6 +77,9 @@ fun View.setOnClick(onClick: ((View) -> Unit)?) {
             MotionEvent.ACTION_CANCEL -> {
                 alpha = 1f
             }
+            MotionEvent.ACTION_MOVE -> {
+                return@setOnTouchListener false
+            }
         }
         return@setOnTouchListener true
     }

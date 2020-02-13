@@ -90,20 +90,6 @@
             android:hint="@string/description"
             android:layout_margin="5dp"/>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="50dp">
-
-            <Button
-                android:layout_width="100dp"
-                android:layout_height="match_parent"
-                android:id="@+id/addPlacementOKButton"
-                style="@style/DarkGreenButton"
-                android:layout_alignParentEnd="true"
-                android:text="@string/ok"/>
-
-        </RelativeLayout>
-
     </LinearLayout>
 </ScrollView>
 
