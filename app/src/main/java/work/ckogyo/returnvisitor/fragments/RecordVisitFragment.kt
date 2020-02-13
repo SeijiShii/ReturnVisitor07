@@ -2,7 +2,6 @@ package work.ckogyo.returnvisitor.fragments
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.location.Geocoder
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
@@ -15,19 +14,17 @@ import kotlinx.android.synthetic.main.record_visit_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
-import work.ckogyo.returnvisitor.PlacementDialog
+import work.ckogyo.returnvisitor.dialogs.PlacementDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
 import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.PersonVisit
-import work.ckogyo.returnvisitor.models.Place
+import work.ckogyo.returnvisitor.models.Placement
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.PersonVisitCell
-import java.text.SimpleDateFormat
-import java.time.Year
+import work.ckogyo.returnvisitor.views.PlacementTagView
 import java.util.*
-import kotlin.concurrent.thread
 
 class RecordVisitFragment : Fragment(),
                             DatePickerDialog.OnDateSetListener,
@@ -200,7 +197,16 @@ class RecordVisitFragment : Fragment(),
     }
 
     private fun onClickAddPlacement(v: View) {
-        val plcDialog = PlacementDialog()
+        val plcDialog = PlacementDialog().also {
+            it.onAddPlacement = this::onAddPlacementInPlcDialog
+        }
+
         mainActivity?.showDialog(plcDialog)
+    }
+
+    private fun onAddPlacementInPlcDialog(plc: Placement) {
+        visit.placements.add(plc)
+        val plcTagView = PlacementTagView(context!!, plc)
+        placementTagViewContainer.addTagView(plcTagView)
     }
 }

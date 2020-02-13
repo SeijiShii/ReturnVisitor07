@@ -23,7 +23,7 @@
         <item>Strongly Interested</item>
     </array>
 
-    <array name="placementCategory">
+    <array name="placementCategoryArray">
         <item>None</item>
         <item>Bible</item>
         <item>Book</item>
@@ -32,5 +32,11 @@
         <item>ContactCard</item>
         <item>WebLink</item>
         <item>ShowVideo</item>
+    </array>
+
+    <array name="magazineTypeArray">
+        <item>WATCHTOWER</item>
+        <item>AWAKE!</item>
+        <item>Study WATCHTOWER</item>
     </array>
 </resources>

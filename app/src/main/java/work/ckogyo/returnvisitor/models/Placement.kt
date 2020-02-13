@@ -1,6 +1,9 @@
 package work.ckogyo.returnvisitor.models
 
+import android.content.Context
+import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.utils.*
+import java.lang.StringBuilder
 import java.util.*
 
 class Placement: BaseDataModel {
@@ -80,4 +83,30 @@ class Placement: BaseDataModel {
         lastUsedAt.timeInMillis = lastUsedAtInMillis
 
     }
+
+    fun toShortString(context: Context):String {
+
+        val buider = StringBuilder(toCategoryText(context))
+        if (category == Category.Magazine) {
+            buider.append(" ${toMagazineDataText(context)}")
+        }
+
+        if (name.isNotEmpty()) {
+            buider.append(" $name")
+        }
+        return buider.toString()
+    }
+
+    private fun toCategoryText(context: Context): String {
+
+        val catArray = context.resources.getStringArray(R.array.placementCategoryArray)
+        return catArray[category.ordinal]
+    }
+
+    private fun toMagazineDataText(context: Context): String {
+
+        val mzTypeArray = context.resources.getStringArray(R.array.magazineTypeArray)
+        return "${mzTypeArray[magazineType.ordinal]} $year / No.$number"
+    }
+
 }

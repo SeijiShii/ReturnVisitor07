@@ -15,34 +15,12 @@
             android:layout_margin="3dp"
             android:id="@+id/placementSearchText"/>
 
-        <FrameLayout
+        <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:alpha="0"
-                android:id="@+id/placementListView"/>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:alpha="0"
-                android:id="@+id/noPlacementFrame">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/no_placement_history"
-                    android:textSize="17sp"
-                    android:gravity="center"
-                    android:layout_centerInParent="true"/>
-
-            </RelativeLayout>
-
-        </FrameLayout>
+            android:layout_weight="1"
+            android:alpha="0"
+            android:id="@+id/placementListView"/>
 
     </LinearLayout>
 
@@ -66,6 +44,22 @@
             android:gravity="center"
             android:layout_below="@id/loadingPlacementProgress"
             android:layout_centerHorizontal="true"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:id="@+id/noPlacementFrame">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_placement_history"
+            android:textSize="17sp"
+            android:gravity="center"
+            android:layout_centerInParent="true"/>
 
     </RelativeLayout>
 

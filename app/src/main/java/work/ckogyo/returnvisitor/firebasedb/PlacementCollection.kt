@@ -20,7 +20,7 @@ class PlacementCollection {
             get() = innerInstance
     }
 
-    private fun setAsync(plc: Placement): Deferred<Unit> {
+    fun setAsync(plc: Placement): Deferred<Unit> {
         return GlobalScope.async {
             FirebaseDB.instance.set(placementsKey, plc.id, plc.hashMap)
         }

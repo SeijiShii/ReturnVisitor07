@@ -23,7 +23,7 @@
         <item>とても関心がある</item>
     </array>
 
-    <array name="placementCategory">
+    <array name="placementCategoryArray">
         <item>なし</item>
         <item>聖書</item>
         <item>書籍</item>
@@ -32,6 +32,12 @@
         <item>コンタクトカード</item>
         <item>Webリンク</item>
         <item>ビデオ再生</item>
+    </array>
+
+    <array name="magazineTypeArray">
+        <item>ものみの塔</item>
+        <item>目ざめよ!</item>
+        <item>研究用ものみの塔</item>
     </array>
 </resources>
 
