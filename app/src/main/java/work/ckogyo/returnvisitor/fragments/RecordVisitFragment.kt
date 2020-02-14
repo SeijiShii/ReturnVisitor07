@@ -17,11 +17,10 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.dialogs.PlacementDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
-import work.ckogyo.returnvisitor.models.Person
-import work.ckogyo.returnvisitor.models.PersonVisit
-import work.ckogyo.returnvisitor.models.Placement
-import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.dialogs.InfoTagDialog
+import work.ckogyo.returnvisitor.models.*
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.views.InfoTagView
 import work.ckogyo.returnvisitor.views.PersonVisitCell
 import work.ckogyo.returnvisitor.views.PlacementTagView
 import java.util.*
@@ -58,6 +57,8 @@ class RecordVisitFragment : Fragment(),
 
         addPersonButton.setOnClickListener(this::onAddPersonClicked)
         addPlacementButton.setOnClickListener(this::onClickAddPlacement)
+        addInfoTagButton.setOnClickListener(this::onClickAddInfoTag)
+
         cancelButton.setOnClickListener(this::onCancelClicked)
         okButton.setOnClickListener(this::onOkClicked)
         deleteButton.setOnClickListener (this::onDeleteClicked)
@@ -84,6 +85,7 @@ class RecordVisitFragment : Fragment(),
 
         initPVCells()
         initPlacementTagViewContainer()
+        initInfoTagViewContainer()
 
         descriptionText.setText(visit.description)
     }
@@ -222,5 +224,30 @@ class RecordVisitFragment : Fragment(),
             tagViews.add(PlacementTagView(context!!, plc))
         }
         placementTagViewContainer.addTagViews(tagViews)
+    }
+
+    private fun onClickAddInfoTag(v: View) {
+        val tagDialog = InfoTagDialog().also {
+            it.onInfoTagSelected = this::onAddTagInInfoTagDialog
+        }
+        mainActivity?.showDialog(tagDialog)
+    }
+
+    private fun onAddTagInInfoTagDialog(tag: InfoTag) {
+        visit.infoTags.add(tag)
+        val tagView = InfoTagView(context!!, tag)
+        infoTagViewContainer.also {
+            it.onTagViewRemoved = { tagView ->
+                visit.infoTags.remove((tagView as InfoTagView).tag)
+            }
+        }.addTagView(tagView)
+    }
+
+    private fun initInfoTagViewContainer() {
+        val tagViews = ArrayList<InfoTagView>()
+        for (tag in visit.infoTags) {
+            tagViews.add(InfoTagView(context!!, tag))
+        }
+        infoTagViewContainer.addTagViews(tagViews)
     }
 }

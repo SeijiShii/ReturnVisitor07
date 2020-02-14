@@ -3,6 +3,7 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
@@ -31,6 +32,7 @@ class Visit : BaseDataModel {
 
     var rating = Rating.Unoccupied
     val placements = ArrayList<Placement>()
+    val infoTags = ArrayList<InfoTag>()
 
     constructor() : super(idPrefix)
 
@@ -75,6 +77,16 @@ class Visit : BaseDataModel {
                     val plc = PlacementCollection.instance.loadById(plcId)
                     plc ?: continue
                     placements.add(plc)
+                }
+            }
+
+            val tagIdList = map[infoTagIdsKey] as? ArrayList<String>
+            if (tagIdList != null) {
+                infoTags.clear()
+                for (tagId in tagIdList) {
+                    val tag = InfoTagCollection.instance.loadById(tagId)
+                    tag ?: continue
+                    infoTags.add(tag)
                 }
             }
 
@@ -124,6 +136,12 @@ class Visit : BaseDataModel {
             }
             map[placementIdsKey] = plcIdList
 
+            val tagIdList = ArrayList<String>()
+            for (tag in infoTags) {
+                tagIdList.add(tag.id)
+            }
+            map[infoTagIdsKey] = tagIdList
+
             return map
         }
 
@@ -152,6 +170,10 @@ class Visit : BaseDataModel {
 
         for (plc in placements) {
             cloned.placements.add(plc.clone())
+        }
+
+        for (tag in infoTags) {
+            cloned.infoTags.add(tag.clone())
         }
 
         cloned.dateTime = dateTime.clone() as Calendar

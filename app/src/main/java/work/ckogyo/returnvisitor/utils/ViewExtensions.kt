@@ -126,3 +126,7 @@ fun View.fadeVisibility(fadeIn: Boolean,
     animator.start()
 
 }
+
+fun View.setEnabled(enabled: Boolean) {
+
+}
