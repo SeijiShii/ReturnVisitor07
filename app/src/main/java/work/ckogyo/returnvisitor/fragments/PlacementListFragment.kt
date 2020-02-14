@@ -52,7 +52,6 @@ class PlacementListFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                refreshSearchedPlacements()
                 refreshPlacementList()
             }
         })
@@ -76,7 +75,6 @@ class PlacementListFragment : Fragment() {
                 fadeLoadingPlacementOverlay()
                 fadeNoPlacementOverlay()
 
-                refreshSearchedPlacements()
                 refreshPlacementList()
                 onPlacementLoaded?.invoke(placements.size)
             }
@@ -86,6 +84,9 @@ class PlacementListFragment : Fragment() {
     }
 
     private fun refreshPlacementList() {
+
+        refreshSearchedPlacements()
+
         if (searchedPlacements.size <= 0) {
             placementListView.fadeVisibility(false)
         } else {
@@ -100,6 +101,7 @@ class PlacementListFragment : Fragment() {
         val search = placementSearchText.text.toString()
         if (search.isEmpty()) {
             searchedPlacements = ArrayList(placements)
+            return
         }
 
         val searchedList = ArrayList<Placement>()

@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.models.InfoTag
+import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.fadeVisibility
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.views.InfoTagListCell
@@ -21,7 +22,7 @@ import kotlin.collections.ArrayList
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class InfoTagDialog : DialogFrameFragment() {
+class InfoTagDialog(val visit: Visit) : DialogFrameFragment() {
 
     private val infoTags = ArrayList<InfoTag>()
     private val handler = Handler()
@@ -29,6 +30,7 @@ class InfoTagDialog : DialogFrameFragment() {
     private var isLoadingInfoTags = false
 
     var onInfoTagSelected: ((InfoTag) -> Unit)? = null
+    var onInfoTagDeleted: ((InfoTag) -> Unit)? = null
 
     override fun onOkClick() {}
 
@@ -57,6 +59,7 @@ class InfoTagDialog : DialogFrameFragment() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 refreshCreateInfoTagButton()
+                refreshInfoTagList()
             }
         })
         refreshCreateInfoTagButton()
@@ -94,8 +97,45 @@ class InfoTagDialog : DialogFrameFragment() {
         noInfoTagFrame.fadeVisibility(infoTags.size <= 0)
     }
 
+    private var searchedTags = ArrayList<InfoTag>()
+    private fun refreshSearchedTags() {
+
+        // すでにVisitに追加されているものを除外する
+        val filtered = ArrayList<InfoTag>()
+        for (tag in infoTags) {
+            var alreadyAdded = false
+            for (tag2 in visit.infoTags) {
+                if (tag == tag2) {
+                    alreadyAdded = true
+                }
+            }
+
+            if (!alreadyAdded) {
+                filtered.add(tag)
+            }
+        }
+
+        val search = infoTagSearchText.text.toString()
+        if (search.isEmpty()) {
+            searchedTags = filtered
+            return
+        }
+
+        val filtered2 = ArrayList<InfoTag>()
+
+        for (tag in filtered) {
+            if (tag.name.contains(search)) {
+                filtered2.add(tag)
+            }
+        }
+        searchedTags = filtered2
+    }
+
     private fun refreshInfoTagList() {
-        if (infoTags.size <= 0) {
+
+        refreshSearchedTags()
+
+        if (searchedTags.size <= 0) {
             infoTagListView.fadeVisibility(false)
         } else {
             infoTagListView.adapter = InfoTagListAdapter()
@@ -106,15 +146,48 @@ class InfoTagDialog : DialogFrameFragment() {
     private inner class InfoTagListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return object : RecyclerView.ViewHolder(InfoTagListCell(context!!)){}
+            return object : RecyclerView.ViewHolder(InfoTagListCell(context!!).also {
+                it.onSelected = this@InfoTagDialog::selectTag
+                it.onDeleteInfoTagConfirmed = this::deleteInfoTag
+            }){}
         }
 
         override fun getItemCount(): Int {
-            return infoTags.size
+            return searchedTags.size
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            (holder.itemView as? InfoTagListCell)?.refresh(infoTags[position])
+            (holder.itemView as? InfoTagListCell)?.refresh(searchedTags[position])
+        }
+
+        private fun deleteInfoTag(tag: InfoTag) {
+
+            val pos = getPositionByInfoTag(tag)
+
+            if (pos < 0) return
+
+            notifyItemRemoved(pos)
+
+            infoTags.remove(tag)
+            visit.infoTags.remove(tag)
+
+            refreshSearchedTags()
+
+            GlobalScope.launch {
+                InfoTagCollection.instance.deleteAsync(tag)
+            }
+
+            onInfoTagDeleted?.invoke(tag)
+        }
+
+        private fun getPositionByInfoTag(tag: InfoTag): Int {
+
+            for (i in 0 until searchedTags.size) {
+                if (tag == searchedTags[i]) {
+                    return i
+                }
+            }
+            return -1
         }
     }
 
@@ -145,5 +218,6 @@ class InfoTagDialog : DialogFrameFragment() {
         }
 
         onInfoTagSelected?.invoke(tag)
+        close()
     }
 }

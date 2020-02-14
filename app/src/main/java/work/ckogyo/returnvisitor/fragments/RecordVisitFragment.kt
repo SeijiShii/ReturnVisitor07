@@ -237,10 +237,20 @@ class RecordVisitFragment : Fragment(),
     }
 
     private fun onClickAddInfoTag(v: View) {
-        val tagDialog = InfoTagDialog().also {
+        val tagDialog = InfoTagDialog(visit).also {
             it.onInfoTagSelected = this::onAddTagInInfoTagDialog
+            it.onInfoTagDeleted = this::onInfoTagDeletedInDialog
         }
         mainActivity?.showDialog(tagDialog)
+    }
+
+    private fun onInfoTagDeletedInDialog(tag: InfoTag) {
+
+        for (tagView in infoTagViewContainer.tagViews) {
+            if ((tagView as InfoTagView).tag == tag) {
+                infoTagViewContainer.removeTagView(tagView)
+            }
+        }
     }
 
     private fun onAddTagInInfoTagDialog(tag: InfoTag) {

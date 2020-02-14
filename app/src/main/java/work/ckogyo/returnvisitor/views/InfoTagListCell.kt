@@ -7,6 +7,7 @@ import kotlinx.android.synthetic.main.info_tag_list_cell.view.*
 import kotlinx.android.synthetic.main.placement_list_cell.view.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.InfoTag
+import work.ckogyo.returnvisitor.utils.confirmDeleteInfoTag
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
 
@@ -15,6 +16,7 @@ class InfoTagListCell(context: Context) : LinearLayout(context) {
     private lateinit var infoTag: InfoTag
 
     var onSelected: ((InfoTag) -> Unit)? = null
+    var onDeleteInfoTagConfirmed: ((InfoTag) -> Unit)? = null
 
     init {
 
@@ -22,7 +24,9 @@ class InfoTagListCell(context: Context) : LinearLayout(context) {
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, context.toDP(50))
 
         deleteInfoTagButton.setOnClick {
-
+            confirmDeleteInfoTag(context, infoTag){
+                onDeleteInfoTagConfirmed?.invoke(it)
+            }
         }
 
         setOnClick {
