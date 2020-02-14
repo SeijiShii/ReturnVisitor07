@@ -406,6 +406,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         initTimeCountButton()
         initWorkButton()
         initAddWorkButton()
+        initShowCalendarButton()
     }
 
     private fun refreshDrawer() {
@@ -550,6 +551,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun initShowCalendarButton() {
+
+        showCalendarButton.setOnClickListener {
+
+            switchDrawer()
+            mainActivity?.showCalendarPagerFragment(Calendar.getInstance())
+        }
+
+    }
 
 
 }

@@ -27,10 +27,7 @@ import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
-import work.ckogyo.returnvisitor.fragments.HousingComplexFragment
-import work.ckogyo.returnvisitor.fragments.MapFragment
-import work.ckogyo.returnvisitor.fragments.RecordVisitFragment
-import work.ckogyo.returnvisitor.fragments.WorkFragment
+import work.ckogyo.returnvisitor.fragments.*
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
@@ -181,48 +178,22 @@ class MainActivity : AppCompatActivity() {
 
 //        switchProgressOverlay(true, getString(R.string.loading_works))
 
-        val transaction = supportFragmentManager.beginTransaction()
         val workFragment = WorkFragment(dateToShow)
-        transaction.addToBackStack(null)
-        transaction.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
-        transaction.commit()
+        supportFragmentManager.beginTransaction().let {
+            it.addToBackStack(null)
+            it.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
+            it.commit()
+        }
+    }
 
-//        switchProgressOverlay(false)
+    fun showCalendarPagerFragment(monthToShow: Calendar) {
 
-
-//        GlobalScope.launch {
-//
-//            handler.post{
-//
-//            }
-//
-//            val elmList = WorkElmList.instance
-//
-//            val latestDateElms = elmList.getListOfToday()
-//            if (latestDateElms == null) {
-//                handler.post {
-//                    Toast.makeText(this@MainActivity, R.string.no_data_recoreded, Toast.LENGTH_SHORT).show()
-//                }
-//            } else {
-//
-//                val date = WorkElmList.getDate(latestDateElms)!!
-////                val previousDateElms = elmList.getListOfNeighboringDate(date, true)
-////                val nextDateElms = elmList.getListOfNeighboringDate(date, false)
-////
-////                var merged = ArrayList<WorkElement>(latestDateElms)
-////                if (previousDateElms != null) {
-////                    merged = WorkElmList.mergeAvoidingDup(merged, previousDateElms)
-////                }
-////
-////                if (nextDateElms != null) {
-////                    merged = WorkElmList.mergeAvoidingDup(merged, nextDateElms)
-////                }
-//
-//                WorkElmList.refreshIsVisitInWork(latestDateElms)
-//
-//
-//            }
-//        }
+        val cpFragment = CalendarPagerFragment(monthToShow)
+        supportFragmentManager.beginTransaction().let {
+            it.addToBackStack(null)
+            it.add(R.id.fragmentContainer, cpFragment, CalendarPagerFragment::class.java.simpleName)
+            it.commit()
+        }
     }
 
     fun checkPermissionAndEnableMyLocation(googleMap: GoogleMap?) {
