@@ -24,6 +24,7 @@ class PlacementListFragment : Fragment() {
 
     var onPlacementLoaded: ((count: Int) -> Unit)? = null
     var onPlacementSelected: ((Placement) -> Unit)? = null
+    var onPlacementDeleted: ((Placement) -> Unit)? = null
 
     private val placements = ArrayList<Placement>()
     private val handler = Handler()
@@ -118,6 +119,26 @@ class PlacementListFragment : Fragment() {
         noPlacementFrame.fadeVisibility(placements.size <= 0)
     }
 
+    /**
+     * 配布物作成フラグメントで作成したものがすでに作成済みのものとほぼ同じであれば作成済みのものを使用するために返す
+     */
+    fun getSameLikePlacement(plc: Placement): Placement? {
+        for (plc2 in placements) {
+            if (plc2.category == plc.category) {
+
+                // Magazineの時のみ年と号をチェックする
+                var sameYearNumber = true
+                if (plc2.category == Placement.Category.Magazine) {
+                    sameYearNumber = plc2.year == plc.year && plc2.number == plc.number
+                }
+
+                if (sameYearNumber && plc2.name == plc.name && plc2.description == plc.description) {
+                    return plc2
+                }
+            }
+        }
+        return null
+    }
 
     inner class PlacementListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -153,6 +174,8 @@ class PlacementListFragment : Fragment() {
             GlobalScope.launch {
                 PlacementCollection.instance.deleteAsync(cell.placement)
             }
+
+            onPlacementDeleted?.invoke(cell.placement)
         }
 
         private fun getPositionByPlacement(plc: Placement): Int {

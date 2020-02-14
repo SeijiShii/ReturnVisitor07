@@ -203,9 +203,19 @@ class RecordVisitFragment : Fragment(),
     private fun onClickAddPlacement(v: View) {
         val plcDialog = PlacementDialog().also {
             it.onAddPlacement = this::onAddPlacementInPlcDialog
+            it.onPlacementDeleted = this::onPlacementDeletedInDialog
         }
 
         mainActivity?.showDialog(plcDialog)
+    }
+
+    private fun onPlacementDeletedInDialog(plc: Placement) {
+
+        for (tagView in placementTagViewContainer.tagViews) {
+            if ((tagView as PlacementTagView).placement == plc) {
+                placementTagViewContainer.removeTagView(tagView)
+            }
+        }
     }
 
     private fun onAddPlacementInPlcDialog(plc: Placement) {

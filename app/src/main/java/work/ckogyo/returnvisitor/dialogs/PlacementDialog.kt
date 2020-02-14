@@ -30,13 +30,28 @@ class PlacementDialog :DialogFrameFragment() {
         AddNew
     }
 
+    var onPlacementDeleted: ((Placement) -> Unit)? = null
+
     var onAddPlacement: ((Placement) -> Unit)? = null
 
     private val addPlacementFragment = AddPlacementFragment(this)
+    private val placementListFragment = PlacementListFragment().also {
+        it.onPlacementLoaded = this::onPlacementLoadedInFragment
+        it.onPlacementSelected = { plc ->
+            this.onPlacementSelectedInFragment(plc)
+            this.close()
+        }
+        it.onPlacementDeleted = { plc ->
+            this.onPlacementDeleted?.invoke(plc)
+        }
+    }
 
     override fun onOkClick() {
-        val plc = addPlacementFragment.onClickOKInDialog()
-        onPlacementSelectedInFragment(plc)
+        val plc = addPlacementFragment.retrieveCreatedPlacement()
+
+        // 入力作成したデータとほぼ同じデータが既に存在すればそちらを使用すること
+        val plc2 = placementListFragment.getSameLikePlacement(plc) ?: plc
+        onPlacementSelectedInFragment(plc2)
     }
 
     override fun inflateContentView(): View {
@@ -158,14 +173,7 @@ class PlacementDialog :DialogFrameFragment() {
 //        private val addPlacementFragment = AddPlacementFragment()
 
         private val items = arrayOf(
-            PlacementListFragment().also {
-                it.onPlacementLoaded = this@PlacementDialog::onPlacementLoadedInFragment
-                it.onPlacementSelected = { plc ->
-                    this@PlacementDialog.onPlacementSelectedInFragment(plc)
-                    this@PlacementDialog.close()
-                }
-
-            },
+            placementListFragment,
             addPlacementFragment
         )
 

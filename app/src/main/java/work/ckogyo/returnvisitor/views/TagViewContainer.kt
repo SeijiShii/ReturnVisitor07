@@ -16,7 +16,7 @@ class TagViewContainer : LinearLayout {
 
     var onTagViewRemoved: ((TagView) -> Unit)? = null
 
-    private val tagViews = ArrayList<TagView>()
+    val tagViews = ArrayList<TagView>()
     private val tagWidthList = ArrayList<Int>()
 
     constructor(context: Context?) : super(context) {initCommon()}
@@ -109,7 +109,7 @@ class TagViewContainer : LinearLayout {
         updateTagViews()
     }
 
-    private fun removeTagView(tagView: TagView) {
+    fun removeTagView(tagView: TagView) {
         tagViews.remove(tagView)
         onTagViewRemoved?.invoke(tagView)
         updateTagViews()

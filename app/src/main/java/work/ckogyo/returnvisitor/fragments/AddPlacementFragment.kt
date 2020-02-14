@@ -160,7 +160,7 @@ class AddPlacementFragment(private val dialog: DialogFrameFragment) : Fragment()
         yearNumberRow.visibility = visibility
     }
 
-    fun onClickOKInDialog(): Placement {
+    fun retrieveCreatedPlacement(): Placement {
 
         placement.name = placementNameText.text.toString()
         placement.description = placementDescText.text.toString()
