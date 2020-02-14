@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.appcompat.app.AlertDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Place
+import work.ckogyo.returnvisitor.models.Placement
 import work.ckogyo.returnvisitor.models.Visit
 
 fun confirmDeleteVisit(context: Context, visit: Visit, onConfirmed: (Visit) -> Unit) {
@@ -29,3 +30,4 @@ fun confirmDeleteRoom(context: Context, room: Place, onConfirmed: (room: Place) 
         }
         .show()
 }
+

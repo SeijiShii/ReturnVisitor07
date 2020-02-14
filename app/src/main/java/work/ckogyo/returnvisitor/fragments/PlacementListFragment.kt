@@ -2,13 +2,14 @@ package work.ckogyo.returnvisitor.fragments
 
 import android.os.Bundle
 import android.os.Handler
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.placement_list_fragment.*
-import kotlinx.android.synthetic.main.work_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
@@ -43,6 +44,17 @@ class PlacementListFragment : Fragment() {
         GlobalScope.launch {
             loadPlacementList()
         }
+
+        placementSearchText.addTextChangedListener(object : TextWatcher{
+            override fun afterTextChanged(s: Editable?) {}
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                refreshSearchedPlacements()
+                refreshPlacementList()
+            }
+        })
     }
 
     private suspend fun loadPlacementList() = suspendCoroutine<Unit> {  cont ->
@@ -62,6 +74,8 @@ class PlacementListFragment : Fragment() {
             handler.post {
                 fadeLoadingPlacementOverlay()
                 fadeNoPlacementOverlay()
+
+                refreshSearchedPlacements()
                 refreshPlacementList()
                 onPlacementLoaded?.invoke(placements.size)
             }
@@ -71,13 +85,29 @@ class PlacementListFragment : Fragment() {
     }
 
     private fun refreshPlacementList() {
-        // TODO: refreshPlacementList
-        if (placements.size <= 0) {
+        if (searchedPlacements.size <= 0) {
             placementListView.fadeVisibility(false)
         } else {
             placementListView.adapter = PlacementListAdapter()
             placementListView.fadeVisibility(true)
         }
+    }
+
+    // 算出プロパティにするとリスト更新時に無駄に何度も呼び出されるので手動更新とした
+    private var searchedPlacements = ArrayList<Placement>()
+    private fun refreshSearchedPlacements() {
+        val search = placementSearchText.text.toString()
+        if (search.isEmpty()) {
+            searchedPlacements = ArrayList(placements)
+        }
+
+        val searchedList = ArrayList<Placement>()
+        for (plc in placements) {
+            if (plc.toShortString(context!!).contains(search)) {
+                searchedList.add(plc)
+            }
+        }
+        searchedPlacements = searchedList
     }
 
     private fun fadeLoadingPlacementOverlay() {
@@ -88,6 +118,7 @@ class PlacementListFragment : Fragment() {
         noPlacementFrame.fadeVisibility(placements.size <= 0)
     }
 
+
     inner class PlacementListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -95,21 +126,46 @@ class PlacementListFragment : Fragment() {
                 it.onSelected = { plc ->
                     this@PlacementListFragment.onPlacementSelected?.invoke(plc)
                 }
+                it.onDeleteConfirmed = this::onDeletePlacementConfirmedInCell
             })
         }
 
         override fun getItemCount(): Int {
-            return placements.size
+            return searchedPlacements.size
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val cell = (holder.itemView as? PlacementListCell)
-            cell?.refresh(placements[position])
+            cell?.refresh(searchedPlacements[position])
+        }
+
+        private fun onDeletePlacementConfirmedInCell(cell: PlacementListCell) {
+
+            val pos = getPositionByPlacement(cell.placement)
+
+            if (pos < 0) return
+
+            notifyItemRemoved(pos)
+
+            placements.remove(cell.placement)
+            refreshSearchedPlacements()
+
+            GlobalScope.launch {
+                PlacementCollection.instance.deleteAsync(cell.placement)
+            }
+        }
+
+        private fun getPositionByPlacement(plc: Placement): Int {
+
+            for (i in 0 until searchedPlacements.size) {
+                if (plc == searchedPlacements[i]) {
+                    return i
+                }
+            }
+            return -1
         }
     }
 
-    inner class PlacementListCellViewHolder(plcCell: PlacementListCell): RecyclerView.ViewHolder(plcCell) {
-
-    }
+    inner class PlacementListCellViewHolder(plcCell: PlacementListCell): RecyclerView.ViewHolder(plcCell)
 
 }
