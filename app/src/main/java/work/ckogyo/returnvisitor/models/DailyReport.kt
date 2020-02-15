@@ -6,8 +6,8 @@ import kotlin.collections.ArrayList
 
 class DailyReport(val date: Calendar) {
     var isDummy = false
-    lateinit var works: ArrayList<Work>
-    lateinit var visits: ArrayList<Visit>
+    var works = ArrayList<Work>()
+    var visits = ArrayList<Visit>()
 
     private val duration: Long
         get() = getTotalWorkDuration(works)
@@ -29,5 +29,26 @@ class DailyReport(val date: Calendar) {
 
     val showVideoCount: Int
         get() = getShowVideoCount(visits)
+
+    val hasWork: Boolean
+        get() = works.size > 0
+
+    val hasVisit: Boolean
+        get() = visits.size > 0
+
+    val hasRV: Boolean
+        get() = rvCount > 0
+
+    val hasStudy: Boolean
+        get() = uniqueStudyCount > 0
+
+    val hasPlacement: Boolean
+        get() = placementCount > 0
+
+    val hasShowVideo:Boolean
+        get() = showVideoCount > 0
+
+    val hasData: Boolean
+        get() = hasWork || hasVisit || hasRV || hasStudy || hasShowVideo || hasPlacement
 
 }

@@ -17,6 +17,7 @@ import kotlinx.android.synthetic.main.calendar_pager_fragment.*
 import kotlinx.android.synthetic.main.day_cell.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.DailyReport
 import work.ckogyo.returnvisitor.models.MonthlyReport
@@ -134,6 +135,21 @@ class CalendarFragment(val month: Calendar) :Fragment() {
                 View.VISIBLE
             }
 
+            workMark.visibility = if (dailyReport.hasWork) View.VISIBLE else View.GONE
+            visitMark.visibility = if (dailyReport.hasVisit) View.VISIBLE else View.GONE
+            rvMark.visibility = if (dailyReport.hasRV) View.VISIBLE else View.GONE
+            studyMark.visibility = if (dailyReport.hasStudy) View.VISIBLE else View.GONE
+            plcMark.visibility = if (dailyReport.hasPlacement) View.VISIBLE else View.GONE
+            videoMark.visibility = if (dailyReport.hasShowVideo) View.VISIBLE else View.GONE
+
+            if (!dailyReport.isDummy && dailyReport.hasData) {
+                setOnClick {
+                    val fm = (context as MainActivity).supportFragmentManager
+                    fm.popBackStack()
+
+                    (context as MainActivity).showWorkFragment(dailyReport.date)
+                }
+            }
         }
 
         override fun setEnabled(enabled: Boolean) {
