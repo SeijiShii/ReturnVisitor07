@@ -8,6 +8,7 @@ import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -265,6 +266,38 @@ class WorkCollection {
         GlobalScope.launch {
             cont.resume(FirebaseDB.instance.delete(worksKey, id))
 
+        }
+    }
+
+    suspend fun loadWorkAtEnd(first: Boolean): Work? = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+
+            val userDoc = FirebaseDB.instance.userDoc
+            if (userDoc == null) {
+                cont.resume(null)
+            } else {
+
+                val direction = if (first) Query.Direction.ASCENDING else Query.Direction.DESCENDING
+
+                userDoc.collection(worksKey)
+                    .orderBy(startKey, direction)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener {
+                        if (it.documents.isNotEmpty())  {
+                            val work = Work()
+                            val map = it.documents[0].data as HashMap<String, Any>
+                            work.initFromHashMap(map)
+                            cont.resume(work)
+                        } else {
+                            cont.resume(null)
+                        }
+                    }
+                    .addOnFailureListener {
+                        cont.resume(null)
+                    }
+            }
         }
     }
 

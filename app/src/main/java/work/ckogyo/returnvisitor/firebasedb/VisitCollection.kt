@@ -339,4 +339,39 @@ class VisitCollection {
         }
     }
 
+    suspend fun loadVisitAtEnd(first: Boolean): Visit? = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+
+            val userDoc = FirebaseDB.instance.userDoc
+            if (userDoc == null) {
+                cont.resume(null)
+            } else {
+
+                val direction = if (first) Query.Direction.ASCENDING else Query.Direction.DESCENDING
+
+                userDoc.collection(visitsKey)
+                    .orderBy(dateTimeMillisKey, direction)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener {
+                        if (it.documents.isNotEmpty())  {
+                            val visit = Visit()
+                            val map = it.documents[0].data as HashMap<String, Any>
+                            GlobalScope.launch {
+                                visit.initVisitFromHashMap(map)
+                                visit.initFromHashMap(map)
+                                cont.resume(visit)
+                            }
+                        } else {
+                            cont.resume(null)
+                        }
+                    }
+                    .addOnFailureListener {
+                        cont.resume(null)
+                    }
+            }
+        }
+    }
+
 }

@@ -53,15 +53,18 @@ fun Calendar.getDaysDiff(other: Calendar): Int {
     return day2 - day1
 }
 
-fun Calendar.isSameDate(other: Calendar): Boolean {
+fun Calendar.isSameMonth(other: Calendar): Boolean {
     return get(Calendar.YEAR) == other.get(Calendar.YEAR)
             && get(Calendar.MONTH) == other.get(Calendar.MONTH)
-            && get(Calendar.DAY_OF_MONTH) == other.get(Calendar.DAY_OF_MONTH)
 }
 
-fun Calendar.isDateBefore(other: Calendar, allowSame: Boolean = false): Boolean {
+fun Calendar.isSameDate(other: Calendar): Boolean {
+    return isSameMonth(other) && get(Calendar.DAY_OF_MONTH) == other.get(Calendar.DAY_OF_MONTH)
+}
 
-    if (allowSame && isSameDate(other)) {
+fun Calendar.isMonthBefore(other: Calendar, allowSame: Boolean = false): Boolean {
+
+    if (allowSame && isSameMonth(other)) {
         return true
     }
 
@@ -72,13 +75,45 @@ fun Calendar.isDateBefore(other: Calendar, allowSame: Boolean = false): Boolean 
             when {
                 get(Calendar.MONTH) < other.get(Calendar.MONTH) -> true
                 get(Calendar.MONTH) > other.get(Calendar.MONTH) -> false
-                else -> {
-                    when {
-                        get(Calendar.DAY_OF_MONTH) < other.get(Calendar.DAY_OF_MONTH) -> true
-                        get(Calendar.DAY_OF_MONTH) > other.get(Calendar.DAY_OF_MONTH) -> false
-                        else -> false
-                    }
-                }
+                else -> false
+            }
+        }
+    }
+}
+
+fun Calendar.isDateBefore(other: Calendar, allowSame: Boolean = false): Boolean {
+
+    if (allowSame && isSameDate(other)) {
+        return true
+    }
+
+    return when {
+        isMonthBefore(other) -> true
+        isMonthAfter(other) -> false
+        else -> {
+            when {
+                get(Calendar.DAY_OF_MONTH) < other.get(Calendar.DAY_OF_MONTH) -> true
+                get(Calendar.DAY_OF_MONTH) > other.get(Calendar.DAY_OF_MONTH) -> false
+                else -> false
+            }
+        }
+    }
+}
+
+fun Calendar.isMonthAfter(other: Calendar, allowSame: Boolean = false): Boolean {
+
+    if (allowSame && isSameMonth(other)) {
+        return true
+    }
+
+    return when {
+        get(Calendar.YEAR) > other.get(Calendar.YEAR) -> true
+        get(Calendar.YEAR) < other.get(Calendar.YEAR) -> false
+        else -> {
+            when {
+                get(Calendar.MONTH) > other.get(Calendar.MONTH) -> true
+                get(Calendar.MONTH) < other.get(Calendar.MONTH) -> false
+                else -> false
             }
         }
     }
@@ -91,19 +126,13 @@ fun Calendar.isDateAfter(other: Calendar, allowSame: Boolean = false): Boolean {
     }
 
     return when {
-        get(Calendar.YEAR) < other.get(Calendar.YEAR) -> false
-        get(Calendar.YEAR) > other.get(Calendar.YEAR) -> true
+        isMonthBefore(other) -> false
+        isMonthAfter(other) -> true
         else -> {
             when {
-                get(Calendar.MONTH) < other.get(Calendar.MONTH) -> false
-                get(Calendar.MONTH) > other.get(Calendar.MONTH) -> true
-                else -> {
-                    when {
-                        get(Calendar.DAY_OF_MONTH) < other.get(Calendar.DAY_OF_MONTH) -> false
-                        get(Calendar.DAY_OF_MONTH) > other.get(Calendar.DAY_OF_MONTH) -> true
-                        else -> false
-                    }
-                }
+                get(Calendar.DAY_OF_MONTH) < other.get(Calendar.DAY_OF_MONTH) -> false
+                get(Calendar.DAY_OF_MONTH) > other.get(Calendar.DAY_OF_MONTH) -> true
+                else -> false
             }
         }
     }
@@ -197,3 +226,6 @@ const val secInMillis = 1000L
 const val minInMillis = secInMillis * 60
 const val hourInMillis = minInMillis * 60
 
+fun Calendar.toMonthText(): String {
+    return SimpleDateFormat("yyyy/MM", Locale.getDefault()).format(time)
+}

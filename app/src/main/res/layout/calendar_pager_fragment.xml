@@ -1,87 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/whiteSmokeTrans">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@color/whiteSmokeTrans">
+        android:layout_height="60dp"
+        android:background="@color/colorPrimary">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:background="@color/colorPrimary">
+        <View
+            android:layout_width="50dp"
+            android:layout_height="40dp"
+            android:background="@drawable/dark_gray_chevron_left_solid"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"/>
 
-            <View
-                android:layout_width="50dp"
-                android:layout_height="40dp"
-                android:background="@drawable/dark_gray_chevron_left_solid"
-                android:layout_centerVertical="true"
-                android:layout_alignParentStart="true"/>
+        <View
+            android:layout_width="50dp"
+            android:layout_height="40dp"
+            android:background="@drawable/white_smoke_chevron_left_solid"
+            android:layout_toLeftOf="@+id/calendarMonthText"
+            android:layout_centerVertical="true"/>
 
-            <View
-                android:layout_width="50dp"
-                android:layout_height="40dp"
-                android:background="@drawable/white_smoke_chevron_left_solid"
-                android:layout_toLeftOf="@+id/calendarMonthText"
-                android:layout_centerVertical="true"/>
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:background="@drawable/whitesmoke_round"
+            android:id="@+id/calendarMonthText"
+            android:gravity="center"
+            android:textSize="15sp"
+            android:layout_centerInParent="true"/>
 
-            <TextView
-                android:layout_width="150dp"
-                android:layout_height="40dp"
-                android:background="@drawable/whitesmoke_round"
-                android:id="@+id/calendarMonthText"
-                android:gravity="center"
-                android:textSize="15sp"
-                android:layout_centerInParent="true"/>
+        <View
+            android:layout_width="50dp"
+            android:layout_height="40dp"
+            android:background="@drawable/white_smoke_chevron_right_solid"
+            android:layout_toRightOf="@+id/calendarMonthText"
+            android:layout_centerVertical="true"/>
 
-            <View
-                android:layout_width="50dp"
-                android:layout_height="40dp"
-                android:background="@drawable/white_smoke_chevron_right_solid"
-                android:layout_toRightOf="@+id/calendarMonthText"
-                android:layout_centerVertical="true"/>
+        <View
+            android:layout_width="50dp"
+            android:layout_height="40dp"
+            android:background="@drawable/dark_gray_horiz_dots_solid"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"/>
 
-            <View
-                android:layout_width="50dp"
-                android:layout_height="40dp"
-                android:background="@drawable/dark_gray_horiz_dots_solid"
-                android:layout_centerVertical="true"
-                android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
 
-        </RelativeLayout>
+    <androidx.viewpager.widget.ViewPager
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:id="@+id/calendarPager"/>
 
-        <work.ckogyo.returnvisitor.views.LazyLoadPager
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:id="@+id/calendarPager"/>
-
-    </LinearLayout>
-
-<!--    <RelativeLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"-->
-<!--        android:background="#8FFF"-->
-<!--        android:alpha="0"-->
-<!--        android:id="@+id/loadingCalendarOverlay">-->
-
-<!--        <ProgressBar-->
-<!--            android:layout_width="50dp"-->
-<!--            android:layout_height="50dp"-->
-<!--            android:id="@+id/loadingCalendarProgress"-->
-<!--            android:layout_centerInParent="true"/>-->
-
-<!--        <TextView-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_below="@+id/loadingCalendarProgress"-->
-<!--            android:layout_centerHorizontal="true"-->
-<!--            android:textColor="@color/darkGray"-->
-<!--            android:text="@string/loading_calendar"/>-->
-
-<!--    </RelativeLayout>-->
-
-</FrameLayout>
+</LinearLayout>

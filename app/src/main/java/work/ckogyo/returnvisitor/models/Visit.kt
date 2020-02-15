@@ -191,4 +191,47 @@ class Visit : BaseDataModel {
         return dateTime.toDateTimeText(context)
     }
 
+    val rvCount: Int
+        get() {
+            var cnt = 0
+            for (pv in personVisits) {
+                if (pv.isRv) {
+                    cnt++
+                }
+            }
+            return cnt
+        }
+
+//    val strudyCount: Int
+//        get() {
+//            var cnt = 0
+//            for (pv in personVisits) {
+//                if (pv.isStudy) {
+//                    cnt++
+//                }
+//            }
+//            return cnt
+//        }
+
+    val placementCount: Int
+        get() {
+            var cnt = 0
+            for (plc in placements) {
+                if (plc.category != Placement.Category.ShowVideo) {
+                    cnt++
+                }
+            }
+            return cnt
+        }
+
+    val showVideoCount: Int
+        get() {
+            var cnt = 0
+            for (plc in placements) {
+                if (plc.category == Placement.Category.ShowVideo) {
+                    cnt++
+                }
+            }
+            return cnt
+        }
 }

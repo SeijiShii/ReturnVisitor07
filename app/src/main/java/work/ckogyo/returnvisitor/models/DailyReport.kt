@@ -1,26 +1,33 @@
 package work.ckogyo.returnvisitor.models
 
-import work.ckogyo.returnvisitor.utils.toDurationText
+import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 import kotlin.collections.ArrayList
 
-class DailyReport(val day: Calendar) {
+class DailyReport(val date: Calendar) {
     var isDummy = false
     lateinit var works: ArrayList<Work>
     lateinit var visits: ArrayList<Visit>
 
     private val duration: Long
-        get() {
-            var sum = 0L
-            for (work in works) {
-                sum += work.duration
-            }
-            return sum
-        }
+        get() = getTotalWorkDuration(works)
 
     val durationString: String
         get() {
             val dur = duration
             return if (dur <= 0) "" else dur.toDurationText()
         }
+
+    val rvCount: Int
+        get() = getRVCount(visits)
+
+    val uniqueStudyCount: Int
+        get() = getUniqueStudyCount(visits)
+
+    val placementCount: Int
+        get() = getPlacementCount(visits)
+
+    val showVideoCount: Int
+        get() = getShowVideoCount(visits)
+
 }
