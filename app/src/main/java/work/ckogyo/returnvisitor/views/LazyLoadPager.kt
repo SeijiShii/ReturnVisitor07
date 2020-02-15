@@ -7,26 +7,28 @@ import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
+import kotlinx.android.synthetic.main.lazy_load_pager.view.*
 import work.ckogyo.returnvisitor.MainActivity
+import work.ckogyo.returnvisitor.R
 
 class LazyLoadPager : FrameLayout {
 
-    private lateinit var pager: ViewPager
     private val fragments = ArrayList<Fragment>()
 
     var onSwipeToLeftEnd: ((onLeftPageLoaded:(f: Fragment) -> Unit) -> Unit)? = null
     var onSwipeToRightEnd: ((onRightPageLoaded: (f: Fragment) -> Unit) -> Unit)? = null
 
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context) : super(context) {initCommon()}
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs){initCommon()}
 
-    fun initialize(firstFragment: Fragment) {
+    private fun initCommon() {
+        View.inflate(context, R.layout.lazy_load_pager, this)
+    }
 
-        pager = ViewPager(context)
-        pager.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        addView(pager)
+    fun initialize(firstFragment: Fragment, finished: ((LazyLoadPager) -> Unit)? = null) {
 
         pager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener(){
             override fun onPageSelected(position: Int) {
@@ -49,12 +51,19 @@ class LazyLoadPager : FrameLayout {
         fragments.add(firstFragment)
 
         val fm = (context as MainActivity).supportFragmentManager
-        pager.adapter = LazyLoadPagerAdapter(fm, fragments)
+        pager.adapter = LazyLoadPagerAdapter(fm)
+
+        finished?.invoke(this)
     }
 
     fun addFragment(f: Fragment, inLeft: Boolean) {
 
-        (pager.adapter as LazyLoadPagerAdapter).addFragment(f, inLeft)
+        if (inLeft) {
+            fragments.add(0, f)
+        } else {
+            fragments.add(f)
+        }
+
         (pager.adapter as FragmentPagerAdapter).notifyDataSetChanged()
 
         if (inLeft) {
@@ -64,8 +73,7 @@ class LazyLoadPager : FrameLayout {
         }
     }
 
-    class LazyLoadPagerAdapter(fm: FragmentManager,
-                               private val fragments: ArrayList<Fragment>): FragmentPagerAdapter(fm) {
+    inner class LazyLoadPagerAdapter(fm: FragmentManager): FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
             return fragments[position]
@@ -73,15 +81,6 @@ class LazyLoadPager : FrameLayout {
 
         override fun getCount(): Int {
             return fragments.size
-        }
-
-        fun addFragment(f: Fragment, inLeft: Boolean) {
-
-            if (inLeft) {
-                fragments.add(0, f)
-            } else {
-                fragments.add(f)
-            }
         }
     }
 

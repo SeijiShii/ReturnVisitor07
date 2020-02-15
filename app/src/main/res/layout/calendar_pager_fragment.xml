@@ -61,27 +61,27 @@
 
     </LinearLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#8FFF"
-        android:alpha="0"
-        android:id="@+id/loadingCalendarOverlay">
+<!--    <RelativeLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:background="#8FFF"-->
+<!--        android:alpha="0"-->
+<!--        android:id="@+id/loadingCalendarOverlay">-->
 
-        <ProgressBar
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:id="@+id/loadingCalendarProgress"
-            android:layout_centerInParent="true"/>
+<!--        <ProgressBar-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:id="@+id/loadingCalendarProgress"-->
+<!--            android:layout_centerInParent="true"/>-->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/loadingCalendarProgress"
-            android:layout_centerHorizontal="true"
-            android:textColor="@color/darkGray"
-            android:text="@string/loading_calendar"/>
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_below="@+id/loadingCalendarProgress"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:textColor="@color/darkGray"-->
+<!--            android:text="@string/loading_calendar"/>-->
 
-    </RelativeLayout>
+<!--    </RelativeLayout>-->
 
 </FrameLayout>

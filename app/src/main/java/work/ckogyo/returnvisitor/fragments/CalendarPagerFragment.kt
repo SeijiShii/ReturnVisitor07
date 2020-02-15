@@ -24,8 +24,17 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
         view.setOnTouchListener { _, _ -> true }
 
+        calendarPager.onSwipeToLeftEnd = {
+
+        }
+
         val cFragment = CalendarFragment(monthToShow)
-        calendarPager.initialize(cFragment)
+        calendarPager.initialize(cFragment){
+            val lastMonth = monthToShow.clone() as Calendar
+            lastMonth.add(Calendar.MONTH, -1)
+            val secondFragment = CalendarFragment(lastMonth)
+            it.addFragment(secondFragment, inLeft = true)
+        }
     }
 
 }
