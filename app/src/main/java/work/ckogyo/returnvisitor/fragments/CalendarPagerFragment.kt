@@ -37,33 +37,64 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
         view.setOnTouchListener { _, _ -> true }
 
+        backToMapButton.setOnClick {
+            (context as? MainActivity)?.supportFragmentManager?.popBackStack()
+        }
+
+        calendarMenuButton.setOnClick {
+
+        }
+
         val handler = Handler()
+
+        loadingCalendarOverlay2.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
 
         GlobalScope.launch {
             val months = loadMonthList()
             handler.post {
 
-                val fm = (context as? MainActivity)?.supportFragmentManager
-                fm ?: return@post
+                loadingCalendarOverlay2.fadeVisibility(false)
 
-                adapter = CalendarPagerAdapter(fm, months)
+                // Fragment内でViewPagerを使うときはchildFragmentManagerを渡すべし。
+                // https://phicdy.hatenablog.com/entry/fragmentmanager_to_fragmentpageradapter_in_fragment
+                adapter = CalendarPagerAdapter(childFragmentManager, months)
                 calendarPager.adapter = adapter
 
                 val pos = adapter.getPositionByMonth(monthToShow)
                 if (pos >= 0) {
                     calendarPager.currentItem = pos
                 }
+
+                refreshLeftButton()
+                refreshRightButton()
             }
         }
 
         calendarPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
                 calendarMonthText.text = adapter.months[position].toMonthText()
+                refreshLeftButton()
+                refreshRightButton()
             }
         })
-        calendarPager.offscreenPageLimit = 5
+        calendarPager.offscreenPageLimit = 10
 
+        leftButton.setOnClick {
+            calendarPager.currentItem -= 1
+        }
 
+        rightButton.setOnClick {
+            calendarPager.currentItem += 1
+        }
+
+    }
+
+    private fun refreshLeftButton() {
+        leftButton.isEnabled = calendarPager.currentItem > 0
+    }
+
+    private fun refreshRightButton() {
+        rightButton.isEnabled = calendarPager.currentItem < adapter.months.size - 1
     }
 
     /**
@@ -89,6 +120,8 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
             }
             return -1
         }
+
+
     }
 
 }

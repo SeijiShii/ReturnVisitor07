@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/white_smoke_chevron_left_solid" android:state_enabled="true"/>
+    <item android:drawable="@drawable/white_fog_chevron_left_solid" android:state_enabled="false"/>
+<!--    <item android:state_enabled="false" android:drawable="@null"/>-->
+</selector>
