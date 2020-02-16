@@ -129,7 +129,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             val dataElms = WorkElmList.instance.generateListByDateRange(dates[0], dates[dates.size - 1])
             context?:return@launch
 
-            adapter = WorkElmAdapter(context!!, dataElms, workListView)
+            adapter = WorkElmAdapter(dataElms)
 
             handler.post {
                 workListView.adapter = adapter
@@ -308,14 +308,12 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         popup.show()
     }
 
-    class WorkElmAdapter(private val context: Context,
-                         private val dataElms: ArrayList<WorkElement>,
-                         private val recyclerView: RecyclerView): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    inner class WorkElmAdapter(private val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         private val mainActivity = context as? MainActivity
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            return WorkElmViewHolder(WorkElmCell(context).apply {
+            return WorkElmViewHolder(WorkElmCell(context!!).apply {
                 onWorkTimeChanged = this@WorkElmAdapter::onWorkTimeChangedInCell
                 onDeleteWorkClicked = this@WorkElmAdapter::onDeleteWorkClickedInCell
             })
@@ -350,7 +348,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 }
             }
 
-            val cell = VisitCell(context, visit).also {
+            val cell = VisitCell(context!!, visit).also {
                 it.onDeleteVisitConfirmed = this::onVisitDeleted
             }
             visitCells.add(cell)
@@ -413,7 +411,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             if (category == WorkElement.Category.WorkEnd) {
                 val startCellPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
-                val startCell = recyclerView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
+                val startCell = workListView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
                 startCell?.updateDurationText()
             }
 
@@ -457,13 +455,13 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                                 work.end = work2.end.clone() as Calendar
                                 val workEndPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
                                 // データの移動があるのでrecyclerView.layoutManager?.findViewByPosition(Int)では正しいポジションがしゅとくできないらしい。
-                                val cell = recyclerView.findViewHolderForAdapterPosition(workEndPos)?.itemView as? WorkElmCell
+                                val cell = workListView.findViewHolderForAdapterPosition(workEndPos)?.itemView as? WorkElmCell
                                 cell?.refresh()
                             }
                             work2.end.isTimeBetween(work.start, work.end, true) -> {
                                 work.start = work2.start.clone() as Calendar
                                 val workStartPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
-                                val cell = recyclerView.findViewHolderForAdapterPosition(workStartPos)?.itemView as? WorkElmCell
+                                val cell = workListView.findViewHolderForAdapterPosition(workStartPos)?.itemView as? WorkElmCell
                                 cell?.refresh()
                             }
                         }
@@ -487,12 +485,12 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             for (elm in dataElms) {
                 if (elm.category == WorkElement.Category.Visit) {
                     val pos = getPositionByVisit(elm.visit!!)
-                    val cell = recyclerView.findViewHolderForAdapterPosition(pos)?.itemView as? WorkElmCell
+                    val cell = workListView.findViewHolderForAdapterPosition(pos)?.itemView as? WorkElmCell
                     cell?.refresh()
                 }
             }
 
-            mainActivity?.switchProgressOverlay(true, context.getString(R.string.saving_changes))
+            mainActivity?.switchProgressOverlay(true, context!!.getString(R.string.saving_changes))
             val handler = Handler()
             GlobalScope.launch {
                 val workColl = WorkCollection.instance

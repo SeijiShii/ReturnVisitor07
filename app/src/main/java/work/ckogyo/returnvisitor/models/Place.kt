@@ -10,6 +10,7 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.utils.*
+import java.lang.StringBuilder
 
 class Place : BaseDataModel{
 
@@ -121,6 +122,25 @@ class Place : BaseDataModel{
                 }
             }
             Unit
+        }
+    }
+
+    fun toStringAsync(): Deferred<String> {
+
+        return GlobalScope.async {
+
+            val builder = StringBuilder()
+
+            if (category == Category.Room) {
+                val parent = PlaceCollection.instance.loadById(parentId)
+                if (parent != null) {
+                    if (parent.name.isNotEmpty()) {
+                        builder.append(parent.name)
+                            .append(" - ")
+                    }
+                }
+            }
+            builder.append(name).toString()
         }
     }
 

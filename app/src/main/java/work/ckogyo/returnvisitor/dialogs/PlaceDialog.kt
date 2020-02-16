@@ -107,8 +107,16 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
         val visitCell = VisitCell(context!!, visit).also {
             it.onClickEditVisit = this::onClickEditVisitInCell
             it.onDeleteVisitConfirmed = this::onDeleteConfirmedInCell
+            it.setOnClick { _ ->
+                showVisitDetailDialog(it.visit)
+            }
         }
         visitListContent.addView(visitCell)
+    }
+
+    private fun showVisitDetailDialog(visit: Visit) {
+
+        VisitDetailDialog(visit).show(childFragmentManager, VisitDetailDialog::class.java.simpleName)
     }
 
     private fun onClickEditVisitInCell(visit: Visit) {

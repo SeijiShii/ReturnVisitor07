@@ -1,10 +1,13 @@
 package work.ckogyo.returnvisitor.models
 
+import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.utils.*
+import java.lang.StringBuilder
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -78,5 +81,16 @@ class PersonVisit : BaseDataModel {
         cloned.isStudy = isStudy
 
         return cloned
+    }
+
+    fun toString(context: Context): String {
+
+        return StringBuilder().also {
+            it.append(person.toString(context))
+            it.append(System.lineSeparator())
+            it.append(context.getText(if (seen) R.string.seen else R.string.not_seen))
+            if (isRv) it.append(context.getText(R.string.return_visit))
+            if (isStudy) it.append(context.getText(R.string.study))
+        }.toString()
     }
 }

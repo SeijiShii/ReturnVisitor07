@@ -3,11 +3,13 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
 import work.ckogyo.returnvisitor.utils.*
+import java.lang.StringBuilder
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -234,4 +236,24 @@ class Visit : BaseDataModel {
             }
             return cnt
         }
+
+    fun toPersonVisitString(context: Context): String {
+
+        return if (personVisits.isEmpty()) {
+            context.getString(R.string.not_seen)
+        } else {
+
+            val builder = StringBuilder()
+
+            for (i in 0 until personVisits.size) {
+                builder.append(personVisits[i].toString(context))
+                if (i < personVisits.size - 1) {
+                    builder.append(System.lineSeparator())
+                }
+            }
+
+            builder.toString()
+        }
+    }
+
 }
