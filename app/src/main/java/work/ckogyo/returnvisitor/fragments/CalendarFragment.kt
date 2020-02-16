@@ -18,8 +18,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.models.CalendarData
 import work.ckogyo.returnvisitor.models.DailyReport
-import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.utils.fadeVisibility
 import work.ckogyo.returnvisitor.utils.setOnClick
 import java.text.SimpleDateFormat
@@ -27,11 +27,9 @@ import java.util.*
 
 class CalendarFragment(val month: Calendar) :Fragment() {
 
-    private var weekStart = MonthReport.WeekStart.Monday
+    private var weekStart = CalendarData.WeekStart.Monday
 
-    private val monthlyReport = MonthReport(month, weekStart)
-
-//    private val dailyReports = ArrayList<DailyReport>()
+    private val calendarData = CalendarData(month, weekStart)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,10 +50,10 @@ class CalendarFragment(val month: Calendar) :Fragment() {
 
         GlobalScope.launch {
 
-            monthlyReport.prepareDataAsync().await()
+            calendarData.prepareDataAsync().await()
 
             handler.post {
-                for (weekReport in monthlyReport.weekReports) {
+                for (weekReport in calendarData.weekReports) {
                     val weekRow = WeekRow(weekReport)
                     calendarFrame?.addView(weekRow)
                 }
@@ -68,7 +66,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
     private fun initDayHeaderRow() {
 
         val date = Calendar.getInstance()
-        date.set(Calendar.DAY_OF_WEEK, monthlyReport.firstDayOfWeek)
+        date.set(Calendar.DAY_OF_WEEK, calendarData.firstDayOfWeek)
 
         for (i in 0 until 7) {
             val cell = DayHeaderCell(date)

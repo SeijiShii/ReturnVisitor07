@@ -60,6 +60,7 @@ const val rvCountKey = "rv_count"
 const val studyCountKey = "study_count"
 const val plcCountKey = "plc_count"
 const val showVideoCountKey = "show_video_count"
+const val carryOverKey = "carry_over"
 
 val pinMarkerIds = arrayOf(
     R.mipmap.gray_pin,
