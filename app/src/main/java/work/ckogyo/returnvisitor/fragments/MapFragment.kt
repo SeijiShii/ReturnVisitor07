@@ -21,6 +21,7 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
+import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
@@ -267,6 +268,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             handler.post {
                 placeMarkers.refreshMarker(place)
             }
+
+            MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
         }
 
         // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
@@ -355,6 +358,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                     TimeCountIntentService.saveWorkIfActive()
+
+                    MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
                 }
             }
             OnFinishEditParam.Deleted -> {
@@ -366,6 +371,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     handler.post {
                         placeMarkers.refreshMarker(visit.place)
                     }
+
+                    MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
                 }
             }
         }

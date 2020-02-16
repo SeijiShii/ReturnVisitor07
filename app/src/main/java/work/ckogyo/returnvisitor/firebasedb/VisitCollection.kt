@@ -229,6 +229,9 @@ class VisitCollection {
             }
             visit.turnToNotHome()
             saveVisitAsync(visit).await()
+
+            MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
+
             visit
         }
     }

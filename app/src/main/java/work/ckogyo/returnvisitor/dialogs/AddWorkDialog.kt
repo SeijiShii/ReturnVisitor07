@@ -6,18 +6,15 @@ import android.app.Dialog
 import android.app.TimePickerDialog
 import android.os.Bundle
 import android.os.Handler
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.fragment.app.DialogFragment
-import kotlinx.android.synthetic.main.add_work_dialog.*
 import kotlinx.android.synthetic.main.add_work_dialog.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
@@ -60,6 +57,7 @@ class AddWorkDialog : DialogFragment(),
                     handler.post {
                         onWorkAdded?.invoke(work)
                     }
+                    MonthReportCollection.instance.updateAndLoadByMonth(work.start)
                 }
             }
             .setNegativeButton(R.string.cancel){_, _ -> }

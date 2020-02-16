@@ -15,7 +15,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
-import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.toDurationText
 import java.util.*
@@ -64,6 +64,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
             GlobalScope.launch {
                 WorkCollection.instance.set(work!!)
+                MonthReportCollection.instance.updateAndLoadByMonth(work!!.start)
             }
         }
     }
@@ -112,6 +113,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 work!!.start = Calendar.getInstance()
                 GlobalScope.launch {
                     workColl.set(work!!)
+                    MonthReportCollection.instance.updateAndLoadByMonth(work!!.start)
                 }
             } else if (intent.action == restartCountToService) {
                 val workId = intent.getStringExtra(countingWorkId)
@@ -151,6 +153,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                     work!!.end = Calendar.getInstance()
                     GlobalScope.launch {
                         WorkCollection.instance.set(work!!)
+                        MonthReportCollection.instance.updateAndLoadByMonth(work!!.start)
                     }
                     minCounter = 0
                 }

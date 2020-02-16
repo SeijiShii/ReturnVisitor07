@@ -229,3 +229,20 @@ const val hourInMillis = minInMillis * 60
 fun Calendar.toMonthText(): String {
     return SimpleDateFormat("yyyy/MM", Locale.getDefault()).format(time)
 }
+
+fun Calendar.getFirstDay(): Calendar {
+
+    val first = clone() as Calendar
+    first.set(Calendar.DAY_OF_MONTH, 1)
+    return first
+}
+
+fun Calendar.getLastDay(): Calendar {
+
+    val last = clone() as Calendar
+    last.add(Calendar.MONTH, 1)
+    last.set(Calendar.DAY_OF_MONTH, 1)
+    last.add(Calendar.DAY_OF_MONTH, -1)
+
+    return last
+}

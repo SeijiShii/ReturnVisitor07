@@ -9,7 +9,7 @@ class DailyReport(val date: Calendar) {
     var works = ArrayList<Work>()
     var visits = ArrayList<Visit>()
 
-    private val duration: Long
+    val duration: Long
         get() = getTotalWorkDuration(works)
 
     val durationString: String

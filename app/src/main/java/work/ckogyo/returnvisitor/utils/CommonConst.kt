@@ -13,6 +13,7 @@ const val visitsKey = "visits"
 const val worksKey = "works"
 const val placementsKey = "placements"
 const val infoTagsKey = "info_tags"
+const val monthReportsKey = "month_reports"
 
 const val placementIdsKey = "placement_ids"
 const val infoTagIdsKey = "info_tag_ids"
@@ -49,9 +50,16 @@ const val startKey = "start"
 const val endKey = "end"
 
 const val yearKey = "year"
+const val monthKey = "month"
 const val numberKey = "number"
 const val magazineTypeKey = "magazine_type"
 const val lastUsedAtInMillisKey = "last_used_at_in_millis"
+
+const val durationKey = "duration"
+const val rvCountKey = "rv_count"
+const val studyCountKey = "study_count"
+const val plcCountKey = "plc_count"
+const val showVideoCountKey = "show_video_count"
 
 val pinMarkerIds = arrayOf(
     R.mipmap.gray_pin,

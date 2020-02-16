@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
@@ -42,7 +43,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         }
 
         calendarMenuButton.setOnClick {
-
+            showMenuPopup()
         }
 
         val handler = Handler()
@@ -95,6 +96,28 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
     private fun refreshRightButton() {
         rightButton.isEnabled = calendarPager.currentItem < adapter.months.size - 1
+    }
+
+    private fun showMenuPopup() {
+
+        PopupMenu(context, calendarMenuButton).also {
+            it.menuInflater.inflate(R.menu.calendar_menu, it.menu)
+
+            it.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.month_summary -> {
+
+                    }
+                    R.id.report_mail -> {
+
+                    }
+                    R.id.switch_week_start -> {
+                    }
+                }
+                return@setOnMenuItemClickListener true
+            }
+            it.show()
+        }
     }
 
     /**

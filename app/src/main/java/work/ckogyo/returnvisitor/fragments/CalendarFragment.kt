@@ -13,26 +13,23 @@ import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.calendar_fragment.*
-import kotlinx.android.synthetic.main.calendar_pager_fragment.*
 import kotlinx.android.synthetic.main.day_cell.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.DailyReport
-import work.ckogyo.returnvisitor.models.MonthlyReport
+import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.utils.fadeVisibility
-import work.ckogyo.returnvisitor.utils.isMonthAfter
-import work.ckogyo.returnvisitor.utils.isMonthBefore
 import work.ckogyo.returnvisitor.utils.setOnClick
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CalendarFragment(val month: Calendar) :Fragment() {
 
-    private var weekStart = MonthlyReport.WeekStart.Monday
+    private var weekStart = MonthReport.WeekStart.Monday
 
-    private val monthlyReport = MonthlyReport(month, weekStart)
+    private val monthlyReport = MonthReport(month, weekStart)
 
 //    private val dailyReports = ArrayList<DailyReport>()
 
