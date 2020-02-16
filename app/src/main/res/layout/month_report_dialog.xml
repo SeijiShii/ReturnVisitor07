@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:id="@+id/reportContainer"
+        android:alpha="0"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/gray_bottom_border">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/placement"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:id="@+id/placementCountText"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/gray_bottom_border">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/show_video"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:id="@+id/showVideoCountText"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/gray_bottom_border">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/time"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:id="@+id/timeText"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/gray_bottom_border">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/return_visit"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:id="@+id/rvCountText"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/gray_bottom_border">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/unique_study_count"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:id="@+id/studyCountText"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/gray_bottom_border">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/carry_over"
+                android:layout_height="match_parent"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:id="@+id/carryOverText"
+                android:layout_height="match_parent"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/whiteDeepFog"
+        android:id="@+id/loadingMonthReportOverlay">
+
+        <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerInParent="true"
+            android:id="@+id/loadingMonthReportProgress"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/loadingMonthReportProgress"
+            android:layout_centerHorizontal="true"
+            android:textColor="@color/darkGray"
+            android:text="@string/loading_month_report"/>
+
+    </RelativeLayout>
+
+</FrameLayout>

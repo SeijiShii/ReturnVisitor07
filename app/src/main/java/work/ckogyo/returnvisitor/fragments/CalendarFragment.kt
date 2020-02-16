@@ -53,6 +53,9 @@ class CalendarFragment(val month: Calendar) :Fragment() {
             calendarData.prepareDataAsync().await()
 
             handler.post {
+
+                context ?: return@post
+
                 for (weekReport in calendarData.weekReports) {
                     val weekRow = WeekRow(weekReport)
                     calendarFrame?.addView(weekRow)

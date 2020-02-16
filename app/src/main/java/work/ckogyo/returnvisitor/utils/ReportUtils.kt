@@ -16,7 +16,7 @@ fun getUniqueStudyCount(visits: ArrayList<Visit>): Int {
                 }
             }
 
-            if (!alreadyCounted) {
+            if (!alreadyCounted && pv.isStudy) {
                 personVisits.add(pv)
             }
         }
@@ -55,3 +55,4 @@ fun getTotalWorkDuration(works: ArrayList<Work>): Long {
     }
     return sum
 }
+

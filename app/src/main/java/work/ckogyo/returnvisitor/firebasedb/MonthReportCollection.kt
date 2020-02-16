@@ -67,13 +67,15 @@ class MonthReportCollection {
 
             val works = WorkCollection.instance.loadWorksByDateRange(first, last)
             val visits = VisitCollection.instance.loadVisitsByDateRange(first, last)
+            val totalDurationUntilLastMonth = WorkCollection.instance.loadTotalDurationUntilLastMonth(month)
 
-            report.calculate(works, visits)
+            report.calculate(works, visits, totalDurationUntilLastMonth)
 
             setAsync(report)
 
             cont.resume(report)
         }
     }
+
 
 }

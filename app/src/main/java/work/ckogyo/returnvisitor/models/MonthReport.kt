@@ -1,13 +1,6 @@
 package work.ckogyo.returnvisitor.models
 
-import android.util.Log
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import work.ckogyo.returnvisitor.firebasedb.VisitCollection
-import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.*
-import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -22,10 +15,18 @@ class MonthReport() :
     private var month = Calendar.getInstance()
 
     var duration: Long = 0
+        private set
     var rvCount = 0
+        private set
     var plcCount = 0
+        private set
     var studyCount = 0
+        private set
     var showVideoCount = 0
+        private set
+
+    val carryOver: Long
+        get() = duration % hourInMillis
 
     constructor(month: Calendar):this() {
         this.month = month
@@ -49,9 +50,11 @@ class MonthReport() :
 
 
 
-    fun calculate(works: ArrayList<Work>, visits: ArrayList<Visit>) {
+    fun calculate(works: ArrayList<Work>, visits: ArrayList<Visit>, durationUntilLastMonth: Long) {
 
-        duration = getTotalWorkDuration(works)
+        val carryOverFromLastMonth = durationUntilLastMonth % hourInMillis
+
+        duration = getTotalWorkDuration(works) + carryOverFromLastMonth
         rvCount = getRVCount(visits)
         plcCount = getPlacementCount(visits)
         studyCount = getUniqueStudyCount(visits)

@@ -1,6 +1,5 @@
 package work.ckogyo.returnvisitor.firebasedb
 
-import android.util.Log
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -298,6 +297,56 @@ class WorkCollection {
                         cont.resume(null)
                     }
             }
+        }
+    }
+
+    private suspend fun loadDurationByRange(start: Calendar, end: Calendar): Long = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+
+            val userDoc = FirebaseDB.instance.userDoc
+            if (userDoc == null) {
+                cont.resume(0)
+            } else {
+                userDoc.collection(worksKey)
+                    .whereGreaterThan(startKey, start.timeInMillis)
+                    .whereLessThan(startKey, end.timeInMillis)
+                    .get()
+                    .addOnSuccessListener {
+                        var sum  = 0L
+                        for (doc in it.documents) {
+                            val work = Work()
+                            work.initFromHashMap(doc.data as HashMap<String, Any>)
+                            sum += work.duration
+                        }
+                        cont.resume(sum)
+                    }
+                    .addOnFailureListener {
+                        cont.resume(0)
+                    }
+            }
+        }
+    }
+
+    suspend fun loadTotalDurationUntilLastMonth(month: Calendar): Long = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+
+            val firstWork = loadWorkAtEnd(first = true)
+            if (firstWork == null) {
+                cont.resume(0)
+                return@launch
+            }
+
+            val start = firstWork.start.cloneWith0Time()
+
+            val end = month.cloneWith0Time()
+            end.set(Calendar.DAY_OF_MONTH, 1)
+            end.add(Calendar.MILLISECOND, -1)
+
+            val dur = loadDurationByRange(start, end)
+            cont.resume(dur)
+
         }
     }
 

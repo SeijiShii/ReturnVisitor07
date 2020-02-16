@@ -145,6 +145,30 @@
                     android:layout_height="1dp"
                     android:background="@color/colorPrimaryDark"/>
 
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/monthReportButton"
+                    android:text="@string/month_report"
+                    style="@style/DarkGreenButton"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/reportMailButton"
+                    android:text="@string/report_mail"
+                    style="@style/DarkGreenButton"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
+
             </LinearLayout>
 
         </ScrollView>

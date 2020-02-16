@@ -25,6 +25,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
+import work.ckogyo.returnvisitor.dialogs.MonthReportDialog
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.fragments.*
@@ -359,6 +360,13 @@ class MainActivity : AppCompatActivity() {
              message
         } else {
             ""
+        }
+    }
+
+    fun showMonthReportDialog(month: Calendar) {
+
+        MonthReportDialog(month).also {
+            it.show(supportFragmentManager, MonthReportDialog::class.java.simpleName)
         }
     }
 

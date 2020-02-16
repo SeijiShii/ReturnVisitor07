@@ -246,3 +246,13 @@ fun Calendar.getLastDay(): Calendar {
 
     return last
 }
+
+fun Calendar.toMonthTitleString(context: Context): String {
+
+    val format = if (context.resources.configuration.locale == Locale.JAPAN) {
+        SimpleDateFormat("yyyy年M月", Locale.getDefault())
+    } else {
+        SimpleDateFormat("MM, yyyy", Locale.getDefault())
+    }
+    return format.format(this.time)
+}

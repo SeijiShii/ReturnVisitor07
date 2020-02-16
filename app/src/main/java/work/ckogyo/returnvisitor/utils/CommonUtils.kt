@@ -14,6 +14,7 @@ import java.util.*
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.time.minutes
 
 
 fun hideKeyboard(activity: Activity) {
@@ -80,5 +81,15 @@ fun Long.toDurationText(withSeconds: Boolean = false): String {
     var txt = "$h:${String.format("%02d", m)}"
     if (withSeconds) txt += String.format(":%02d", s)
     return txt
+}
+
+fun Long.toMinute(): Long {
+    return this / minInMillis
+}
+
+fun Long.toMinuteText(context: Context): String {
+
+    val min = toMinute()
+    return context.resources.getString(R.string.minute_placeholder, min)
 }
 

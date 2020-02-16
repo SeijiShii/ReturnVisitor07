@@ -414,6 +414,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         initWorkButton()
         initAddWorkButton()
         initShowCalendarButton()
+        initMonthReportButton()
     }
 
     private fun refreshDrawer() {
@@ -565,7 +566,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             switchDrawer()
             mainActivity?.showCalendarPagerFragment(Calendar.getInstance())
         }
+    }
 
+    private fun initMonthReportButton() {
+
+        monthReportButton.setOnClickListener {
+
+            switchDrawer()
+            mainActivity?.showMonthReportDialog(Calendar.getInstance())
+        }
     }
 
 
