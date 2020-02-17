@@ -56,9 +56,9 @@ class MonthReportCollection {
         }
     }
 
-    suspend fun updateAndLoadByMonth(month: Calendar): MonthReport = suspendCoroutine { cont ->
+    fun updateAndLoadByMonthAsync(month: Calendar): Deferred<MonthReport> {
 
-        GlobalScope.launch {
+        return GlobalScope.async {
 
             val report = loadByMonth(month) ?: MonthReport()
 
@@ -73,7 +73,7 @@ class MonthReportCollection {
 
             setAsync(report)
 
-            cont.resume(report)
+            report
         }
     }
 

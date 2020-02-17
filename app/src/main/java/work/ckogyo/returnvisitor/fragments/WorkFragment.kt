@@ -536,7 +536,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                     }
                 }
 
-                MonthReportCollection.instance.updateAndLoadByMonth(work.start)
+                MonthReportCollection.instance.updateAndLoadByMonthAsync(work.start)
             }
         }
 

@@ -57,7 +57,7 @@ class AddWorkDialog : DialogFragment(),
                     handler.post {
                         onWorkAdded?.invoke(work)
                     }
-                    MonthReportCollection.instance.updateAndLoadByMonth(work.start)
+                    MonthReportCollection.instance.updateAndLoadByMonthAsync(work.start)
                 }
             }
             .setNegativeButton(R.string.cancel){_, _ -> }

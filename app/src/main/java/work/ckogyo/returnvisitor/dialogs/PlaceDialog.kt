@@ -193,7 +193,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
         GlobalScope.launch {
             VisitCollection.instance.deleteAsync(visit).await()
 
-            MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
+            MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
             place.refreshRatingByVisitsAsync().await()
 
             handler.post {
@@ -240,6 +240,8 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     }
 
     private fun addNotHomeVisit() {
+
+        // TODO: 留守宅の追加が遅すぎる件
 
         loadingVisitsOfPlaceOverlay.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
         GlobalScope.launch {

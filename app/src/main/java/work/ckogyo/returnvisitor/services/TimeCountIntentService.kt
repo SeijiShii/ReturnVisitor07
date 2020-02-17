@@ -64,7 +64,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
             GlobalScope.launch {
                 WorkCollection.instance.set(work!!)
-                MonthReportCollection.instance.updateAndLoadByMonth(work!!.start)
+                MonthReportCollection.instance.updateAndLoadByMonthAsync(work!!.start)
             }
         }
     }
@@ -113,7 +113,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 work!!.start = Calendar.getInstance()
                 GlobalScope.launch {
                     workColl.set(work!!)
-                    MonthReportCollection.instance.updateAndLoadByMonth(work!!.start)
+                    MonthReportCollection.instance.updateAndLoadByMonthAsync(work!!.start)
                 }
             } else if (intent.action == restartCountToService) {
                 val workId = intent.getStringExtra(countingWorkId)
@@ -153,7 +153,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                     work!!.end = Calendar.getInstance()
                     GlobalScope.launch {
                         WorkCollection.instance.set(work!!)
-                        MonthReportCollection.instance.updateAndLoadByMonth(work!!.start)
+                        MonthReportCollection.instance.updateAndLoadByMonthAsync(work!!.start)
                     }
                     minCounter = 0
                 }

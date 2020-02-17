@@ -278,7 +278,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 placeMarkers.refreshMarker(place)
             }
 
-            MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
+            MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
         }
 
         // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
@@ -368,7 +368,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                     TimeCountIntentService.saveWorkIfActive()
 
-                    MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
+                    MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
                 }
             }
             OnFinishEditParam.Deleted -> {
@@ -381,7 +381,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         placeMarkers.refreshMarker(visit.place)
                     }
 
-                    MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
+                    MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
                 }
             }
         }

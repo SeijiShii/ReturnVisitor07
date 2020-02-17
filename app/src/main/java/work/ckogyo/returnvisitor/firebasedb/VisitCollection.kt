@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.firebasedb
 
+import android.util.Log
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.Deferred
@@ -47,7 +48,9 @@ class VisitCollection {
         }
     }
 
-    suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
+    private suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
+
+        val start = System.currentTimeMillis()
 
         GlobalScope.launch {
 
@@ -69,11 +72,14 @@ class VisitCollection {
                             val visit = Visit()
                             GlobalScope.launch {
                                 visit.initVisitFromHashMap(it.documents[0].data as HashMap<String, Any>)
+
+                                Log.d(debugTag, "loadLatestVisitOfPlace, took ${System.currentTimeMillis() - start}ms.")
                                 cont.resume(visit)
                             }
                         }
                     }
                     .addOnFailureListener {
+//                        Log.d(debugTag, it.localizedMessage)
                         cont.resume(null)
                     }
             }
@@ -239,6 +245,8 @@ class VisitCollection {
 
     suspend fun addNotHomeVisitAsync(place: Place):Visit = suspendCoroutine { cont ->
 
+        val start = System.currentTimeMillis()
+
         GlobalScope.launch {
             val latestVisit = loadLatestVisitOfPlace(place)
             val visit = if (latestVisit == null) {
@@ -251,8 +259,9 @@ class VisitCollection {
             visit.turnToNotHome()
             saveVisitAsync(visit)
 
-            MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
+            MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
 
+            Log.d(debugTag, "addNotHomeVisitAsync, took ${System.currentTimeMillis() - start}ms.")
             cont.resume(visit)
         }
     }

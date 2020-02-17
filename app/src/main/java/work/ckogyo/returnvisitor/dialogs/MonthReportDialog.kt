@@ -28,7 +28,7 @@ class MonthReportDialog(private val month: Calendar) : DialogFragment() {
         val handler = Handler()
 
         GlobalScope.launch {
-            val report = MonthReportCollection.instance.updateAndLoadByMonth(month)
+            val report = MonthReportCollection.instance.updateAndLoadByMonthAsync(month).await()
 
             if (isDialogClosed) return@launch
 
