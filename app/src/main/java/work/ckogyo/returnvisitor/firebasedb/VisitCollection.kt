@@ -24,7 +24,7 @@ class VisitCollection {
             get() = innerInstance
     }
 
-    suspend fun loadVisitsOfPlace(place: Place): ArrayList<Visit> = suspendCoroutine { cont ->
+    suspend fun loadVisitsOfPlace(place: Place, limitLatest10: Boolean = false): ArrayList<Visit> = suspendCoroutine { cont ->
 
         val db = FirebaseDB.instance
 
@@ -33,8 +33,10 @@ class VisitCollection {
         if (db.userDoc == null) {
             cont.resume(visitsToPlace)
         } else {
-            db.userDoc!!.collection(visitsKey).whereEqualTo(
-                placeIdKey, place.id).get().addOnSuccessListener {
+            val query = db.userDoc!!.collection(visitsKey).whereEqualTo(placeIdKey, place.id)
+            if (limitLatest10) query.limit(10)
+
+            query.get().addOnSuccessListener {
                 GlobalScope.launch {
                     visitsToPlace = querySnapshotToVisitList(it)
                     cont.resume(visitsToPlace)
@@ -45,16 +47,35 @@ class VisitCollection {
         }
     }
 
-    private suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
+    suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
 
         GlobalScope.launch {
-            val visits = loadVisitsOfPlace(place)
-            when {
-                visits.isEmpty() -> cont.resume(null)
-                else -> {
-                    val visit = visits.sortedByDescending { v -> v.dateTime.timeInMillis }[0]
-                    cont.resume(visit)
-                }
+
+            val userDoc = FirebaseDB.instance.userDoc
+
+            if (userDoc == null) {
+                cont.resume(null)
+            } else {
+
+                userDoc.collection(visitsKey)
+                    .whereEqualTo(placeIdKey, place.id)
+                    .orderBy(dateTimeMillisKey, Query.Direction.DESCENDING)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener {
+                        if (it.documents.isEmpty()) {
+                            cont.resume(null)
+                        } else {
+                            val visit = Visit()
+                            GlobalScope.launch {
+                                visit.initVisitFromHashMap(it.documents[0].data as HashMap<String, Any>)
+                                cont.resume(visit)
+                            }
+                        }
+                    }
+                    .addOnFailureListener {
+                        cont.resume(null)
+                    }
             }
         }
     }
@@ -216,9 +237,9 @@ class VisitCollection {
         }
     }
 
-    fun addNotHomeVisitAsync(place: Place):Deferred<Visit> {
+    suspend fun addNotHomeVisitAsync(place: Place):Visit = suspendCoroutine { cont ->
 
-        return GlobalScope.async {
+        GlobalScope.launch {
             val latestVisit = loadLatestVisitOfPlace(place)
             val visit = if (latestVisit == null) {
                 val v = Visit()
@@ -228,11 +249,11 @@ class VisitCollection {
                 Visit(latestVisit)
             }
             visit.turnToNotHome()
-            saveVisitAsync(visit).await()
+            saveVisitAsync(visit)
 
             MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
 
-            visit
+            cont.resume(visit)
         }
     }
 

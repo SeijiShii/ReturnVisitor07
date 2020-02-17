@@ -3,6 +3,8 @@ package work.ckogyo.returnvisitor.views
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
@@ -14,28 +16,28 @@ import work.ckogyo.returnvisitor.utils.ratingToColorButtonResId
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
 
-class VisitCell(context: Context, val visit: Visit) :HeightAnimationView(context) {
+class VisitCell(context: Context) :FrameLayout(context) {
 
-    override val collapseHeight: Int
-        get() = context.toDP(50)
-    override val extractHeight: Int
-        get() = context.toDP(100)
-    override val cellId: String
-        get() = visit.id
+    lateinit var visit: Visit
 
     var onClickEditVisit: ((Visit) -> Unit)? = null
     var onDeleteVisitConfirmed: ((Visit) -> Unit)? = null
 
-
     init {
-        View.inflate(context, R.layout.visit_cell, this)
-
-        visitText.text = visit.toString(context)
-        visitColorMark.setImageDrawable(ResourcesCompat.getDrawable(context.resources, ratingToColorButtonResId(visit.rating), null))
+        View.inflate(context, R.layout.visit_cell, this).also {
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, context.toDP(100))
+        }
 
         visitMenuButton.setOnClick {
             showMenuPopup()
         }
+    }
+
+    fun refresh(visit: Visit) {
+        this.visit = visit
+
+        visitText.text = visit.toString(context)
+        visitColorMark.setImageDrawable(ResourcesCompat.getDrawable(context.resources, ratingToColorButtonResId(visit.rating), null))
     }
 
     private fun showMenuPopup() {
@@ -49,10 +51,7 @@ class VisitCell(context: Context, val visit: Visit) :HeightAnimationView(context
                 }
                 R.id.delete_visit -> {
                     confirmDeleteVisit(context, visit){
-                        collapseToHeight0{
-                            (parent as? ViewGroup)?.removeView(this)
-                            onDeleteVisitConfirmed?.invoke(visit)
-                        }
+                        onDeleteVisitConfirmed?.invoke(visit)
                     }
                 }
             }

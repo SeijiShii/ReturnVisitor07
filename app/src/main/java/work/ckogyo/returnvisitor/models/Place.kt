@@ -104,7 +104,8 @@ class Place : BaseDataModel{
                     }
                 }
             } else {
-                val visits = VisitCollection.instance.loadVisitsOfPlace(this@Place)
+
+                val visits = VisitCollection.instance.loadVisitsOfPlace(this@Place, limitLatest10 = false)
 
                 if (visits.isNotEmpty()) {
                     visits.sortByDescending { v -> v.dateTime.timeInMillis }

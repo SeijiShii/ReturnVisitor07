@@ -214,7 +214,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onRefreshPlaceInPlaceDialog(place: Place) {
-        placeMarkers.refreshMarker(place)
+
+        val handler = Handler()
+        GlobalScope.launch {
+            place.refreshRatingByVisitsAsync().await()
+
+            handler.post{
+                placeMarkers.refreshMarker(place)
+            }
+            PlaceCollection.instance.saveAsync(place)
+        }
     }
 
 //    private fun loadPlaces() {

@@ -5,6 +5,7 @@ import android.animation.ValueAnimator
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -87,19 +88,57 @@ fun View.setOnClick(onClick: ((View) -> Unit)?) {
     }
 }
 
+// すごく手続き型言語っぽくていやだけど。
+private data class ViewAndAnimatorCouple(val view: View, val animator: ValueAnimator)
+private val viewAndAnimatorList = ArrayList<ViewAndAnimatorCouple>()
+
+private fun getCoupleByView(v: View): ViewAndAnimatorCouple? {
+    for(c in viewAndAnimatorList) {
+        if (c.view == v) return c
+    }
+    return null
+}
+
+
 fun View.fadeVisibility(fadeIn: Boolean,
                         addTouchBlockerOnFadeIn: Boolean = false,
                         onAnimationFinished: ((fadedIn: Boolean) -> Unit)? = null) {
 
-    val target = if (fadeIn) {
-        this.visibility = View.VISIBLE
+    val couple1 = getCoupleByView(this)
+    if (couple1 != null) {
+        couple1.animator.cancel()
+        viewAndAnimatorList.remove(couple1)
+    }
+
+    if (fadeIn) {
         if (addTouchBlockerOnFadeIn) {
             this.setOnTouchListener { _, _ -> true }
         }
-        1f
     } else {
         this.setOnTouchListener(null)
+    }
+
+//    if (!withAnimation) {
+//        alpha = if (fadeIn) {
+//            visibility = View.VISIBLE
+//            1f
+//        } else {
+//            visibility = View.GONE
+//            0f
+//        }
+//        return
+//    }
+
+    val target = if (fadeIn) {
+        this.visibility = View.VISIBLE
+        1f
+    } else {
+
         0f
+    }
+
+    if (animation != null) {
+        Log.d(debugTag, "animation != null")
     }
 
     val animator = ValueAnimator.ofFloat(this.alpha, target)
@@ -108,7 +147,7 @@ fun View.fadeVisibility(fadeIn: Boolean,
         this.requestLayout()
     }
 
-    animator.duration = 500
+    animator.duration = 3000
     animator.addListener(object : Animator.AnimatorListener{
         override fun onAnimationRepeat(p0: Animator?) {}
 
@@ -117,16 +156,24 @@ fun View.fadeVisibility(fadeIn: Boolean,
                 this@fadeVisibility.visibility = View.GONE
             }
             onAnimationFinished?.invoke(fadeIn)
+            val couple3 = getCoupleByView(this@fadeVisibility)
+            if (couple3 != null) {
+                viewAndAnimatorList.remove(couple3)
+            }
         }
 
-        override fun onAnimationCancel(p0: Animator?) {}
+        override fun onAnimationCancel(p0: Animator?) {
+            val couple3 = getCoupleByView(this@fadeVisibility)
+            if (couple3 != null) {
+                viewAndAnimatorList.remove(couple3)
+            }
+        }
 
         override fun onAnimationStart(p0: Animator?) {}
     })
     animator.start()
 
-}
-
-fun View.setEnabled(enabled: Boolean) {
+    val couple = ViewAndAnimatorCouple(this, animator)
+    viewAndAnimatorList.add(couple)
 
 }

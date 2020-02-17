@@ -348,8 +348,9 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 }
             }
 
-            val cell = VisitCell(context!!, visit).also {
+            val cell = VisitCell(context!!).also {
                 it.onDeleteVisitConfirmed = this::onVisitDeleted
+                it.refresh(visit)
             }
             visitCells.add(cell)
             return cell

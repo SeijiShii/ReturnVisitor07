@@ -3,13 +3,16 @@ package work.ckogyo.returnvisitor.dialogs
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.place_dialog.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
@@ -35,6 +38,8 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     var onEditVisitInvoked: ((Visit) -> Unit)? = null
     var onRecordNewVisitInvoked: ((Place) -> Unit)? = null
+
+    private val visitsToPlace = ArrayList<Visit>()
 
     override fun inflateContentView(): View {
         return View.inflate(context, R.layout.place_dialog, null)
@@ -72,46 +77,98 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
         refreshColorMark()
 
-        initVisitList()
+        refreshVisitList()
     }
 
     private fun refreshColorMark() {
-        colorMark.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place.rating), null))
+        val handler = Handler()
+        GlobalScope.launch {
+            place.refreshRatingByVisitsAsync().await()
+            handler.post {
+                colorMark?.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place.rating), null))
+            }
+        }
     }
 
-    private fun initVisitList() {
+    private fun refreshVisitList() {
 
-        loadingVisitsOfPlaceProgress.fadeVisibility(true)
+        loadingVisitsOfPlaceOverlay.fadeVisibility(true)
+        visitListView.fadeVisibility(false)
 
         GlobalScope.launch {
 
-            val visits = VisitCollection.instance.loadVisitsOfPlace(place)
-
-//            visitsToPlace.clear()
-//            visitsToPlace.addAll(visits)
+            val loadedVisitsToPlace = VisitCollection.instance.loadVisitsOfPlace(place)
+            mergeLoadedVisits(loadedVisitsToPlace)
 
             handler.post {
 
-                visitListContent ?: return@post
+                visitListView ?: return@post
 
-                visitListContent?.removeAllViews()
-                for (visit in visits) {
-                    addVisitCell(visit)
-                }
-                loadingVisitsOfPlaceProgress.fadeVisibility(false, addTouchBlockerOnFadeIn = true)
+                visitListView.adapter = VisitListAdapter()
+                visitListView.layoutManager?.scrollToPosition(visitsToPlace.size - 1)
+
+                visitListView.fadeVisibility(true)
+                loadingVisitsOfPlaceOverlay.fadeVisibility(false)
             }
         }
     }
 
-    private fun addVisitCell(visit: Visit) {
-        val visitCell = VisitCell(context!!, visit).also {
-            it.onClickEditVisit = this::onClickEditVisitInCell
-            it.onDeleteVisitConfirmed = this::onDeleteConfirmedInCell
-            it.setOnClick { _ ->
-                showVisitDetailDialog(it.visit)
+    // 将来的には遅延ロードを考える
+//    private fun refreshVisitList(isFirstLoading: Boolean) {
+//
+//        loadingVisitsOfPlaceProgress.fadeVisibility(true)
+//        visitListView.fadeVisibility(false)
+//
+//        val manager = visitListView.layoutManager as LinearLayoutManager
+//
+//        val currTopVisit = if (isFirstLoading) {
+//            null
+//        } else {
+//            val topPos = manager.findFirstVisibleItemPosition()
+//            if (topPos >= 0) {
+//                visitsToPlace[topPos]
+//            } else {
+//                null
+//            }
+//        }
+//
+//        GlobalScope.launch {
+//
+//            val loadedVisitsToPlace = VisitCollection.instance.loadVisitsOfPlace(place, limitLatest10 = isFirstLoading)
+//            mergeLoadedVisits(loadedVisitsToPlace)
+//
+//            handler.post {
+//
+//                visitListView ?: return@post
+//
+//                visitListView.adapter = VisitListAdapter()
+//
+//                visitListView.fadeVisibility(true)
+//                loadingVisitsOfPlaceProgress.fadeVisibility(false, addTouchBlockerOnFadeIn = true)
+//
+//                if (isFirstLoading) {
+//                    visitListView.scrollToPosition(visitsToPlace.size - 1)
+//                    refreshVisitList(isFirstLoading = false)
+//                } else {
+//
+//                    currTopVisit ?: return@post
+//
+//                    val topPos = getPositionByVisit(currTopVisit)
+//                    manager.scrollToPosition(topPos)
+//                }
+//            }
+//        }
+//    }
+
+    private fun mergeLoadedVisits(visits: ArrayList<Visit>) {
+
+        for (visit in visits) {
+            if (!visitsToPlace.contains(visit)) {
+                visitsToPlace.add(visit)
             }
         }
-        visitListContent.addView(visitCell)
+        visitsToPlace.sortBy { visit -> visit.dateTime.timeInMillis }
+
     }
 
     private fun showVisitDetailDialog(visit: Visit) {
@@ -126,15 +183,36 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun onDeleteConfirmedInCell(visit: Visit) {
 
+        val pos = getPositionByVisit(visit)
+        if (pos < 0) return
+
+        visitsToPlace.remove(visit)
+        visitListView.adapter?.notifyItemRemoved(pos)
+
         val handler = Handler()
         GlobalScope.launch {
             VisitCollection.instance.deleteAsync(visit).await()
+
+            MonthReportCollection.instance.updateAndLoadByMonth(visit.dateTime)
+            place.refreshRatingByVisitsAsync().await()
 
             handler.post {
                 onRefreshPlace?.invoke(place)
                 refreshColorMark()
             }
+
+            PlaceCollection.instance.saveAsync(place)
         }
+    }
+
+    private fun getPositionByVisit(visit: Visit): Int {
+
+        for (i in 0 until visitsToPlace.size) {
+            if (visit == visitsToPlace[i]) {
+                return i
+            }
+        }
+        return -1
     }
 
     private fun showMenuPopup() {
@@ -163,16 +241,44 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun addNotHomeVisit() {
 
+        loadingVisitsOfPlaceOverlay.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
         GlobalScope.launch {
-            val nhVisit = VisitCollection.instance.addNotHomeVisitAsync(place).await()
+            val nhVisit = VisitCollection.instance.addNotHomeVisitAsync(place)
 
             // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
             TimeCountIntentService.saveWorkIfActive()
 
             handler.post {
+
+                visitsToPlace.add(nhVisit)
+                visitListView?.adapter?.notifyItemInserted(visitsToPlace.size - 1)
+                visitListView?.smoothScrollToPosition(visitsToPlace.size - 1)
+
+                loadingVisitsOfPlaceOverlay.fadeVisibility(false)
+
                 refreshColorMark()
-                addVisitCell(nhVisit)
             }
+        }
+    }
+
+    private inner class VisitListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            return object : RecyclerView.ViewHolder(VisitCell(context!!).also {
+                it.setOnClick { v ->
+                    this@PlaceDialog.showVisitDetailDialog(it.visit)
+                }
+                it.onClickEditVisit = this@PlaceDialog::onClickEditVisitInCell
+                it.onDeleteVisitConfirmed = this@PlaceDialog::onDeleteConfirmedInCell
+            }) {}
+        }
+
+        override fun getItemCount(): Int {
+            return visitsToPlace.size
+        }
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            (holder.itemView as VisitCell).refresh(visitsToPlace[position])
         }
     }
 }
