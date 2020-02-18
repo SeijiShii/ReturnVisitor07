@@ -50,7 +50,7 @@ class VisitCollection {
 
     private suspend fun loadLatestVisitOfPlace(place: Place): Visit? = suspendCoroutine { cont ->
 
-        val start = System.currentTimeMillis()
+//        val start = System.currentTimeMillis()
 
         GlobalScope.launch {
 
@@ -73,7 +73,7 @@ class VisitCollection {
                             GlobalScope.launch {
                                 visit.initVisitFromHashMap(it.documents[0].data as HashMap<String, Any>)
 
-                                Log.d(debugTag, "loadLatestVisitOfPlace, took ${System.currentTimeMillis() - start}ms.")
+//                                Log.d(debugTag, "loadLatestVisitOfPlace, took ${System.currentTimeMillis() - start}ms.")
                                 cont.resume(visit)
                             }
                         }
@@ -245,7 +245,7 @@ class VisitCollection {
 
     suspend fun addNotHomeVisitAsync(place: Place):Visit = suspendCoroutine { cont ->
 
-        val start = System.currentTimeMillis()
+//        val start = System.currentTimeMillis()
 
         GlobalScope.launch {
             val latestVisit = loadLatestVisitOfPlace(place)
@@ -261,7 +261,7 @@ class VisitCollection {
 
             MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
 
-            Log.d(debugTag, "addNotHomeVisitAsync, took ${System.currentTimeMillis() - start}ms.")
+//            Log.d(debugTag, "addNotHomeVisitAsync, took ${System.currentTimeMillis() - start}ms.")
             cont.resume(visit)
         }
     }

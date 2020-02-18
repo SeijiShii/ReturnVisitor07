@@ -21,9 +21,11 @@ abstract class HeightAnimationView: FrameLayout{
 
     open fun onRefreshHeight(height: Int){}
 
-    abstract val collapseHeight: Int
-    abstract val extractHeight: Int
-    abstract val cellId: String
+
+    var collapseHeight: Int = 0
+    var extractHeight: Int = ViewGroup.LayoutParams.WRAP_CONTENT
+
+//    abstract val cellId: String
 
     val currentHeight: Int
         get() {
@@ -57,7 +59,7 @@ abstract class HeightAnimationView: FrameLayout{
         onRefreshHeight(h)
     }
 
-    protected fun animateHeight(onHeightAnimationEnd: ((HeightAnimationView) -> Unit)? = null){
+    fun animateHeight(onHeightAnimationEnd: ((HeightAnimationView) -> Unit)? = null){
 
         val target = if (isExtracted){
             extractHeight

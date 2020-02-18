@@ -189,7 +189,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             if (elmsToAdd.isEmpty()) {
                 handler.post {
-                    loadingWorkProgressSmall.fadeVisibility(false)
+                    loadingWorkProgressSmall?.fadeVisibility(false)
                 }
                 return@launch
             }

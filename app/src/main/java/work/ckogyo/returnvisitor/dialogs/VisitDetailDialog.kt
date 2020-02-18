@@ -5,14 +5,17 @@ import android.app.Dialog
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.record_visit_fragment.*
+import kotlinx.android.synthetic.main.room_cell.view.*
 import kotlinx.android.synthetic.main.visit_detail_dialog.*
 import kotlinx.android.synthetic.main.visit_detail_dialog.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.utils.ratingToColorButtonResId
 import work.ckogyo.returnvisitor.views.SmallTagView
 
 class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
@@ -33,6 +36,10 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
 
         v.addressText.text = visit.place.address
         v.personsText.text = visit.toPersonVisitString(context!!)
+
+        v.priorityMark.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(visit.rating), null))
+        v.priorityText.text = context!!.resources.getStringArray(R.array.raterArray)[visit.rating.ordinal]
+
 
         val plcTagViews = ArrayList<SmallTagView>()
         for (plc in visit.placements) {

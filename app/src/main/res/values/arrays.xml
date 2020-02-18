@@ -16,7 +16,7 @@
     <array name="raterArray">
         <item>Unoccupied</item>
         <item>Negative</item>
-        <item>Indifferent</item>
+        <item>For Next</item>
         <item>Not Home</item>
         <item>Fair</item>
         <item>Interested</item>

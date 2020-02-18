@@ -133,7 +133,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             placeMarkers.refreshMarker(hComplex)
             mainActivity ?: return@post
             hideKeyboard(mainActivity!!)
-            mainActivity?.switchProgressOverlay(false)
         }
     }
 
@@ -144,7 +143,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onCloseHousingComplexFragment(hComplex: Place, isNewHC: Boolean) {
-        mainActivity?.switchProgressOverlay(true)
+
         GlobalScope.launch {
             val placeColl = PlaceCollection.instance
             if (placeColl.housingComplexHasRooms(hComplex.id)) {
@@ -155,10 +154,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 }
             } else {
                 if (isNewHC) {
-                    placeColl.deleteAsync(hComplex).await()
                     handler.post {
                         placeMarkers.remove(hComplex)
                     }
+                    placeColl.deleteAsync(hComplex).await()
                 } else {
                     hComplex.refreshRatingByVisitsAsync().await()
                     placeColl.saveAsync(hComplex).await()
@@ -166,9 +165,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         placeMarkers.refreshMarker(hComplex)
                     }
                 }
-            }
-            handler.post{
-                mainActivity?.switchProgressOverlay(false)
             }
         }
     }

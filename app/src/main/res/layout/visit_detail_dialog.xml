@@ -39,8 +39,7 @@
             android:background="@drawable/gray_bottom_border">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_width="100dp"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:gravity="center_horizontal|bottom"
@@ -48,7 +47,7 @@
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:id="@+id/placeText"
@@ -63,8 +62,7 @@
             android:background="@drawable/gray_bottom_border">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_width="100dp"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:gravity="center_horizontal|bottom"
@@ -72,7 +70,7 @@
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:id="@+id/addressText"
@@ -87,8 +85,7 @@
             android:background="@drawable/gray_bottom_border">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_width="100dp"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:gravity="center_horizontal|bottom"
@@ -96,10 +93,46 @@
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:id="@+id/personsText"
+                android:gravity="start|bottom"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:background="@drawable/gray_bottom_border">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:textColor="@color/darkGray"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/priority"/>
+
+            <RelativeLayout
+                android:layout_width="30dp"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:id="@+id/priorityMark"/>
+
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:textColor="@color/darkGray"
+                android:id="@+id/priorityText"
                 android:gravity="start|bottom"/>
 
         </LinearLayout>
@@ -133,8 +166,7 @@
             android:background="@drawable/gray_bottom_border">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_width="100dp"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:gravity="center_horizontal|bottom"
@@ -142,7 +174,7 @@
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:layout_height="match_parent"
                 android:textColor="@color/darkGray"
                 android:id="@+id/noteText"

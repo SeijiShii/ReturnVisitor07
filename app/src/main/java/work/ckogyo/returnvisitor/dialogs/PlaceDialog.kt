@@ -23,12 +23,7 @@ import work.ckogyo.returnvisitor.views.VisitCell
 
 class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
-//    private val mainActivity: MainActivity?
-//    get() = context as? MainActivity
-
     private val handler = Handler()
-
-//    private val visitsToPlace = ArrayList<Visit>()
 
     override fun onOkClick() {}
 

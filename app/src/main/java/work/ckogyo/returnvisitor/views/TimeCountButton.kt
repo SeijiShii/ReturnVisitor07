@@ -29,14 +29,10 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs){initCommon()}
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr){initCommon()}
 
-    override val collapseHeight: Int
-        get() = context.toDP(50)
-    override val extractHeight: Int
-        get() = context.toDP(150)
-    override val cellId: String
-        get() = "time_count_button"
-
     private fun initCommon() {
+
+        collapseHeight = context.toDP(50)
+
         View.inflate(context, R.layout.time_count_button, this)
 
         isExtracted = isCountingTime

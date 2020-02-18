@@ -36,7 +36,10 @@ class Place : BaseDataModel{
         address = map[addressKey].toString()
         latLng = LatLng(map[latitudeKey].toString().toDouble(), map[longitudeKey].toString().toDouble())
         category = Category.valueOf(map[categoryKey].toString())
-        rating = Visit.Rating.valueOf(map[ratingKey].toString())
+
+        var ratingStr = map[ratingKey].toString()
+        ratingStr = if (ratingStr == "Indifferent") Visit.Rating.ForNext.toString() else ratingStr
+        rating = Visit.Rating.valueOf(ratingStr)
 
         if (category == Category.Room) {
             parentId = map[parentIdKey].toString()

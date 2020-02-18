@@ -25,7 +25,7 @@ class Visit : BaseDataModel {
     enum class Rating {
         Unoccupied,
         Negative,
-        Indifferent,
+        ForNext,
         NotHome,
         Fair,
         Interested,
@@ -66,7 +66,9 @@ class Visit : BaseDataModel {
 
         super.initFromHashMap(map)
 
-        rating = Rating.valueOf(map[ratingKey].toString())
+        var ratingStr = map[ratingKey].toString()
+        ratingStr = if (ratingStr == "Indifferent") Rating.ForNext.toString() else ratingStr
+        rating = Rating.valueOf(ratingStr)
 
         dateTime = Calendar.getInstance()
         dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()

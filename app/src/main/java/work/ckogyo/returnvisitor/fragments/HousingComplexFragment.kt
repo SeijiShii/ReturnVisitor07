@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.housing_complex_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -74,7 +75,7 @@ class HousingComplexFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
 
                 if (s != null) {
-                    refreshRoomList()
+                    refreshRoomListView()
                 }
                 refreshAddRoomButton()
             }
@@ -87,8 +88,8 @@ class HousingComplexFragment : Fragment() {
         refreshAddRoomButton()
 
         loadingRoomsProgressFrame.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
-        noRoomRegisteredFrame.alpha = 0f
-        roomListFrame.alpha = 0f
+        roomListView.alpha = 0f
+        searchOrAddRow.isEnabled = false
 
         housingComplexNameText.setText(hComplex.name)
 
@@ -101,17 +102,24 @@ class HousingComplexFragment : Fragment() {
             rooms.clear()
             rooms.addAll(loadedRooms)
             handler.post {
-                refreshRoomList()
+                searchOrAddRow.isEnabled = true
+                refreshRoomListView()
                 isLoadingRooms = false
                 refreshAddRoomButton()
                 loadingRoomsProgressFrame.fadeVisibility(false, addTouchBlockerOnFadeIn = true)
             }
         }
+
+        housingComplexAddressRow.extractHeight = context!!.toDP(70)
+        housingComplexAddressRow.isExtracted = false
+        openAddressRowButton.setOnClick {
+            housingComplexAddressRow.isExtracted = !housingComplexAddressRow.isExtracted
+            housingComplexAddressRow.animateHeight()
+        }
     }
 
     private fun onClickOk(v: View) {
 
-        mainActivity?.switchProgressOverlay(true)
         hComplex.name = housingComplexNameText.text.toString()
 
         mainActivity?.supportFragmentManager?.popBackStack()
@@ -139,14 +147,14 @@ class HousingComplexFragment : Fragment() {
         popup.menuInflater.inflate(R.menu.housing_complex_menu, popup.menu)
         popup.setOnMenuItemClickListener {
             when(it.itemId) {
-                R.id.delete_place -> confirmDeletePlace()
+                R.id.delete_place -> confirmDeleteHC()
             }
             return@setOnMenuItemClickListener true
         }
         popup.show()
     }
 
-    private fun confirmDeletePlace() {
+    private fun confirmDeleteHC() {
 
         AlertDialog.Builder(context!!).setTitle(R.string.delete_housing_complex)
             .setMessage(R.string.delete_housing_complex_message)
@@ -210,27 +218,47 @@ class HousingComplexFragment : Fragment() {
     private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
 
         val handler = Handler()
-        mainActivity?.switchProgressOverlay(true, getString(R.string.updating))
+        loadingRoomsProgressFrame.fadeVisibility(true)
 
         when(param) {
             OnFinishEditParam.Canceled -> {}
             OnFinishEditParam.Done -> {
 
+                if (mode != EditMode.Add) return
 
                 GlobalScope.launch {
 
                     VisitCollection.instance.saveVisitAsync(visit).await()
                     PlaceCollection.instance.saveAsync(visit.place).await()
-
-                    rooms.remove(visit.place)
-                    rooms.add(visit.place)
-                    rooms.sortBy { r -> r.name }
-
                     visit.place.refreshRatingByVisitsAsync().await()
 
-                    handler.post{
-                        refreshRoomList()
-                        mainActivity?.switchProgressOverlay(false)
+                    if (rooms.contains(visit.place)) {
+                        // HousingComplexDialog -> PlaceDialog -> 訪問を記録　で帰ってきたパターン
+                        val pos = getPositionByRoom(visit.place)
+                        if (pos >= 0) {
+                            handler.post {
+                                val cell = roomListView.findViewHolderForAdapterPosition(pos)?.itemView as? RoomCell
+                                cell?.refresh(visit.place)
+                                loadingRoomsProgressFrame.fadeVisibility(false)
+                            }
+                        }
+
+
+                    } else {
+                        // HousingComplexDialog -> 部屋の追加 -> 訪問を記録 で帰ってきたパターン
+                        rooms.add(visit.place)
+                        rooms.sortBy { r -> r.name }
+
+                        refreshRoomsToShow()
+
+                        val pos = getPositionByRoom(visit.place)
+
+                        if (pos >= 0) {
+                            handler.post {
+                                roomListView.adapter?.notifyItemInserted(pos)
+                                loadingRoomsProgressFrame.fadeVisibility(false)
+                            }
+                        }
                     }
 
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
@@ -241,30 +269,29 @@ class HousingComplexFragment : Fragment() {
             }
             OnFinishEditParam.Deleted -> {
 
-                GlobalScope.launch {
-                    VisitCollection.instance.deleteAsync(visit).await()
-                    visit.place.refreshRatingByVisitsAsync().await()
-                    handler.post {
-                        refreshRoomList()
-                        mainActivity?.switchProgressOverlay(false)
-                    }
-
-                    // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
-                    TimeCountIntentService.saveWorkIfActive()
-                    MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
-                }
             }
         }
     }
 
+    private fun refreshRoomListView() {
 
-    private fun refreshRoomList() {
+        refreshRoomsToShow()
 
+        if (roomsToShow.isEmpty()) {
+            noRoomFrame.fadeVisibility(true)
+            roomListView.fadeVisibility(false)
+        } else {
+            roomListView.adapter = RoomListAdapter()
+            noRoomFrame.fadeVisibility(false)
+            roomListView.fadeVisibility(true)
+        }
+    }
+
+    private val roomsToShow = ArrayList<Place>()
+
+    private fun refreshRoomsToShow() {
         val searchWord = searchOrAddRoomNumText.text.toString()
-
-        roomListFrame.removeAllViews()
-
-        val roomsToShow = ArrayList<Place>()
+        roomsToShow.clear()
         if (searchWord.isBlank()) {
             roomsToShow.addAll(rooms)
         } else {
@@ -274,27 +301,12 @@ class HousingComplexFragment : Fragment() {
                 }
             }
         }
-
-        if (rooms.isEmpty()) {
-            noRoomRegisteredFrame.fadeVisibility(true)
-            roomListFrame.fadeVisibility(false)
-        } else {
-            for (room in roomsToShow) {
-                val cell = RoomCell(context!!, room).apply{
-                    onClickShowRoom = this@HousingComplexFragment::showPlaceDialogForRoom
-                    onDeleted = {
-                        rooms.remove(it)
-                        refreshRoomList()
-                    }
-                }
-                roomListFrame.addView(cell)
-            }
-            noRoomRegisteredFrame.fadeVisibility(false)
-            roomListFrame.fadeVisibility(true)
-        }
     }
 
     private fun showPlaceDialogForRoom(room: Place) {
+
+        mainActivity ?: return
+
         val dialog = PlaceDialog(room).apply {
             onEditVisitInvoked = {
                 mainActivity?.showRecordVisitFragmentForEdit(it, this@HousingComplexFragment::onFinishEditVisit)
@@ -302,32 +314,101 @@ class HousingComplexFragment : Fragment() {
             onRecordNewVisitInvoked = {
                 mainActivity?.showRecordVisitFragmentForNew(it, this@HousingComplexFragment::onFinishEditVisit)
             }
+            onClose = this@HousingComplexFragment::onClosePlaceDialogForRoom
+            onRefreshPlace = this@HousingComplexFragment::onRefreshPlaceInPlaceDialog
         }
-        mainActivity?.showDialog(dialog)
+        mainActivity!!.showDialog(dialog)
+        hideKeyboard(mainActivity!!)
     }
 
-//    private fun onFisishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
-//        mainActivity?.switchProgressOverlay(true, getString(R.string.saving_changes))
-//        val handler = Handler()
-//        when(param) {
-//            OnFinishEditParam.Done -> {
-//                GlobalScope.launch {
-//                    VisitCollection.instance.saveVisitAsync(visit).await()
-//                    handler.post {
-//                        mainActivity?.switchProgressOverlay(false)
-//                    }
-//                }
-//            }
-//            OnFinishEditParam.Deleted -> {
-//                GlobalScope.launch {
-//                    VisitCollection.instance.deleteAsync(visit).await()
-//                    handler.post {
-//                        mainActivity?.switchProgressOverlay(false)
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private fun onRefreshPlaceInPlaceDialog(room: Place) {
+
+        loadingRoomsProgressFrame.fadeVisibility(true)
+        val handler = Handler()
+
+        GlobalScope.launch {
+
+            room.refreshRatingByVisitsAsync().await()
+
+            handler.post {
+                val pos = getPositionByRoom(room)
+
+                if (pos >= 0) {
+                    val cell = roomListView.findViewHolderForAdapterPosition(pos)?.itemView as? RoomCell
+                    cell?.refresh(room)
+                }
+                loadingRoomsProgressFrame.fadeVisibility(false)
+            }
+        }
+    }
+
+    private fun onClosePlaceDialogForRoom(room: Place, param: OnFinishEditParam) {
+
+        // PlaceDialog内でRoomを削除した場合こちらに帰ってくる
+        when(param) {
+            OnFinishEditParam.Deleted -> {
+                val pos = getPositionByRoom(room)
+
+                rooms.remove(room)
+                roomsToShow.remove(room)
+
+                if (pos >= 0) {
+                    roomListView.adapter?.notifyItemRemoved(pos)
+                }
+
+                GlobalScope.launch {
+
+                    PlaceCollection.instance.deleteAsync(room).await()
+                    hComplex.refreshRatingByVisitsAsync().await()
+
+                }
+            }
+        }
+    }
+
+    private fun onDeleteRoomConfirmed(room: Place) {
+
+        val pos = getPositionByRoom(room)
+
+        roomsToShow.remove(room)
+        rooms.remove(room)
+
+        GlobalScope.launch {
+            PlaceCollection.instance.deleteAsync(room)
+        }
+
+        if (pos >= 0) {
+            roomListView.adapter?.notifyItemRemoved(pos)
+        }
+    }
+
+    private fun getPositionByRoom(room: Place): Int {
+
+        for (i in 0 until roomsToShow.size) {
+            if (room == roomsToShow[i]) {
+                return i
+            }
+        }
+        return -1
+    }
+
+    private inner class RoomListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            return object :RecyclerView.ViewHolder(RoomCell(context!!).also {
+                it.onClickShowRoom = this@HousingComplexFragment::showPlaceDialogForRoom
+                it.onDeleteRoomConfirmed = this@HousingComplexFragment::onDeleteRoomConfirmed
+            }){}
+        }
+
+        override fun getItemCount(): Int {
+            return roomsToShow.size
+        }
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            (holder.itemView as RoomCell).refresh(roomsToShow[position])
+        }
+    }
 
 
 }

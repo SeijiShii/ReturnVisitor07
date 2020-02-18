@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,130 +22,136 @@
             android:gravity="center_vertical|start"
             android:textColor="@color/colorPrimaryDark"/>
 
-        <RelativeLayout
+        <View
             android:layout_width="40dp"
-            android:layout_height="match_parent">
-
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:id="@+id/housingComplexMenuButton"
-                android:background="@drawable/ic_more_horiz_black_24dp"
-                android:contentDescription="@string/menu_button_description"
-                android:layout_centerInParent="true"/>
-
-        </RelativeLayout>
+            android:layout_height="match_parent"
+            android:id="@+id/housingComplexMenuButton"
+            android:background="@drawable/dark_gray_horiz_dots_solid"/>
 
     </LinearLayout>
 
-    <View
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="1px"
-        android:background="@color/lightGray"/>
+        android:layout_height="40dp"
+        android:orientation="horizontal">
 
-    <ScrollView
+        <EditText
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:textSize="14sp"
+            android:hint="@string/housing_complex_name"
+            android:id="@+id/housingComplexNameText"
+            android:background="@drawable/gray_border_round"
+            android:layout_margin="3dp"
+            android:gravity="start|center_vertical"/>
+
+        <View
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:id="@+id/openAddressRowButton"
+            android:background="@drawable/dark_gray_down_arrow_solid"/>
+
+    </LinearLayout>
+
+    <work.ckogyo.returnvisitor.views.HeightAnimationFrame
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/housingComplexAddressRow">
+
+        <EditText
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent"
+            android:textSize="14sp"
+            android:hint="@string/address"
+            android:id="@+id/housingComplexAddressText"
+            android:background="@drawable/gray_border_round"
+            android:layout_margin="3dp"
+            android:gravity="start|top"/>
+
+    </work.ckogyo.returnvisitor.views.HeightAnimationFrame>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="50dp"
+            android:id="@+id/searchOrAddRow"
+            android:orientation="horizontal">
 
             <EditText
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:textSize="14sp"
-                android:hint="@string/housing_complex_name"
-                android:id="@+id/housingComplexNameText"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:textSize="16sp"
+                android:hint="@string/search_or_add_room"
+                android:id="@+id/searchOrAddRoomNumText"
                 android:background="@drawable/gray_border_round"
                 android:layout_margin="3dp"
                 android:gravity="start|center_vertical"/>
 
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:textSize="14sp"
-                android:hint="@string/address"
-                android:id="@+id/housingComplexAddressText"
-                android:background="@drawable/gray_border_round"
-                android:layout_margin="3dp"
-                android:gravity="start|top"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="match_parent"
-                    android:textSize="16sp"
-                    android:hint="@string/search_or_add_room"
-                    android:id="@+id/searchOrAddRoomNumText"
-                    android:background="@drawable/gray_border_round"
-                    android:layout_margin="3dp"
-                    android:gravity="start|center_vertical"/>
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="match_parent"
-                    style="@style/DarkGreenButton"
-                    android:text="@string/add_or_show_room"
-                    android:id="@+id/addInputRoomNumButton"
-                    android:layout_margin="5dp"/>
-
-            </LinearLayout>
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:id="@+id/noRoomRegisteredFrame">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/no_room_registered"
-                        android:textSize="20sp"
-                        android:textColor="@color/gray"
-                        android:layout_centerInParent="true"/>
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:id="@+id/loadingRoomsProgressFrame">
-
-                    <ProgressBar
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"/>
-
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/roomListFrame"/>
-
-            </FrameLayout>
+            <Button
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                style="@style/DarkGreenButton"
+                android:text="@string/add_or_show_room"
+                android:id="@+id/addInputRoomNumButton"
+                android:layout_margin="5dp"/>
 
         </LinearLayout>
 
-    </ScrollView>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:id="@+id/roomListView"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:visibility="gone"
+                android:alpha="0"
+                android:id="@+id/noRoomFrame">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_room_registered"
+                    android:textSize="20sp"
+                    android:textColor="@color/gray"
+                    android:layout_centerInParent="true"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:id="@+id/loadingRoomsProgressFrame">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"/>
+
+            </RelativeLayout>
+
+        </FrameLayout>
+
+    </LinearLayout>
 
     <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="40dp"
             android:orientation="horizontal">
 
         <Button
@@ -165,9 +172,5 @@
                 android:id="@+id/okButton"
                 android:layout_margin="5dp"/>
     </LinearLayout>
-
-    <View
-            android:layout_width="match_parent"
-            android:layout_height="10dp"/>
 
 </LinearLayout>
