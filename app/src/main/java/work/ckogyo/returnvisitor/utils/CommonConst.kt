@@ -2,6 +2,7 @@ package work.ckogyo.returnvisitor.utils
 
 import work.ckogyo.returnvisitor.R
 
+
 const val requestPermissionCode = 6090
 const val googleSingInRequestCode = 6100
 
@@ -19,6 +20,7 @@ const val placementIdsKey = "placement_ids"
 const val infoTagIdsKey = "info_tag_ids"
 
 const val returnVisitorPrefsKey = "return_visitor_prefs"
+const val publisherNameKey = "publisher_name"
 const val zoomLevelKey = "zoom_level"
 const val latitudeKey = "latitude"
 const val longitudeKey = "longitude"

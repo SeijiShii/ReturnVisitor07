@@ -15,6 +15,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
+import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 

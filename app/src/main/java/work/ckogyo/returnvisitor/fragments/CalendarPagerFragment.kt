@@ -25,6 +25,9 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
     private lateinit var adapter: CalendarPagerAdapter
 
+    private val mainActivity: MainActivity?
+        get() = context as? MainActivity
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -73,7 +76,8 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
         calendarPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
-                calendarMonthText.text = adapter.months[position].toMonthText()
+                monthToShow = adapter.months[position]
+                calendarMonthText.text = monthToShow.toMonthText()
                 refreshLeftButton()
                 refreshRightButton()
             }
@@ -106,10 +110,11 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
             it.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.month_summary -> {
-
+                        mainActivity?.showMonthReportDialog(monthToShow)
                     }
                     R.id.report_mail -> {
-
+                        Log.d(debugTag, monthToShow.toMonthTitleString(context!!))
+                        mainActivity?.prepareReportMail(monthToShow)
                     }
                     R.id.switch_week_start -> {
                     }

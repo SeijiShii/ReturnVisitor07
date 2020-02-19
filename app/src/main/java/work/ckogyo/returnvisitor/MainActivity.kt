@@ -27,8 +27,10 @@ import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.dialogs.MonthReportDialog
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
+import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.fragments.*
+import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
@@ -367,6 +369,23 @@ class MainActivity : AppCompatActivity() {
 
         MonthReportDialog(month).also {
             it.show(supportFragmentManager, MonthReportDialog::class.java.simpleName)
+        }
+    }
+
+    fun prepareReportMail(month: Calendar) {
+
+        switchProgressOverlay(true, getString(R.string.preparing_report_mail))
+
+        val handler = Handler()
+        GlobalScope.launch {
+
+            Log.d(debugTag, "prepareReportMail: ${month.toMonthTitleString(this@MainActivity)}")
+            val report = MonthReportCollection.instance.updateAndLoadByMonthAsync(month).await()
+            handler.post {
+                switchProgressOverlay(false)
+                exportToMail(this@MainActivity, report)
+            }
+
         }
     }
 

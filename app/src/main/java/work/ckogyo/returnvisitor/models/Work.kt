@@ -17,6 +17,10 @@ class Work : BaseDataModel(idPrefix) {
     val duration: Long
     get() = end.timeInMillis - start.timeInMillis
 
+    init {
+        end.add(Calendar.MILLISECOND, 5)
+    }
+
     override fun clone(): BaseDataModel {
 
         val cloned = Work()

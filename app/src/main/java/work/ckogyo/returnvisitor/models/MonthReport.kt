@@ -12,7 +12,7 @@ class MonthReport() :
         const val idPrefix = "month_report"
     }
 
-    private var month = Calendar.getInstance()
+    var month = Calendar.getInstance()
 
     var duration: Long = 0
         private set

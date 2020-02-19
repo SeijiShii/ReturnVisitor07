@@ -60,7 +60,9 @@ class MonthReportCollection {
 
         return GlobalScope.async {
 
-            val report = loadByMonth(month) ?: MonthReport()
+            val report = loadByMonth(month) ?: MonthReport().also {
+                it.month = month
+            }
 
             val first = month.getFirstDay()
             val last = month.getLastDay()

@@ -24,6 +24,7 @@ import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
+import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
@@ -405,10 +406,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun initDrawerFrame() {
 
-//        drawerFrame.setOnTouchListener { _, e ->
-//            return@setOnTouchListener true
-//        }
-
         drawerFrame.setOnTouchListener(onDrawerSwipeListener)
 
         initDrawerLogoButton()
@@ -420,6 +417,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         initAddWorkButton()
         initShowCalendarButton()
         initMonthReportButton()
+        initMailReportButton()
     }
 
     private fun refreshDrawer() {
@@ -581,6 +579,17 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             mainActivity?.showMonthReportDialog(Calendar.getInstance())
         }
     }
+
+    private fun initMailReportButton() {
+
+        reportMailButton.setOnClickListener {
+
+            switchDrawer()
+            mainActivity?.prepareReportMail(Calendar.getInstance())
+        }
+    }
+
+
 
 
 }
