@@ -77,7 +77,8 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         calendarPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
                 monthToShow = adapter.months[position]
-                calendarMonthText.text = monthToShow.toMonthText()
+
+                refreshMonthText()
                 refreshLeftButton()
                 refreshRightButton()
             }
@@ -92,6 +93,12 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
             calendarPager.currentItem += 1
         }
 
+        refreshMonthText()
+
+    }
+
+    private fun refreshMonthText() {
+        calendarMonthText.text = monthToShow.toMonthText()
     }
 
     private fun refreshLeftButton() {

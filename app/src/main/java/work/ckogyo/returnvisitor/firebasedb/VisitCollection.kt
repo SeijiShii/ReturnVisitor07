@@ -79,7 +79,7 @@ class VisitCollection {
                         }
                     }
                     .addOnFailureListener {
-//                        Log.d(debugTag, it.localizedMessage)
+                        Log.d(debugTag, it.localizedMessage)
                         cont.resume(null)
                     }
             }
