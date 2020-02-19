@@ -25,6 +25,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
+import work.ckogyo.returnvisitor.dialogs.LoginDialog
 import work.ckogyo.returnvisitor.dialogs.MonthReportDialog
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
@@ -71,10 +72,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun initGoogleSignIn() {
 
-        googleSignInButton.setOnClickListener {
-            signIn()
-        }
-
         // [START config_signin]
         // Configure Google Sign In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -94,7 +91,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        refreshLoginOverlay()
+        showLoginDialogIfNeeded()
         switchProgressOverlay(false)
         isAppVisible = true
         watchAndAdjustAdView()
@@ -256,12 +253,12 @@ class MainActivity : AppCompatActivity() {
                     GlobalScope.launch {
                         mapFragment.waitForMapReadyAndShowMarkers()
                     }
+                    loginDialog.dismiss()
                 } catch (e: ApiException) {
                     // Google Sign In failed, update UI appropriately
                     Log.w(debugTag, "Google sign in failed", e)
                     Toast.makeText(this, R.string.google_sign_in_failed, Toast.LENGTH_SHORT).show()
-//                    refreshGoogleSignInButton(null)
-                    refreshLoginOverlay()
+                    showLoginDialogIfNeeded()
                 }
             }
         }
@@ -272,7 +269,7 @@ class MainActivity : AppCompatActivity() {
     private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
         Log.d(debugTag, "firebaseAuthWithGoogle:" + acct.id!!)
         // [START_EXCLUDE silent]
-//        showProgressDialog()
+
         // [END_EXCLUDE]
 
         val credential = GoogleAuthProvider.getCredential(acct.idToken, null)
@@ -281,7 +278,6 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(debugTag, "signInWithCredential:success")
-                    loginOverlay.fadeVisibility(!isLoggedIn, addTouchBlockerOnFadeIn = true)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(debugTag, "signInWithCredential:failure", task.exception)
@@ -289,14 +285,14 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 // [START_EXCLUDE]
-//                hideProgressDialog()
+
                 // [END_EXCLUDE]
             }
     }
     // [END auth_with_google]
 
     // [START signin]
-    private fun signIn() {
+    fun signIn() {
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, googleSingInRequestCode)
     }
@@ -309,7 +305,7 @@ class MainActivity : AppCompatActivity() {
 
         // Google sign out
         googleSignInClient.signOut().addOnCompleteListener(this) {
-            loginOverlay.fadeVisibility(!isLoggedIn, addTouchBlockerOnFadeIn = true)
+            showLoginDialogIfNeeded()
         }
     }
 
@@ -319,22 +315,10 @@ class MainActivity : AppCompatActivity() {
 
         // Google revoke access
         googleSignInClient.revokeAccess().addOnCompleteListener(this) {
-//            refreshGoogleSignInButton(null)
-            loginOverlay.fadeVisibility(!isLoggedIn, addTouchBlockerOnFadeIn = true)
+            showLoginDialogIfNeeded()
         }
     }
 
-    private fun refreshLoginOverlay() {
-        loginOverlay.alpha = if (auth.currentUser == null) {
-            loginOverlay.setOnTouchListener { _, _ -> return@setOnTouchListener true }
-            loginOverlay.visibility = View.VISIBLE
-            1f
-        } else {
-            loginOverlay.setOnTouchListener(null)
-            loginOverlay.visibility = View.GONE
-            0f
-        }
-    }
 
     private var isWatchingForAdView = false
     private fun watchAndAdjustAdView() {
@@ -386,6 +370,14 @@ class MainActivity : AppCompatActivity() {
                 exportToMail(this@MainActivity, report)
             }
 
+        }
+    }
+
+    private lateinit var loginDialog: LoginDialog
+    private fun showLoginDialogIfNeeded() {
+        if (auth.currentUser == null) {
+            loginDialog = LoginDialog()
+            loginDialog.show(supportFragmentManager, LoginDialog::class.java.simpleName)
         }
     }
 
