@@ -6,9 +6,6 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
 
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
     signingConfigs {
         release {
             storeFile file('C:\\Users\\jactare\\.android\\my-release-key.keystore')

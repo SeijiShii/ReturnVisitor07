@@ -16,3 +16,4 @@ google-services.json
 app/build
 .idea
 images
+gradle.properties
