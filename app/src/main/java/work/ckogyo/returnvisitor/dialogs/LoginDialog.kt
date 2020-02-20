@@ -1,12 +1,7 @@
 package work.ckogyo.returnvisitor.dialogs
 
-import android.app.AlertDialog
-import android.app.Dialog
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.login_dialog.view.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
@@ -25,7 +20,7 @@ class LoginDialog : DialogFrameFragment() {
                 mainActivity?.signIn()
             }
             it.anonymousLoginButton.setOnClickListener {
-
+                mainActivity?.signInAnonymously()
             }
             it.googleSignInHelpButton.setOnClick {
                 mainActivity?.showTextPopupDialog()

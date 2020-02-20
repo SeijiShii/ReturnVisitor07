@@ -24,7 +24,6 @@ import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
-import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
@@ -521,7 +520,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 switchDrawer()
                 confirmLogout()
             }
-            context!!.resources.getString(R.string.logout_placeholder, mainActivity!!.currentUser!!.displayName)
+
+            if (mainActivity!!.currentUser!!.isAnonymous) {
+                context!!.resources.getString(R.string.logout_from_no_login)
+            } else {
+                val displayName = mainActivity!!.currentUser!!.displayName
+                context!!.resources.getString(R.string.logout_placeholder, displayName)
+            }
         } else {
             signOutButton.setOnClickListener(null)
             context!!.resources.getString(R.string.not_logged_in)

@@ -18,6 +18,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -38,6 +39,7 @@ import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
+import kotlin.math.log
 
 class MainActivity : AppCompatActivity() {
 
@@ -253,19 +255,7 @@ class MainActivity : AppCompatActivity() {
                     val account = task.getResult(ApiException::class.java)
                     firebaseAuthWithGoogle(account!!)
 
-                    loginDialog.close()
-
-                    GlobalScope.launch {
-                        mapFragment.waitForMapReadyAndShowMarkers()
-
-                        while (auth.currentUser == null) {
-                            delay(50)
-                        }
-
-                        handler.post {
-                            mapFragment.refreshSignOutButton()
-                        }
-                    }
+                    onSignedIn()
 
                 } catch (e: ApiException) {
                     // Google Sign In failed, update UI appropriately
@@ -311,6 +301,35 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(signInIntent, googleSingInRequestCode)
     }
     // [END signin]
+
+    fun signInAnonymously() {
+        auth.signInAnonymously()
+            .addOnSuccessListener {
+                Log.d(debugTag, "signInAnonymously:success")
+                onSignedIn()
+            }
+            .addOnFailureListener {
+                mapFragment.refreshSignOutButton()
+                showLoginDialogIfNeeded()
+            }
+    }
+
+    private fun onSignedIn() {
+
+        loginDialog.close()
+
+        GlobalScope.launch {
+            mapFragment.waitForMapReadyAndShowMarkers()
+
+            while (auth.currentUser == null) {
+                delay(50)
+            }
+
+            handler.post {
+                mapFragment.refreshSignOutButton()
+            }
+        }
+    }
 
 
     private fun signOut() {
