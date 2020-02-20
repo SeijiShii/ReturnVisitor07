@@ -147,7 +147,7 @@ fun View.fadeVisibility(fadeIn: Boolean,
         this.requestLayout()
     }
 
-    animator.duration = 3000
+    animator.duration = 1000
     animator.addListener(object : Animator.AnimatorListener{
         override fun onAnimationRepeat(p0: Animator?) {}
 

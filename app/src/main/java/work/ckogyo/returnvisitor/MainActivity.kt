@@ -252,15 +252,27 @@ class MainActivity : AppCompatActivity() {
                     // Google Sign In was successful, authenticate with Firebase
                     val account = task.getResult(ApiException::class.java)
                     firebaseAuthWithGoogle(account!!)
+
+                    loginDialog.close()
+
                     GlobalScope.launch {
                         mapFragment.waitForMapReadyAndShowMarkers()
+
+                        while (auth.currentUser == null) {
+                            delay(50)
+                        }
+
+                        handler.post {
+                            mapFragment.refreshSignOutButton()
+                        }
                     }
-                    loginDialog.dismiss()
+
                 } catch (e: ApiException) {
                     // Google Sign In failed, update UI appropriately
                     Log.w(debugTag, "Google sign in failed", e)
                     Toast.makeText(this, R.string.google_sign_in_failed, Toast.LENGTH_SHORT).show()
                     showLoginDialogIfNeeded()
+                    mapFragment.refreshSignOutButton()
                 }
             }
         }
@@ -379,7 +391,7 @@ class MainActivity : AppCompatActivity() {
     private fun showLoginDialogIfNeeded() {
         if (auth.currentUser == null) {
             loginDialog = LoginDialog()
-            loginDialog.show(supportFragmentManager, LoginDialog::class.java.simpleName)
+            loginDialog.show(R.id.appFrame, supportFragmentManager, LoginDialog::class.java.simpleName)
         }
     }
 

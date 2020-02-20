@@ -10,6 +10,12 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.DataModelKeys.addressKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.categoryKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.parentIdKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.ratingKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.latitudeKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.longitudeKey
 import java.lang.StringBuilder
 
 class Place : BaseDataModel{

@@ -164,7 +164,10 @@ class PlacementDialog :DialogFrameFragment() {
     }
 
     private fun refreshShowOnlyCloseButton() {
-        showCloseButtonOnly = state == DialogState.RecentUsed
+        closeButtonStyle = when(state) {
+            DialogState.RecentUsed -> CloseButtonStyle.CloseOnly
+            else -> CloseButtonStyle.OKAndCancel
+        }
     }
 
     inner class PlacementDialogAdapter(fm: FragmentManager): FragmentStatePagerAdapter(fm) {

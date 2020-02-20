@@ -3,8 +3,8 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.utils.ageKey
-import work.ckogyo.returnvisitor.utils.sexKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.ageKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.sexKey
 
 open class Person : BaseDataModel {
 

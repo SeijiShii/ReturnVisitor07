@@ -42,7 +42,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        showCloseButtonOnly = true
+        closeButtonStyle = CloseButtonStyle.CloseOnly
         allowScroll = false
         allowResize = false
 

@@ -7,6 +7,8 @@ import android.content.SharedPreferences
 import android.net.Uri
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.MonthReport
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.publisherNameKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
 import java.util.*
 
 fun exportToMail(context: Context, report: MonthReport) {

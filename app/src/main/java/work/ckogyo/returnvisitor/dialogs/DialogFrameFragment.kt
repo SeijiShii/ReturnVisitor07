@@ -10,21 +10,44 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import kotlinx.android.synthetic.main.dialog_frame_framgent.*
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.utils.fadeVisibility
 import work.ckogyo.returnvisitor.utils.hideKeyboard
+import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
 import kotlin.concurrent.thread
 
 abstract class DialogFrameFragment : Fragment() {
 
-    protected var showCloseButtonOnly = false
-    set(value) {
-        field = value
-        refreshCloseOrOkButton()
+    enum class CloseButtonStyle {
+        None,
+        OKAndCancel,
+        CloseOnly
     }
+
+    protected var closeButtonStyle = CloseButtonStyle.OKAndCancel
+        set(value) {
+            field = value
+            refreshCloseButtonStyle()
+        }
+
     protected var allowScroll = true
     protected var allowResize = true
+
+    var isCancelable: Boolean = true
+    set(value) {
+        field = value
+
+        if (value) {
+            overlay.setOnClick {
+                close()
+            }
+        } else {
+            overlay.setOnTouchListener { _, _ -> true }
+        }
+    }
 
     abstract fun onOkClick()
 
@@ -60,9 +83,8 @@ abstract class DialogFrameFragment : Fragment() {
             dialogScrollView.visibility = View.GONE
         }
 
-        overlay.setOnClickListener {
-            close()
-        }
+        isCancelable = true
+
         okButton.setOnTouchListener(object: OnButtonClickListener(okButton, this) {
             override fun onClick(view: View) {
                 hideKeyboard(context as Activity)
@@ -84,39 +106,71 @@ abstract class DialogFrameFragment : Fragment() {
             }
         })
 
-        refreshCloseOrOkButton()
+        refreshCloseButtonStyle()
 
         // すべてをブロックする無敵のタッチリスナ
         dialogOuterFrame.setOnTouchListener{ _, _ -> true }
 
         watchOverlaySizeAndResize()
+
+        setTitle(null)
+
+        overlay.alpha = 0f
+        overlay.fadeVisibility(true)
+
     }
 
-    private fun refreshCloseOrOkButton() {
+    private fun refreshCloseButtonStyle() {
 
-        if (showCloseButtonOnly) {
-            okButton.visibility = View.GONE
-            cancelButton.visibility = View.GONE
-            closeButton.visibility = View.VISIBLE
-        } else {
-            okButton.visibility = View.VISIBLE
-            cancelButton.visibility = View.VISIBLE
-            closeButton.visibility = View.GONE
+        when(closeButtonStyle) {
+            CloseButtonStyle.None -> {
+                okButton.visibility = View.GONE
+                cancelButton.visibility = View.GONE
+                closeButton.visibility = View.GONE
+            }
+            CloseButtonStyle.OKAndCancel -> {
+                okButton.visibility = View.VISIBLE
+                cancelButton.visibility = View.VISIBLE
+                closeButton.visibility = View.GONE
+            }
+            CloseButtonStyle.CloseOnly -> {
+                okButton.visibility = View.GONE
+                cancelButton.visibility = View.GONE
+                closeButton.visibility = View.VISIBLE
+            }
         }
     }
 
 
     protected fun setTitle(title: String?) {
-        dialogTitleTextView.text = title?:""
+
+        dialogTitleTextView.visibility = if (title == null || title.isEmpty()) {
+            View.GONE
+        } else {
+            dialogTitleTextView.text = title
+            View.VISIBLE
+        }
     }
 
     protected fun setTitle(resId: Int) {
-        dialogTitleTextView.text = getString(resId)
+        val str = getString(resId)
+        setTitle(str)
     }
 
 //    protected fun setView(view: View) {
 //        dialogContentFrame.addView(view)
 //    }
+
+    fun show(frameId: Int, fm: FragmentManager, tag: String) {
+
+        isAlreadyClosed = false
+
+        fm.beginTransaction()
+            .addToBackStack(null)
+            .add(frameId, this, tag)
+            .commit()
+    }
+
 
     private var isAlreadyClosed = false
     open fun close() {
@@ -125,7 +179,10 @@ abstract class DialogFrameFragment : Fragment() {
         // 間違えて2回呼んでも余計なフラグメントを消さないように
         if (!isAlreadyClosed) {
             isAlreadyClosed = true
-            (context as AppCompatActivity).supportFragmentManager.popBackStack()
+
+            overlay.fadeVisibility(false, onAnimationFinished = {
+                (context as AppCompatActivity).supportFragmentManager.popBackStack()
+            })
         }
     }
 

@@ -42,7 +42,7 @@ class InfoTagDialog(val visit: Visit) : DialogFrameFragment() {
         allowScroll = false
         super.onViewCreated(view, savedInstanceState)
 
-        showCloseButtonOnly = true
+        closeButtonStyle = CloseButtonStyle.CloseOnly
 
         setTitle(R.string.info_tag)
 

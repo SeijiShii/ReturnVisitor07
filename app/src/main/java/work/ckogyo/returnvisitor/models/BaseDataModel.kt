@@ -1,9 +1,9 @@
 package work.ckogyo.returnvisitor.models
 
 import org.json.JSONObject
-import work.ckogyo.returnvisitor.utils.descriptionKey
-import work.ckogyo.returnvisitor.utils.idKey
-import work.ckogyo.returnvisitor.utils.nameKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.descriptionKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.idKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.nameKey
 import java.util.*
 import kotlin.collections.HashMap
 

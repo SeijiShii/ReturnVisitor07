@@ -16,19 +16,15 @@
         android:elevation="5dp">
 
         <TextView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:id="@+id/dialogTitleTextView"
-                style="@style/LargeTextView"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:gravity="center_vertical|start"
-                android:textColor="@color/colorPrimaryDark"/>
-
-        <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/lightGray"/>
+            android:layout_height="50dp"
+            android:id="@+id/dialogTitleTextView"
+            style="@style/LargeTextView"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:gravity="center_vertical|start"
+            android:background="@drawable/gray_bottom_border"
+            android:textColor="@color/colorPrimaryDark"/>
 
         <FrameLayout
             android:layout_width="match_parent"

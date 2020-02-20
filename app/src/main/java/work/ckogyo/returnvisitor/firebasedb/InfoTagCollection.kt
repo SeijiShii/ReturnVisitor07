@@ -6,8 +6,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.InfoTag
-import work.ckogyo.returnvisitor.utils.infoTagsKey
-import work.ckogyo.returnvisitor.utils.lastUsedAtInMillisKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.lastUsedAtInMillisKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.infoTagsKey
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 

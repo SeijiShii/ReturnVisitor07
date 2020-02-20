@@ -52,7 +52,8 @@
             android:id="@+id/anonymousLoginButton"
             android:drawableStart="@drawable/ic_person_outline_gray_24dp"
             android:paddingStart="10dp"
-            android:background="@color/whiteSmoke"
+            android:textColor="@color/gray"
+            android:background="@drawable/pale_green_button_ripple"
             android:text="@string/try_without_login"/>
 
         <View

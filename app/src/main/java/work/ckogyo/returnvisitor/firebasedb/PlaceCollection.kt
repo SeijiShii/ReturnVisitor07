@@ -5,9 +5,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
-import work.ckogyo.returnvisitor.utils.categoryKey
-import work.ckogyo.returnvisitor.utils.parentIdKey
-import work.ckogyo.returnvisitor.utils.placesKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.categoryKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.parentIdKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placesKey
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 

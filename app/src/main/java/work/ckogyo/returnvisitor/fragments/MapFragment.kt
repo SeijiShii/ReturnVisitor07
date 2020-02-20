@@ -29,6 +29,10 @@ import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.latitudeKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.longitudeKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.zoomLevelKey
 import java.util.*
 
 
@@ -302,11 +306,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         val pos = googleMap.cameraPosition?:return
 
-        val editor = mainActivity!!.getSharedPreferences(returnVisitorPrefsKey, Context.MODE_PRIVATE).edit()
-        editor.putFloat(zoomLevelKey, pos.zoom)
-        editor.putString(latitudeKey, pos.target.latitude.toString())
-        editor.putString(longitudeKey, pos.target.longitude.toString())
-        editor.apply()
+        mainActivity!!.getSharedPreferences(returnVisitorPrefsKey, Context.MODE_PRIVATE).edit()
+            .apply {
+                putFloat(zoomLevelKey, pos.zoom)
+                putString(latitudeKey, pos.target.latitude.toString())
+                putString(longitudeKey, pos.target.longitude.toString())
+                apply()
+            }
     }
 
     private fun loadCameraPosition() {
@@ -508,7 +514,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         return@OnTouchListener true
     }
 
-    private fun refreshSignOutButton() {
+    fun refreshSignOutButton() {
 
         signOutButton.text = if (mainActivity?.currentUser != null) {
             signOutButton.setOnClickListener {

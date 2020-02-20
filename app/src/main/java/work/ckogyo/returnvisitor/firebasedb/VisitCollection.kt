@@ -10,6 +10,9 @@ import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.DataModelKeys.dateTimeMillisKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.visitsKey
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap

@@ -9,6 +9,12 @@ import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.DataModelKeys.dateTimeMillisKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.personVisitsKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.ratingKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.infoTagIdsKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementIdsKey
 import java.lang.StringBuilder
 import java.util.*
 import kotlin.collections.ArrayList

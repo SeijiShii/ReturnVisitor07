@@ -6,9 +6,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Placement
-import work.ckogyo.returnvisitor.utils.lastUsedAtInMillisKey
-import work.ckogyo.returnvisitor.utils.placementIdsKey
-import work.ckogyo.returnvisitor.utils.placementsKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.lastUsedAtInMillisKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementsKey
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 

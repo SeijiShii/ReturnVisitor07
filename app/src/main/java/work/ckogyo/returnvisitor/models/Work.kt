@@ -1,7 +1,7 @@
 package work.ckogyo.returnvisitor.models
 
-import work.ckogyo.returnvisitor.utils.endKey
-import work.ckogyo.returnvisitor.utils.startKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.endKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.startKey
 import java.util.*
 import kotlin.collections.HashMap
 

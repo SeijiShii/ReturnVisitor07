@@ -1,6 +1,6 @@
 package work.ckogyo.returnvisitor.models
 
-import work.ckogyo.returnvisitor.utils.lastUsedAtInMillisKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.lastUsedAtInMillisKey
 import java.util.*
 import kotlin.collections.HashMap
 

@@ -1,6 +1,13 @@
 package work.ckogyo.returnvisitor.models
 
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.DataModelKeys.durationKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.monthKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.plcCountKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.rvCountKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.showVideoCountKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.studyCountKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.yearKey
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap

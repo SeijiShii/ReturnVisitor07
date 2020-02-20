@@ -5,7 +5,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Person
-import work.ckogyo.returnvisitor.utils.personsKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.personsKey
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 

@@ -27,4 +27,5 @@
     <color name="rvGold">#FFD700</color>
     <color name="studyOrange">#FFA500</color>
     <color name="workGreen">#66cdaa</color>
+    <color name="paleGreen">#66cdaa</color>
 </resources>

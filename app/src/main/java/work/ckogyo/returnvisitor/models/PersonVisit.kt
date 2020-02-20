@@ -7,6 +7,10 @@ import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.DataModelKeys.isRVKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.isStudyKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.personIdKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.seenKey
 import java.lang.StringBuilder
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

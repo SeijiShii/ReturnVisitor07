@@ -3,6 +3,11 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.DataModelKeys.categoryKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.lastUsedAtInMillisKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.magazineTypeKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.numberKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.yearKey
 import java.lang.StringBuilder
 import java.util.*
 
