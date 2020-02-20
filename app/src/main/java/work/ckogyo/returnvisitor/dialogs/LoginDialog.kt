@@ -21,6 +21,15 @@ class LoginDialog : DialogFragment() {
             it.googleSignInButton.setOnClickListener {
                 mainActivity?.signIn()
             }
+            it.anonymousLoginButton.setOnClickListener {
+
+            }
+            it.googleSignInHelpButton.setOnClick {
+                mainActivity?.showTextPopupDialog()
+            }
+            it.anonymousLoginHelpButton.setOnClick {
+                mainActivity?.showTextPopupDialog()
+            }
         }
 
         isCancelable = false
@@ -29,4 +38,6 @@ class LoginDialog : DialogFragment() {
             it.setView(v)
         }.create()
     }
+
+
 }

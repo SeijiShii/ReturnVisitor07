@@ -99,7 +99,7 @@ open class Person : BaseDataModel {
 
             val ageArray = context.resources.getStringArray(R.array.ageArray)
 
-            "$sexStr ${ageArray[age.ordinal - 1]}"
+            "$sexStr ${ageArray[age.ordinal]}"
         }
     }
 }

@@ -34,7 +34,8 @@
         <View
             android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:background="@drawable/gray_help_solid"/>
+            android:background="@drawable/gray_help_solid"
+            android:id="@+id/googleSignInHelpButton"/>
 
     </LinearLayout>
 
@@ -57,7 +58,8 @@
         <View
             android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:background="@drawable/gray_help_solid"/>
+            android:background="@drawable/gray_help_solid"
+            android:id="@+id/anonymousLoginHelpButton"/>
 
     </LinearLayout>
 

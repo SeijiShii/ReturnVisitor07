@@ -49,7 +49,7 @@ class EditPersonDialog :DialogFrameFragment() {
 
                 personNameText.setText(person.name)
                 sexRadioGroup.check(person.sex.ordinal - 1)
-                ageSpinner.setSelection(person.age.ordinal - 1)
+                ageSpinner.setSelection(person.age.ordinal)
                 personDescriptionText.setText(person.description)
 
             }
@@ -65,7 +65,7 @@ class EditPersonDialog :DialogFrameFragment() {
         }
 
         if (person.age != Person.Age.Unknown) {
-            ageSpinner.setSelection(person.age.ordinal - 1)
+            ageSpinner.setSelection(person.age.ordinal)
         }
 
         personNameText.addTextChangedListener(object :TextWatcher{
@@ -106,7 +106,7 @@ class EditPersonDialog :DialogFrameFragment() {
             override fun onNothingSelected(p0: AdapterView<*>?) {}
 
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-                person.age = Person.Age.values()[p2 + 1]
+                person.age = Person.Age.values()[p2]
                 refreshOKButton()
             }
         }

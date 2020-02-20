@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
+import android.view.ViewParent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.dialogs.LoginDialog
 import work.ckogyo.returnvisitor.dialogs.MonthReportDialog
+import work.ckogyo.returnvisitor.dialogs.TextPopupDialog
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
@@ -380,5 +382,16 @@ class MainActivity : AppCompatActivity() {
             loginDialog.show(supportFragmentManager, LoginDialog::class.java.simpleName)
         }
     }
+
+    fun showTextPopupDialog() {
+
+        val tpDialog = TextPopupDialog()
+//
+//        supportFragmentManager.beginTransaction().also {
+//            it.add(topRootView.id, tpDialog)
+//            it.commit()
+//        }
+    }
+
 
 }
