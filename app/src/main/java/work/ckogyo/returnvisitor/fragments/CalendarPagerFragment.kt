@@ -42,7 +42,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         view.setOnTouchListener { _, _ -> true }
 
         backToMapButton.setOnClick {
-            (context as? MainActivity)?.supportFragmentManager?.popBackStack()
+            (context as? MainActivity)?.supportFragmentManager?.popBackStack(CalendarFragment::class.java.simpleName, 0)
         }
 
         calendarMenuButton.setOnClick {

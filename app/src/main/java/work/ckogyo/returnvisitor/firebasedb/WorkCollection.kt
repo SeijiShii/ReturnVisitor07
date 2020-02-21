@@ -54,6 +54,20 @@ class WorkCollection {
         }
     }
 
+    suspend fun loadById(id: String): Work? = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+            val map = FirebaseDB.instance.loadById(worksKey, id)
+            if (map == null) {
+                cont.resume(null)
+            } else {
+                val work = Work()
+                work.initFromHashMap(map)
+                cont.resume(work)
+            }
+        }
+    }
+
     suspend fun loadAllWorksInDate(date: Calendar): ArrayList<Work> {
 
         val worksByStart = loadWorksByDate(date, true)

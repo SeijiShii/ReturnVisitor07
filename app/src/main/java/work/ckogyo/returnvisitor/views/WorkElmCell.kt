@@ -340,7 +340,7 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
     }
 
     private fun stopTimeCounting() {
-        TimeCountIntentService.stopTimeCount()
+        TimeCountIntentService.stopTimeCount(context)
 
         stopButtonBlink?.cancel()
         stopTimeCountingButton.clearAnimation()

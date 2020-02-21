@@ -143,7 +143,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
             if (!dailyReport.isDummy && dailyReport.hasData) {
                 setOnClick {
                     val fm = (context as MainActivity).supportFragmentManager
-                    fm.popBackStack()
+                    fm.popBackStack(CalendarFragment::class.java.simpleName, 0)
 
                     (context as MainActivity).showWorkFragment(dailyReport.date)
                 }

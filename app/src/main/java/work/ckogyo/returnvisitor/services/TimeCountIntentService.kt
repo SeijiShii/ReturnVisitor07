@@ -12,11 +12,14 @@ import android.content.Context
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys
 import work.ckogyo.returnvisitor.utils.toDurationText
 import java.util.*
 
@@ -29,20 +32,36 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
     private var receiver: BroadcastReceiver? = null
 
     companion object {
-        val startCountToService = TimeCountIntentService::class.java.name + "_start_counting_to_service"
-        val restartCountToService = TimeCountIntentService::class.java.name + "_restart_counting_to_service"
+        val startCountingToService = TimeCountIntentService::class.java.name + "_start_counting_to_service"
+        val restartCountingToService = TimeCountIntentService::class.java.name + "_restart_counting_to_service"
         val timeCountingToActivity = TimeCountIntentService::class.java.name + "_time_counting_to_activity"
         val stopTimeCountingToActivity = TimeCountIntentService::class.java.name + "_stop_time_count_to_activity"
         val startTime = TimeCountIntentService::class.java.name + "_start_time"
         val endTime = TimeCountIntentService::class.java.name + "end_time"
         val duration = TimeCountIntentService::class.java.name + "_duration"
-        val countingWorkId = TimeCountIntentService::class.java.name + "_counting_work_id"
+        val timeCountingWorkId = TimeCountIntentService::class.java.name + "_time_counting_work_id"
         val changeStartTimeToService = TimeCountIntentService::class.java.name + "_change_start_time_to_service"
 
         var isTimeCounting: Boolean = false
 
-        fun stopTimeCount() {
+        fun stopTimeCount(context: Context) {
             isTimeCounting = false
+            saveTimeCountingStateToSharedPrefs(context)
+        }
+
+        private fun saveTimeCountingStateToSharedPrefs(context: Context) {
+
+            val prefs = context.getSharedPreferences(SharedPrefKeys.returnVisitorPrefsKey, Context.MODE_PRIVATE)
+
+            prefs.edit().apply {
+                putBoolean(SharedPrefKeys.isTimeCounting, isTimeCounting)
+
+                if (isTimeCounting) {
+                    putString(timeCountingWorkId, work!!.id)
+                } else {
+                    remove(timeCountingWorkId)
+                }
+            }.apply()
         }
 
         // companion objectから触れるようにシングルトン的な
@@ -67,6 +86,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 MonthReportCollection.instance.updateAndLoadByMonthAsync(work!!.start)
             }
         }
+
     }
 
     override fun onCreate() {
@@ -107,7 +127,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         if (intent != null) {
 
-            if (intent.action == startCountToService) {
+            if (intent.action == startCountingToService) {
                 Toast.makeText(this, "Time count started", Toast.LENGTH_SHORT).show()
                 work = Work()
                 work!!.start = Calendar.getInstance()
@@ -115,17 +135,21 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                     workColl.set(work!!)
                     MonthReportCollection.instance.updateAndLoadByMonthAsync(work!!.start)
                 }
-            } else if (intent.action == restartCountToService) {
-                val workId = intent.getStringExtra(countingWorkId)
-//                mWork = WorkList.getInstance().getById(workId)
-//                if (mWork == null) {
-//                    stopTimeCount()
-//                    return
-//                }
+            } else if (intent.action == restartCountingToService) {
+                val workId = intent.getStringExtra(timeCountingWorkId)
+                runBlocking {
+                    work = workColl.loadById(workId)
+                    if (work == null) {
+                        stopTimeCount(this@TimeCountIntentService)
+                        return@runBlocking
+                    }
+                }
             }
         }
 
         isTimeCounting = true
+        saveTimeCountingStateToSharedPrefs(this)
+
         var minCounter = 0
 
         initNotification(work!!.duration)
@@ -175,7 +199,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
         intent.putExtra(startTime, work!!.start.timeInMillis)
         intent.putExtra(endTime, work!!.end.timeInMillis)
         intent.putExtra(duration, work!!.duration)
-        intent.putExtra(countingWorkId, work!!.id)
+        intent.putExtra(timeCountingWorkId, work!!.id)
     }
 
     private fun cancelNotification() {
@@ -187,13 +211,13 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
 
     private var notificationManager: NotificationManager? = null
-    private var mBuilder: NotificationCompat.Builder? = null
+    private var notificationBuilder: NotificationCompat.Builder? = null
 
     private fun initNotification(duration: Long) {
 
         val durationText = getString(R.string.duration_placeholder, duration.toDurationText(true))
 
-        mBuilder = NotificationCompat.Builder(this)
+        notificationBuilder = NotificationCompat.Builder(this)
             .setSmallIcon(R.mipmap.rv_logo)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(durationText)
@@ -201,29 +225,30 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
         val dummyIntent = Intent(this, IntentCatcherDummyService::class.java)
         val dummyPendingIntent = PendingIntent.getService(this, 0, dummyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        mBuilder!!.setContentIntent(dummyPendingIntent)
+        notificationBuilder!!.setContentIntent(dummyPendingIntent)
 
         val deleteIntent = Intent(this, TimeCountIntentService::class.java)
         deleteIntent.action = ACTION_DELETE
         val deletePendingIntent = PendingIntent.getService(this, 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        mBuilder!!.setDeleteIntent(deletePendingIntent)
+        notificationBuilder!!.setDeleteIntent(deletePendingIntent)
 
         // キャンセルできないようにする
-        mBuilder!!.setOngoing(true)
+        notificationBuilder!!.setOngoing(true)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager!!.notify(timeNotifyId, mBuilder!!.build())
+        notificationManager!!.notify(timeNotifyId, notificationBuilder!!.build())
     }
 
     private fun updateNotification(duration: Long) {
 
         val durationText = getString(R.string.duration_placeholder, duration.toDurationText(true))
-        mBuilder!!.setContentText(durationText)
+        notificationBuilder!!.setContentText(durationText)
 
         // キャンセルできないようにする
-        mBuilder!!.setOngoing(true)
+        notificationBuilder!!.setOngoing(true)
 
-        notificationManager!!.notify(timeNotifyId, mBuilder!!.build())
+        notificationManager!!.notify(timeNotifyId, notificationBuilder!!.build())
     }
+
 
 
 

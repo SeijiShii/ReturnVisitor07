@@ -26,6 +26,7 @@ object SharedPrefKeys {
     const val zoomLevelKey = "zoom_level"
     const val latitudeKey = "latitude"
     const val longitudeKey = "longitude"
+    const val isTimeCounting = "is_time_counting"
 }
 
 object DataModelKeys {

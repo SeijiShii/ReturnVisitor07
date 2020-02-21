@@ -101,7 +101,7 @@ class RecordVisitFragment : Fragment(),
 
     private fun onCancelClicked(v: View){
         onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Canceled)
-        mainActivity?.supportFragmentManager?.popBackStack()
+        backToMapFragment()
         hideKeyboard(mainActivity!!)
     }
 
@@ -110,16 +110,23 @@ class RecordVisitFragment : Fragment(),
         visit.place.name = placeNameText.text.toString()
 
         onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Done)
-        mainActivity?.supportFragmentManager?.popBackStack()
+        backToMapFragment()
         hideKeyboard(mainActivity!!)
     }
 
     private fun onDeleteClicked(v: View) {
         confirmDeleteVisit(context!!, visit) {
             onFinishEdit?.invoke(visit, mode, OnFinishEditParam.Deleted)
-            mainActivity?.supportFragmentManager?.popBackStack()
+            backToMapFragment()
             hideKeyboard(mainActivity!!)
         }
+    }
+
+    private fun backToMapFragment() {
+
+        mainActivity?.supportFragmentManager?.beginTransaction()
+            ?.remove(this)
+            ?.commit()
     }
 
     private fun onAddPersonClicked(v: View) {

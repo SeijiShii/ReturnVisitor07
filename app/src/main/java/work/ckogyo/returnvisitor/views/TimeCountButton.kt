@@ -10,7 +10,6 @@ import android.view.View
 import android.widget.TimePicker
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.android.synthetic.main.time_count_button.view.*
-import kotlinx.coroutines.channels.BroadcastChannel
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.setOnClick
@@ -46,7 +45,7 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
                 refreshStartTimeText()
                 startTimeCountService()
             } else {
-                TimeCountIntentService.stopTimeCount()
+                TimeCountIntentService.stopTimeCount(context)
             }
 
             refreshUIs()
@@ -92,7 +91,7 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
 
     private fun startTimeCountService() {
         val timeCountIntent = Intent(context, TimeCountIntentService::class.java)
-        timeCountIntent.action = TimeCountIntentService.startCountToService
+        timeCountIntent.action = TimeCountIntentService.startCountingToService
         context.startService(timeCountIntent)
     }
 
@@ -103,6 +102,19 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
                     TimeCountIntentService.timeCountingToActivity -> {
                         val duration = intent.getLongExtra(TimeCountIntentService.duration, 0)
                         refreshDurationText(duration)
+
+                        if (TimeCountIntentService.isTimeCounting && (!isCountingTime || !isExtracted)) {
+                            isCountingTime = true
+                            isExtracted = true
+
+                            val startInMillis = intent.getLongExtra(TimeCountIntentService.startTime, 0)
+                            startTime = Calendar.getInstance()
+                            startTime.timeInMillis = startInMillis
+
+                            refreshStartTimeText()
+
+                            refreshUIs()
+                        }
                     }
                     TimeCountIntentService.stopTimeCountingToActivity -> {
                         isCountingTime = false

@@ -183,7 +183,9 @@ abstract class DialogFrameFragment : Fragment() {
             isAlreadyClosed = true
 
             overlay.fadeVisibility(false, onAnimationFinished = {
-                (context as AppCompatActivity).supportFragmentManager.popBackStack(fragmentTag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                (context as AppCompatActivity).supportFragmentManager.beginTransaction()
+                    .remove(this)
+                    .commit()
             })
         }
     }

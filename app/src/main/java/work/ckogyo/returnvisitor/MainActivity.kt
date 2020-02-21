@@ -1,13 +1,12 @@
 package work.ckogyo.returnvisitor
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.view.View
-import android.view.ViewParent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -18,7 +17,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -34,12 +32,11 @@ import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.fragments.*
-import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
-import kotlin.math.log
 
 class MainActivity : AppCompatActivity() {
 
@@ -99,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         switchProgressOverlay(false)
         isAppVisible = true
         watchAndAdjustAdView()
+        restartTimeCountIfNeeded()
     }
 
     override fun onStop() {
@@ -145,14 +143,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showRecordVisitFragmentForEdit(visit: Visit, onFinishEditVisit: (Visit, EditMode, OnFinishEditParam) -> Unit) {
-        val transaction = supportFragmentManager.beginTransaction()
-        val rvFragment = RecordVisitFragment()
-        rvFragment.visit = visit
-        rvFragment.onFinishEdit = onFinishEditVisit
-        rvFragment.mode = EditMode.Edit
-        transaction.addToBackStack(null)
-        transaction.add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
-        transaction.commit()
+
+        val rvFragment = RecordVisitFragment().also {
+            it.visit = visit
+            it.onFinishEdit = onFinishEditVisit
+            it.mode = EditMode.Edit
+        }
+
+        supportFragmentManager.beginTransaction()
+            .addToBackStack(null)
+            .add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
+            .commit()
         hideKeyboard(this)
     }
 
@@ -407,6 +408,28 @@ class MainActivity : AppCompatActivity() {
         if (auth.currentUser == null) {
             loginDialog = LoginDialog()
             loginDialog.show(R.id.appFrame, supportFragmentManager, LoginDialog::class.java.simpleName)
+        }
+    }
+
+    private fun restartTimeCountIfNeeded() {
+
+        val prefs = getSharedPreferences(SharedPrefKeys.returnVisitorPrefsKey, Context.MODE_PRIVATE)
+        val isCounting = prefs.getBoolean(SharedPrefKeys.isTimeCounting, false)
+        if (isCounting) {
+
+            if (TimeCountIntentService.isTimeCounting) {
+                return
+            }
+
+            val workId = prefs.getString(TimeCountIntentService.timeCountingWorkId, null)
+
+            workId ?: return
+
+            Intent(this, TimeCountIntentService::class.java).also {
+                it.action = TimeCountIntentService.restartCountingToService
+                it.putExtra(TimeCountIntentService.timeCountingWorkId, workId)
+                startService(it)
+            }
         }
     }
 

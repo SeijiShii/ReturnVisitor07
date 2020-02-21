@@ -22,7 +22,7 @@ class InfoTag : BaseDataModel {
 
     override fun clone(): InfoTag {
         return InfoTag(name).also {
-            it.cloneBaseProperties(this)
+            cloneBaseProperties(it)
         }
     }
 
