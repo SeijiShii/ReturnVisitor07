@@ -161,13 +161,15 @@ abstract class DialogFrameFragment : Fragment() {
 //        dialogContentFrame.addView(view)
 //    }
 
+    private var fragmentTag = ""
     fun show(frameId: Int, fm: FragmentManager, tag: String) {
 
+        fragmentTag = tag
         isAlreadyClosed = false
 
         fm.beginTransaction()
             .addToBackStack(null)
-            .add(frameId, this, tag)
+            .add(frameId, this, fragmentTag)
             .commit()
     }
 
@@ -181,7 +183,7 @@ abstract class DialogFrameFragment : Fragment() {
             isAlreadyClosed = true
 
             overlay.fadeVisibility(false, onAnimationFinished = {
-                (context as AppCompatActivity).supportFragmentManager.popBackStack()
+                (context as AppCompatActivity).supportFragmentManager.popBackStack(fragmentTag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
             })
         }
     }

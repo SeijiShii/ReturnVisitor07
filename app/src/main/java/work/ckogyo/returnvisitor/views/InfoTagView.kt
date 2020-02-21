@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import kotlinx.android.synthetic.main.placement_tag_view.view.*
+import kotlinx.android.synthetic.main.info_tag_view.view.*
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.InfoTag
 import work.ckogyo.returnvisitor.utils.setOnClick
@@ -28,8 +28,8 @@ class InfoTagView(context: Context, val tag: InfoTag) : FrameLayout(context), Ta
         View.inflate(context, R.layout.info_tag_view, this).also {
             layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
         }
-        placementText.text = tag.name
-        removePlcButton.setOnClick {
+        infoTagText.text = tag.name
+        removeTagButton.setOnClick {
             onRemoved?.invoke(this)
         }
     }

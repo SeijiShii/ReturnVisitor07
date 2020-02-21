@@ -233,11 +233,7 @@ class MainActivity : AppCompatActivity() {
 
     fun showDialog(dialog: DialogFrameFragment) {
 
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.add(R.id.appFrame, dialog, DialogFrameFragment::class.java.simpleName)
-        transaction.addToBackStack(null)
-        transaction.commit()
-
+        dialog.show(R.id.appFrame, supportFragmentManager, dialog.javaClass.simpleName)
         hideKeyboard(this)
     }
 
