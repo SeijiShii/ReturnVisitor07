@@ -22,11 +22,11 @@ class LoginDialog : DialogFrameFragment() {
             it.anonymousLoginButton.setOnClickListener {
                 mainActivity?.signInAnonymously()
             }
-            it.googleSignInHelpButton.setOnClick {
-                mainActivity?.showTextPopupDialog()
+            it.googleSignInHelpButton.setOnClick { v ->
+                mainActivity?.showTextPopupDialog(v)
             }
-            it.anonymousLoginHelpButton.setOnClick {
-                mainActivity?.showTextPopupDialog()
+            it.anonymousLoginHelpButton.setOnClick { v ->
+                mainActivity?.showTextPopupDialog(v)
             }
         }
     }

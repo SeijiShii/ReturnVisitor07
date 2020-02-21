@@ -13,6 +13,9 @@
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
                 android:value="@string/apiKey"/>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_id"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

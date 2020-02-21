@@ -7,10 +7,13 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -61,6 +64,12 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.main_activity)
         supportActionBar?.hide()
+
+        MobileAds.initialize(this, getString(R.string.admob_id))
+        val adRequest = AdRequest.Builder()
+            .addTestDevice("B3596FE6869B7E16CC393BDD40A1ED72")
+            .build()
+        adView.loadAd(adRequest)
 
         mapFragment = MapFragment()
         mapFragment.onSignOutConfirmed = this::onSignOutConfirmedInMapFragment
@@ -433,15 +442,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showTextPopupDialog() {
+    fun showTextPopupDialog(anchor: View) {
 
-        val tpDialog = TextPopupDialog()
-//
-//        supportFragmentManager.beginTransaction().also {
-//            it.add(topRootView.id, tpDialog)
-//            it.commit()
-//        }
+        TextPopupDialog(anchor, R.id.appFrame).show(supportFragmentManager)
     }
-
 
 }

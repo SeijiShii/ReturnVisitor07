@@ -175,5 +175,5 @@ fun View.fadeVisibility(fadeIn: Boolean,
 
     val couple = ViewAndAnimatorCouple(this, animator)
     viewAndAnimatorList.add(couple)
-
 }
+
