@@ -73,7 +73,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         }
 
         backToMapButton.setOnClick {
-            mainActivity?.supportFragmentManager?.popBackStack()
+            backToMapFragment()
         }
 
         workFragmentMenuButton.setOnClick {
@@ -132,12 +132,15 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             adapter = WorkElmAdapter(dataElms)
 
             handler.post {
-                workListView.adapter = adapter
-                workListView.layoutManager = SmoothScrollingLayoutManager(context!!)
+
+                workListView ?: return@post
+
+                workListView?.adapter = adapter
+                workListView?.layoutManager = SmoothScrollingLayoutManager(context!!)
 
                 val position = adapter.getPositionByDate(date)
                 if (position > 0) {
-                    workListView.layoutManager!!.scrollToPosition(position)
+                    workListView?.layoutManager!!.scrollToPosition(position)
                 }
                 switchLoadingWorkOverlay(false)
             }
@@ -306,6 +309,13 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             return@setOnMenuItemClickListener true
         }
         popup.show()
+    }
+
+    private fun backToMapFragment() {
+
+        mainActivity?.supportFragmentManager?.beginTransaction()
+            ?.remove(this)
+            ?.commit()
     }
 
     inner class WorkElmAdapter(private val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {

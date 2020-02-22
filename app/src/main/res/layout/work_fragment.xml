@@ -20,13 +20,7 @@
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"/>
 
-        <ProgressBar
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:id="@+id/loadingWorkProgressSmall"
-            android:alpha="0"/>
+
 
         <TextView
             android:layout_width="150dp"
@@ -66,6 +60,21 @@
                 android:layout_height="10dp"
                 android:background="@drawable/gradient_shadow"
                 android:layout_alignParentTop="true"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ProgressBar
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:id="@+id/loadingWorkProgressSmall"
+                android:layout_margin="10dp"
+                android:alpha="0"/>
 
         </RelativeLayout>
 

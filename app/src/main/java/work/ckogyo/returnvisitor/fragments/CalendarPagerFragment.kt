@@ -42,7 +42,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         view.setOnTouchListener { _, _ -> true }
 
         backToMapButton.setOnClick {
-            (context as? MainActivity)?.supportFragmentManager?.popBackStack(CalendarFragment::class.java.simpleName, 0)
+            backToMapFragment()
         }
 
         calendarMenuButton.setOnClick {
@@ -157,6 +157,13 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         }
 
 
+    }
+
+    private fun backToMapFragment() {
+
+        mainActivity?.supportFragmentManager?.beginTransaction()
+            ?.remove(this)
+            ?.commit()
     }
 
 }
