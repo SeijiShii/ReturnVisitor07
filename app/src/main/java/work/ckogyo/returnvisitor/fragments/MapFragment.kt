@@ -14,6 +14,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import kotlinx.android.synthetic.main.map_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
@@ -93,14 +94,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             googleMap.animateCamera(CameraUpdateFactory.newLatLng(it))
             val marker = placeMarkers.addMarker(place)
 
-            val popup = PlacePopup(context!!, place)
-            popup.onCancel = {
-                marker?.remove()
-            }
-
-            popup.onClickButton = this::onClickButtonInPlacePopup
-            popup.onClickNotHomeButton = this::onNotHomeRecorded
-            mapOuterFrame.addView(popup)
+            showPlacePopup(place, marker)
         }
 
         googleMap.setOnMarkerClickListener {
@@ -130,6 +124,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         loadCameraPosition()
 
         isMapReady = true
+    }
+
+    private fun showPlacePopup(place: Place, marker: Marker?) {
+
+        PlacePopup(context!!, place).also {
+            it.onCancel = {
+                marker?.remove()
+            }
+            it.onClickButton = this::onClickButtonInPlacePopup
+            it.onClickNotHomeButton = this::onNotHomeRecorded
+            mapOuterFrame.addView(it)
+        }
     }
 
     private fun onOkInHousingComplexFragment(hComplex: Place) {
@@ -273,6 +279,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         visit.rating = Visit.Rating.NotHome
 
         GlobalScope.launch {
+
+            visit.place.address = requestAddressIfNeeded(visit.place, context!!)
+
             VisitCollection.instance.saveVisitAsync(visit).await()
             handler.post {
                 placeMarkers.refreshMarker(place)
