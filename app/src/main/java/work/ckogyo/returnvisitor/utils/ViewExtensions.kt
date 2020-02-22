@@ -47,7 +47,7 @@ private fun getLeftTop(v: View, leftTopSum: Point, limitAncestor: View? = null) 
     }
 
     if (parentView is ViewGroup) {
-        getLeftTop(parentView, leftTopSum)
+        getLeftTop(parentView, leftTopSum, limitAncestor)
     }
 }
 

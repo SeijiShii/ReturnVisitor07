@@ -112,21 +112,17 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
 
         val margin = context!!.toDP(10)
         val x = when {
-            // アンカーの左側にスペースがあれば、アンカー左側に密着
-            anchorPos.x >= popupDialog.width + margin -> anchorPos.x - popupDialog.width
-            // アンカー右側にスペースがあれば右側に密着
-            frame.width - (anchorPos.x + anchor.width) >= popupDialog.width + margin -> anchorPos.x + anchor.width
-            // どちらにもスペースがなければフレームの左からマージンを開けて
-            else -> margin
+            // アンカーの左側と左揃えがデフォ
+            frame.width - anchorPos.x >= popupDialog.width + margin -> anchorPos.x
+            // 右側に十分なスペースがなければ画面右端からマージンを開けた分
+            else -> frame.width - (popupDialog.width + margin)
         }
 
         val y = when {
-            // アンカーの上側にスペースがあれば
-            anchorPos.y >= popupDialog.height + margin -> anchorPos.y - popupDialog.height
-            // アンカーの下側にスペースがあれば
-            frame.height - (anchorPos.y + anchor.height) >= popupDialog.height + margin -> anchorPos.y + anchor.height
-            // どちらにもスペースがない
-            else -> margin
+            // アンカーの下側がデフォ
+            frame.height - (anchorPos.y + anchor.height) > popupDialog.height + margin -> anchorPos.y + anchor.height
+            // 下側に十分なスペースがなければ画面下端からマージンを開けた分
+            else -> frame.height - (popupDialog.height + margin)
         }
 
         popupDialog.layoutParams = FrameLayout.LayoutParams(popupDialog.width, popupDialog.height).also {
@@ -135,6 +131,14 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
         }
 
         popupDialog.requestLayout()
+    }
+
+    fun setText(text: String) {
+        textView.text = text
+    }
+
+    fun setText(textId: Int) {
+        setText(context!!.getString(textId))
     }
 
 }
