@@ -17,3 +17,4 @@ app/build
 .idea
 images
 gradle.properties
+*.tmp
