@@ -194,11 +194,87 @@ class Visit : BaseDataModel {
         return cloned
     }
 
-    fun toString(context: Context):String {
+    fun toString(context: Context, withDateTime: Boolean = true, withLineBreak: Boolean = true):String {
 
         // TODO: いろいろな情報
 
-        return dateTime.toDateTimeText(context)
+        val builder = StringBuilder()
+        if (withDateTime) {
+            builder.append(dateTime.toDateText(context))
+            if (withLineBreak) {
+                builder.append(System.lineSeparator())
+            } else {
+                builder.append(" ")
+            }
+        }
+
+        if (personVisits.isNotEmpty()) {
+            builder.append(toPersonVisitString(context, withLineBreak))
+
+            if (withLineBreak) {
+                builder.append(System.lineSeparator())
+            } else {
+                builder.append(" ")
+            }
+        }
+
+        if (rvCount > 0 || studyCount > 0 || placementCount > 0 || showVideoCount > 0) {
+            if (rvCount > 0) {
+                builder.append("${context.getString(R.string.return_visit)}: $rvCount ")
+            }
+
+            if (studyCount > 0) {
+                builder.append("${context.getString(R.string.study)}: $studyCount ")
+            }
+
+            if (placementCount > 0) {
+                builder.append("${context.getString(R.string.placement)}: $placementCount ")
+            }
+
+            if (showVideoCount > 0) {
+                builder.append("${context.getString(R.string.show_video)}: $showVideoCount ")
+            }
+
+            if (withLineBreak) {
+                builder.append(System.lineSeparator())
+            }
+        }
+
+        if (infoTags.isNotEmpty()) {
+            builder.append("${context.getString(R.string.info_tag)}: ")
+            for (i in 0 until infoTags.size) {
+                builder.append(infoTags[i].name)
+
+                if (i < infoTags.size - 1) {
+                    builder.append(", ")
+                }
+            }
+
+            if (withLineBreak) {
+                builder.append(System.lineSeparator())
+            } else {
+                builder.append(" ")
+            }
+        }
+
+        if (placements.isNotEmpty()) {
+            builder.append("${context.getString(R.string.placement)}: ")
+            for (i in 0 until placements.size) {
+                builder.append(placements[i].toShortString(context))
+
+                if (i < placements.size - 1) {
+                    builder.append(", ")
+                }
+            }
+
+            if (withLineBreak) {
+                builder.append(System.lineSeparator())
+            } else {
+                builder.append(" ")
+            }
+        }
+
+        return builder.toString()
     }
 
     val rvCount: Int
@@ -212,16 +288,16 @@ class Visit : BaseDataModel {
             return cnt
         }
 
-//    val strudyCount: Int
-//        get() {
-//            var cnt = 0
-//            for (pv in personVisits) {
-//                if (pv.isStudy) {
-//                    cnt++
-//                }
-//            }
-//            return cnt
-//        }
+    private val studyCount: Int
+        get() {
+            var cnt = 0
+            for (pv in personVisits) {
+                if (pv.isStudy) {
+                    cnt++
+                }
+            }
+            return cnt
+        }
 
     val placementCount: Int
         get() {
@@ -245,7 +321,7 @@ class Visit : BaseDataModel {
             return cnt
         }
 
-    fun toPersonVisitString(context: Context): String {
+    fun toPersonVisitString(context: Context, withLineBreak: Boolean = true): String {
 
         return if (personVisits.isEmpty()) {
             context.getString(R.string.not_seen)
@@ -254,9 +330,13 @@ class Visit : BaseDataModel {
             val builder = StringBuilder()
 
             for (i in 0 until personVisits.size) {
-                builder.append(personVisits[i].toString(context))
+                builder.append(personVisits[i].toString(context, withLineBreak))
                 if (i < personVisits.size - 1) {
-                    builder.append(System.lineSeparator())
+                    if (withLineBreak) {
+                        builder.append(System.lineSeparator())
+                    } else {
+                        builder.append(", ")
+                    }
                 }
             }
 

@@ -87,11 +87,16 @@ class PersonVisit : BaseDataModel {
         return cloned
     }
 
-    fun toString(context: Context): String {
+    fun toString(context: Context, withLineBreak: Boolean = true): String {
 
         return StringBuilder().also {
             it.append(person.toString(context))
-            it.append(System.lineSeparator())
+            if (withLineBreak) {
+                it.append(System.lineSeparator())
+            } else {
+                it.append(" ")
+            }
+
             it.append(context.getText(if (seen) R.string.seen else R.string.not_seen))
             if (isRv) it.append(context.getText(R.string.return_visit))
             if (isStudy) it.append(context.getText(R.string.study))

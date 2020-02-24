@@ -5,20 +5,24 @@ import android.app.Dialog
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.DialogFragment
-import kotlinx.android.synthetic.main.record_visit_fragment.*
-import kotlinx.android.synthetic.main.room_cell.view.*
 import kotlinx.android.synthetic.main.visit_detail_dialog.*
 import kotlinx.android.synthetic.main.visit_detail_dialog.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.utils.confirmDeleteVisit
 import work.ckogyo.returnvisitor.utils.ratingToColorButtonResId
+import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.views.SmallTagView
 
 class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
+
+    var onClickEditVisit: ((Visit) -> Unit)? = null
+    var onDeleteVisitConfirmed: ((Visit) -> Unit)? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
@@ -58,6 +62,9 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
         v.tagContainer.addTagViews(infoTagViews)
 
         v.noteText.text = visit.description
+        v.visitDetailMenuButton.setOnClick {
+            showMenuPopup()
+        }
 
         return AlertDialog.Builder(context).also {
 
@@ -65,5 +72,27 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
             it.setNeutralButton(R.string.close, null)
 
         }.create()
+    }
+
+
+    private fun showMenuPopup() {
+
+        val popup = PopupMenu(context!!, dialog.visitDetailMenuButton)
+        popup.menuInflater.inflate(R.menu.visit_cell_menu, popup.menu)
+        popup.setOnMenuItemClickListener {
+            when(it.itemId) {
+                R.id.edit_visit -> {
+                    onClickEditVisit?.invoke(visit)
+                }
+                R.id.delete_visit -> {
+                    confirmDeleteVisit(context!!, visit){
+                        onDeleteVisitConfirmed?.invoke(visit)
+                    }
+                }
+            }
+            this.dismiss()
+            return@setOnMenuItemClickListener true
+        }
+        popup.show()
     }
 }

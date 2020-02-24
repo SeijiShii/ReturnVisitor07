@@ -17,6 +17,7 @@ import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
+import work.ckogyo.returnvisitor.dialogs.VisitDetailDialog
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
@@ -24,6 +25,7 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.models.WorkElmList
+import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.VisitCell
 import work.ckogyo.returnvisitor.views.WorkElmCell
@@ -318,6 +320,8 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             ?.commit()
     }
 
+
+
     inner class WorkElmAdapter(private val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         private val mainActivity = context as? MainActivity
@@ -359,8 +363,15 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             }
 
             val cell = VisitCell(context!!).also {
-                it.onDeleteVisitConfirmed = this::onVisitDeleted
                 it.refresh(visit)
+                it.setOnClick { cell ->
+                    VisitDetailDialog((cell as VisitCell).visit).also { dialog ->
+                        dialog.onClickEditVisit = { visit2 ->
+                            mainActivity?.showRecordVisitFragmentForEdit(visit2, this::onFinishEditVisit)
+                        }
+                        dialog.onDeleteVisitConfirmed = this::onVisitDeleted
+                    }.show(childFragmentManager, VisitDetailDialog::class.java.simpleName)
+                }
             }
             visitCells.add(cell)
             return cell
@@ -555,19 +566,19 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             if (pos < 0) return
 
             dataElms.removeAt(pos)
+            notifyItemRemoved(pos)
 
             val handler = Handler()
             GlobalScope.launch {
                 VisitCollection.instance.deleteAsync(visit).await()
-
                 val dateBorderPos = deleteDateBorderPositionIfADayHasNoElm(visit.dateTime)
 
                 handler.post {
-                    notifyItemRemoved(pos)
                     if (dateBorderPos >= 0) {
                         notifyItemRemoved(dateBorderPos)
                     }
                 }
+                MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
             }
         }
 
@@ -669,6 +680,42 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             notifyItemInserted(index)
             return index
+        }
+
+        private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
+
+            // TODO: 編集後と削除後のWorkFragmentにおけるVisitCellの挙動
+            when(param) {
+                OnFinishEditParam.Canceled -> {}
+                OnFinishEditParam.Done -> {
+                    refreshVisitCell(visit)
+
+                    GlobalScope.launch {
+
+                        VisitCollection.instance.saveVisitAsync(visit).await()
+
+                        // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
+                        TimeCountIntentService.saveWorkIfActive()
+
+                        MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+                    }
+                }
+                OnFinishEditParam.Deleted -> {
+                    onVisitDeleted(visit)
+                }
+            }
+        }
+
+        private fun refreshVisitCell(visit: Visit) {
+
+            val pos = getPositionByVisit(visit)
+            if (pos >= 0) {
+
+                dataElms[pos].visit = visit
+
+                val elmCell = workListView.findViewHolderForAdapterPosition(pos)?.itemView as? WorkElmCell
+                elmCell?.visitCell?.refresh(visit)
+            }
         }
 
 

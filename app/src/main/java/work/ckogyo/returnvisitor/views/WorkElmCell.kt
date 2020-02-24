@@ -243,7 +243,7 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
             updateDurationText()
         }
 
-        // TODO: WorkEndのセルで時間が変更されたときWorkStart側のdurationTextが更新される必要がある。
+        // WorkEndのセルで時間が変更されたときWorkStart側のdurationTextが更新される必要がある。
         onWorkTimeChanged?.invoke(work, dataElm!!.category, oldTime!!, timeToSet)
         oldTime = null
     }
@@ -276,6 +276,14 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
     fun detachVisitCell() {
         visitCellWrapper.removeAllViews()
     }
+
+    val visitCell: VisitCell?
+        get() {
+            if (visitCellWrapper.childCount <= 0) return null
+            val cell = visitCellWrapper.getChildAt(0)
+            if (cell is VisitCell) return cell
+            return null
+        }
 
     private var stopButtonBlink: Animation? = null
     private fun startStopCountingButtonBlink() {

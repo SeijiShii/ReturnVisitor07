@@ -168,7 +168,10 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     private fun showVisitDetailDialog(visit: Visit) {
 
-        VisitDetailDialog(visit).show(childFragmentManager, VisitDetailDialog::class.java.simpleName)
+        VisitDetailDialog(visit).also {
+            it.onClickEditVisit = this@PlaceDialog::onClickEditVisitInCell
+            it.onDeleteVisitConfirmed = this@PlaceDialog::onDeleteConfirmedInCell
+        }.show(childFragmentManager, VisitDetailDialog::class.java.simpleName)
     }
 
     private fun onClickEditVisitInCell(visit: Visit) {
@@ -265,8 +268,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
                 it.setOnClick { v ->
                     this@PlaceDialog.showVisitDetailDialog(it.visit)
                 }
-                it.onClickEditVisit = this@PlaceDialog::onClickEditVisitInCell
-                it.onDeleteVisitConfirmed = this@PlaceDialog::onDeleteConfirmedInCell
+
             }) {}
         }
 
