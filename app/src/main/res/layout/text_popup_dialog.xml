@@ -5,7 +5,7 @@
     android:id="@+id/textPopupOverlay">
 
     <LinearLayout
-        android:layout_width="150dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="10dp"
@@ -14,11 +14,11 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp">
+            android:layout_height="25dp">
 
             <View
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
                 android:id="@+id/closeTextPopupButton"
                 android:background="@drawable/gray_clear_solid"
                 android:layout_alignParentRight="true"/>
@@ -29,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/gray"
-            android:textSize="13sp"
+            android:textSize="15sp"
             android:text="@string/lorem_ipsum"
             android:id="@+id/textView"/>
 

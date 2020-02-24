@@ -23,10 +23,10 @@ class LoginDialog : DialogFrameFragment() {
                 mainActivity?.signInAnonymously()
             }
             it.googleSignInHelpButton.setOnClick { v ->
-                mainActivity?.showTextPopupDialog(v)
+                mainActivity?.showTextPopupDialog(v, R.string.google_login_description)
             }
             it.anonymousLoginHelpButton.setOnClick { v ->
-                mainActivity?.showTextPopupDialog(v)
+                mainActivity?.showTextPopupDialog(v, R.string.anonymous_login_description)
             }
         }
     }

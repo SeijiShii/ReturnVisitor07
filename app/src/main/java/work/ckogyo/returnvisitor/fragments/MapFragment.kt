@@ -63,6 +63,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         initLogoButton()
         initDrawerFrame()
 
+        initHelpDialogButton()
     }
 
     override fun onStart() {
@@ -83,7 +84,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         mainActivity?.checkPermissionAndEnableMyLocation(googleMap)
 
-        googleMap.setPadding(0, context!!.toDP(50), 0, context!!.toDP(50))
+        googleMap.setPadding(context!!.toDP(10), context!!.toDP(70), 0, context!!.toDP(50))
 
         googleMap.setOnMapLongClickListener {
 
@@ -609,6 +610,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun initHelpDialogButton() {
+        mapHelpButton.setOnClick {
+            mainActivity?.showTextPopupDialog(mapHelpButton, R.string.map_help_description)
+        }
+    }
 
 
 

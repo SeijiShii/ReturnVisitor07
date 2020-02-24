@@ -26,6 +26,8 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
     private var isAlreadyClosed = false
 
     private lateinit var frame: ViewGroup
+    private var textContent: String? = null
+    private var textId = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,6 +43,12 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
         frame = (context as Activity).findViewById(frameId)
 
         textPopupOverlay.alpha = 0f
+
+        if (textContent != null) {
+            textView.text = textContent
+        } else {
+            textView.text = getString(textId)
+        }
 
         val handler = Handler()
         GlobalScope.launch {
@@ -82,8 +90,19 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
         }
     }
 
-    fun show(fm: FragmentManager) {
+    fun show(fm: FragmentManager, text: String) {
 
+        textContent = text
+        showCore(fm)
+    }
+
+    fun show(fm: FragmentManager, textId: Int) {
+
+        this.textId = textId
+        showCore(fm)
+    }
+
+    private fun showCore(fm: FragmentManager) {
         isAlreadyClosed = false
 
         fm.beginTransaction()
@@ -131,14 +150,6 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
         }
 
         popupDialog.requestLayout()
-    }
-
-    fun setText(text: String) {
-        textView.text = text
-    }
-
-    fun setText(textId: Int) {
-        setText(context!!.getString(textId))
     }
 
 }

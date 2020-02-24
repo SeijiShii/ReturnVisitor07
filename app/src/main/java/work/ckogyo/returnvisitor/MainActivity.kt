@@ -442,9 +442,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showTextPopupDialog(anchor: View) {
+    fun showTextPopupDialog(anchor: View, textId: Int) {
 
-        TextPopupDialog(anchor, R.id.appFrame).show(supportFragmentManager)
+        TextPopupDialog(anchor, R.id.appFrame).show(supportFragmentManager, textId)
     }
 
 }
