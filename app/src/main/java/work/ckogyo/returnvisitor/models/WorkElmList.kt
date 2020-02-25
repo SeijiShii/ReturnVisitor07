@@ -1,6 +1,5 @@
 package work.ckogyo.returnvisitor.models
 
-import android.util.Log
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
@@ -26,24 +25,53 @@ class WorkElmList {
             }
         }
 
+        /**
+         * 一つずつ要素を追加するのでポジションなどを取りたいときはこちら
+         */
+        fun addElmAvoidingDup(elms: ArrayList<WorkElement>, elm: WorkElement): ArrayList<WorkElement> {
+
+            val elms2 = ArrayList(elms)
+
+            var contained = false
+            for (elm2 in elms2) {
+                if (areSameElms(elm, elm2)) {
+                    contained = true
+                }
+            }
+
+            if (!contained) {
+                elms2.add(elm)
+                elms2.sortBy { elm2 -> elm2.dateTime.timeInMillis }
+            }
+
+            return elms2
+        }
+
+        private fun areSameElms(elm1: WorkElement, elm2: WorkElement): Boolean {
+            return elm1.category == WorkElement.Category.Visit
+                    && elm2.category == WorkElement.Category.Visit
+                    && elm1.visit == elm2.visit
+                    || elm1.category == WorkElement.Category.WorkStart
+                    && elm2.category == WorkElement.Category.WorkStart
+                    && elm1.work == elm2.work
+                    || elm1.category == WorkElement.Category.WorkEnd
+                    && elm2.category == WorkElement.Category.WorkEnd
+                    && elm1.work == elm2.work
+                    || elm1.category == WorkElement.Category.DateBorder
+                    && elm2.category == WorkElement.Category.DateBorder
+                    && elm1.dateTime.isSameDate(elm2.dateTime)
+        }
+
+        /**
+         * リストをまとめてマージするので挿入位置などは取れない。
+         */
         fun mergeAvoidingDup(elms1: ArrayList<WorkElement>, elms2: ArrayList<WorkElement>): ArrayList<WorkElement> {
             val merged = ArrayList<WorkElement>(elms1)
 
             for (elm2 in elms2) {
                 var contained = false
                 for (elm in merged) {
-                    if (elm2.category == WorkElement.Category.Visit
-                            && elm.category == WorkElement.Category.Visit
-                            && elm2.visit == elm.visit
-                        || elm2.category == WorkElement.Category.WorkStart
-                            && elm.category == WorkElement.Category.WorkStart
-                            && elm2.work == elm.work
-                        || elm2.category == WorkElement.Category.WorkEnd
-                            && elm.category == WorkElement.Category.WorkEnd
-                            && elm2.work == elm.work
-                        || elm2.category == WorkElement.Category.DateBorder
-                            && elm.category == WorkElement.Category.DateBorder
-                            && elm2.dateTime.isSameDate(elm.dateTime)) {
+                    if (areSameElms(elm, elm2)) {
                         contained = true
                     }
                 }

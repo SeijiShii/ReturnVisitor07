@@ -76,13 +76,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
     }
 
     private fun refreshColorMark() {
-        val handler = Handler()
-        GlobalScope.launch {
-            place.refreshRatingByVisitsAsync().await()
-            handler.post {
-                colorMark?.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place.rating), null))
-            }
-        }
+        colorMark?.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place.rating), null))
     }
 
     private fun refreshVisitList() {
@@ -255,7 +249,10 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
                 visitListView?.smoothScrollToPosition(visitsToPlace.size - 1)
 
                 loadingVisitsOfPlaceOverlay.fadeVisibility(false)
+            }
 
+            place.refreshRatingByVisitsAsync().await()
+            handler.post {
                 refreshColorMark()
             }
         }

@@ -616,6 +616,24 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    fun onFinishEditVisitInFragments(visit: Visit, param: OnFinishEditParam) {
+        when(param) {
+            OnFinishEditParam.Canceled -> {}
+            OnFinishEditParam.Done,
+            OnFinishEditParam.Deleted -> {
+                GlobalScope.launch {
+                    visit.place.refreshRatingByVisitsAsync().await()
+                    // handler.post待ちしている間になぜかRatingが空き家になるが原因究明は断念し、キャッシュして再代入というズルをする。
+                    val rating = visit.place.rating
+                    handler.post {
+                        visit.place.rating = rating
+                        placeMarkers.refreshMarker(visit.place)
+                    }
+                    PlaceCollection.instance.saveAsync(visit.place)
+                }
+            }
+        }
+    }
 
 
 }

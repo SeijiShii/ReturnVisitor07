@@ -1,6 +1,7 @@
 package work.ckogyo.returnvisitor.models
 
 import android.content.Context
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope

@@ -64,6 +64,9 @@ class PlaceCollection {
         }
     }
 
+    /**
+     * Ratingの更新も内部で行う
+     */
     fun saveAsync(place: Place): Deferred<Unit> {
         return GlobalScope.async {
             place.refreshRatingByVisitsAsync().await()

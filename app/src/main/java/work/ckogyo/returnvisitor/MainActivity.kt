@@ -192,7 +192,9 @@ class MainActivity : AppCompatActivity() {
 
 //        switchProgressOverlay(true, getString(R.string.loading_works))
 
-        val workFragment = WorkFragment(dateToShow)
+        val workFragment = WorkFragment(dateToShow).also {
+            it.onVisitEdited = mapFragment::onFinishEditVisitInFragments
+        }
         supportFragmentManager.beginTransaction().let {
             it.addToBackStack(null)
             it.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)

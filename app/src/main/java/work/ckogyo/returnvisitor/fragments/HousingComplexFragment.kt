@@ -130,7 +130,6 @@ class HousingComplexFragment : Fragment() {
 
         GlobalScope.launch {
             PlaceCollection.instance.saveAsync(hComplex).await()
-            hComplex.refreshRatingByVisitsAsync().await()
             onOk?.invoke(hComplex)
         }
     }

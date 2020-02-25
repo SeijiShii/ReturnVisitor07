@@ -237,7 +237,6 @@ class VisitCollection {
         return GlobalScope.async {
 
             setAsync(visit).await()
-            visit.place.refreshRatingByVisitsAsync().await()
             PlaceCollection.instance.saveAsync(visit.place).await()
 
             for (person in visit.persons) {
