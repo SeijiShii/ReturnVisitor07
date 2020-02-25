@@ -10,26 +10,48 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.calendar_fragment.*
 import kotlinx.android.synthetic.main.day_cell.view.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.models.CalendarData
+import work.ckogyo.returnvisitor.firebasedb.VisitCollection
+import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.DailyReport
-import work.ckogyo.returnvisitor.utils.fadeVisibility
-import work.ckogyo.returnvisitor.utils.setOnClick
+import work.ckogyo.returnvisitor.utils.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class CalendarFragment(val month: Calendar) :Fragment() {
 
-    private var weekStart = CalendarData.WeekStart.Monday
+    enum class WeekStart{
+        Sunday,
+        Monday
+    }
 
-    private val calendarData = CalendarData(month, weekStart)
+    private val firstDayOfWeek: Int
+        get() {
+            return if (weekStart == WeekStart.Sunday) Calendar.SUNDAY else Calendar.MONDAY
+        }
+
+    private val lastDayOfWeek: Int
+        get() {
+            return if (weekStart == WeekStart.Sunday) Calendar.SATURDAY else Calendar.SUNDAY
+        }
+
+    private var weekStart = WeekStart.Monday
+    private val dailyReports = ArrayList<DailyReport>()
+
+    var onTransitToWorkFragment: (() -> Unit)? = null
+
+    private val dayCells = ArrayList<DayCell>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,33 +65,22 @@ class CalendarFragment(val month: Calendar) :Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initDayHeaderRow()
-
-        val handler = Handler()
-
         loadingCalendarOverlay.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
 
-        GlobalScope.launch {
+        prepareEmptyReports()
 
-            calendarData.prepareDataAsync().await()
-
-            handler.post {
-
-                context ?: return@post
-
-                for (weekReport in calendarData.weekReports) {
-                    val weekRow = WeekRow(weekReport)
-                    calendarFrame?.addView(weekRow)
-                }
-                loadingCalendarOverlay?.fadeVisibility(false)
-            }
-
+        for (weekReport in getWeekReports()) {
+            val weekRow = WeekRow(weekReport)
+            calendarFrame?.addView(weekRow)
         }
+        loadingCalendarOverlay?.fadeVisibility(false)
+        startPreparingDailyReport()
     }
 
     private fun initDayHeaderRow() {
 
         val date = Calendar.getInstance()
-        date.set(Calendar.DAY_OF_WEEK, calendarData.firstDayOfWeek)
+        date.set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
 
         for (i in 0 until 7) {
             val cell = DayHeaderCell(date)
@@ -78,7 +89,122 @@ class CalendarFragment(val month: Calendar) :Fragment() {
         }
     }
 
-    private inner class DayHeaderCell(day: Calendar): TextView(context) {
+    private fun getWeekReports(): ArrayList<MutableList<DailyReport>> {
+
+        val tmpReports = ArrayList(dailyReports)
+
+        // dailyReportsの前後に週の始まり日・終わり日にそろうようダミーデータを追加する
+        val leadingDummyCounter = tmpReports[0].date.clone() as Calendar
+        while (leadingDummyCounter.get(Calendar.DAY_OF_WEEK) != firstDayOfWeek) {
+            leadingDummyCounter.add(Calendar.DAY_OF_MONTH, -1)
+            val dummy = DailyReport(leadingDummyCounter).also {
+                it.isDummy = true
+            }
+            tmpReports.add(0, dummy)
+        }
+
+        val trailingDummyCounter = tmpReports[tmpReports.size - 1].date.clone() as Calendar
+        while (trailingDummyCounter.get(Calendar.DAY_OF_WEEK) != lastDayOfWeek) {
+            trailingDummyCounter.add(Calendar.DAY_OF_MONTH, 1)
+            val dummy = DailyReport(trailingDummyCounter).also {
+                it.isDummy = true
+            }
+            tmpReports.add(dummy)
+        }
+
+        val weeks = java.util.ArrayList<MutableList<DailyReport>>()
+
+        var remains = ArrayList(tmpReports)
+        while (remains.size > 0) {
+            val week = remains.subList(0, 7)
+            remains = ArrayList(remains.subList(7, remains.size))
+
+            weeks.add(week)
+        }
+
+        return weeks
+    }
+
+    private fun prepareEmptyReports() {
+        dailyReports.clear()
+
+        val first = month.getFirstDay()
+        val last = month.getLastDay()
+
+        val counter = first.clone() as Calendar
+        while (counter.isDateBefore(last, true)) {
+            val report = DailyReport(counter.clone() as Calendar).also {
+                it.isDummy = true
+            }
+            dailyReports.add(report)
+            counter.add(Calendar.DAY_OF_MONTH, 1)
+        }
+    }
+
+    private fun getDayCellByDate(date: Calendar): DayCell? {
+        for (cell in dayCells) {
+            if (date.isSameDate(cell.dailyReport.date)) {
+                return cell
+            }
+        }
+        return null
+    }
+
+    private fun getReportByDate(date: Calendar): DailyReport? {
+        for (report in dailyReports) {
+            if (date.isSameDate(report.date)) {
+                return report
+            }
+        }
+        return null
+    }
+
+    private fun startPreparingDailyReport() {
+
+        loadingCalendarOverlay.fadeVisibility(true)
+        val handler = Handler()
+
+        val first = month.getFirstDay()
+        val last = month.getLastDay()
+
+        val counter = first.clone() as Calendar
+
+        GlobalScope.launch {
+
+            while (counter.isDateBefore(last, true)) {
+
+                val worksInDay = WorkCollection.instance.loadAllWorksInDate(counter)
+                val visitsInDay = VisitCollection.instance.loadVisitsByDate(counter)
+
+                val report = DailyReport(counter.clone() as Calendar).also {
+                    it.works = worksInDay
+                    it.visits = visitsInDay
+                    it.isDummy = false
+                }
+
+                val oldReport = getReportByDate(counter)
+                if (oldReport != null) {
+                    dailyReports.remove(oldReport)
+                }
+
+                dailyReports.add(report)
+                dailyReports.sortBy { r -> r.date.timeInMillis }
+
+                val cell = getDayCellByDate(counter)
+                if (cell != null) {
+                    handler.post {
+                        cell.refresh(report)
+                    }
+                }
+                counter.add(Calendar.DAY_OF_MONTH, 1)
+            }
+            handler.post {
+                loadingCalendarOverlay.fadeVisibility(false)
+            }
+        }
+    }
+
+    private inner class DayHeaderCell(day: Calendar): AppCompatTextView(context) {
 
         init {
             setBackgroundResource(R.drawable.gray_right_border)
@@ -104,11 +230,12 @@ class CalendarFragment(val month: Calendar) :Fragment() {
             for (report in weekReport) {
                 val dayCell = DayCell(report)
                 addView(dayCell)
+                dayCells.add(dayCell)
             }
         }
     }
 
-    inner class DayCell(private val dailyReport: DailyReport): FrameLayout(context!!) {
+    inner class DayCell(var dailyReport: DailyReport): FrameLayout(context!!) {
 
         var onClick: ((DailyReport) -> Unit)? = null
 
@@ -118,49 +245,51 @@ class CalendarFragment(val month: Calendar) :Fragment() {
                     it.weight = 1f
                 }
             }
-
-            dayNumberText.visibility = if (dailyReport.isDummy) {
-                View.GONE
-            } else {
-                dayNumberText.text = dailyReport.date.get(Calendar.DAY_OF_MONTH).toString()
-                View.VISIBLE
-            }
-
-            timeInDayText.visibility = if(dailyReport.isDummy) {
-                View.GONE
-            } else {
-                timeInDayText.text = dailyReport.durationString
-                View.VISIBLE
-            }
-
-            workMark.visibility = if (dailyReport.hasWork) View.VISIBLE else View.GONE
-            visitMark.visibility = if (dailyReport.hasVisit) View.VISIBLE else View.GONE
-            rvMark.visibility = if (dailyReport.hasRV) View.VISIBLE else View.GONE
-            studyMark.visibility = if (dailyReport.hasStudy) View.VISIBLE else View.GONE
-            plcMark.visibility = if (dailyReport.hasPlacement) View.VISIBLE else View.GONE
-            videoMark.visibility = if (dailyReport.hasShowVideo) View.VISIBLE else View.GONE
-
-            if (!dailyReport.isDummy && dailyReport.hasData) {
-                setOnClick {
-                    val fm = (context as MainActivity).supportFragmentManager
-                    fm.popBackStack(CalendarFragment::class.java.simpleName, 0)
-
-                    (context as MainActivity).showWorkFragment(dailyReport.date)
-                }
-            }
+            refresh()
         }
 
-        override fun setEnabled(enabled: Boolean) {
-            super.setEnabled(enabled)
+        fun refresh(report: DailyReport? = null) {
 
-            alpha = if (enabled) 1f else 0.5f
+            if (report != null) {
+                dailyReport = report
+            }
 
-            if (enabled) {
-                setOnClick {
-                    onClick?.invoke(dailyReport)
-                }
+            dayNumberText.visibility = View.GONE
+            timeInDayText.visibility = View.GONE
+            workMark.visibility = View.GONE
+            visitMark.visibility = View.GONE
+            rvMark.visibility = View.GONE
+            studyMark.visibility = View.GONE
+            plcMark.visibility = View.GONE
+            videoMark.visibility = View.GONE
+
+            setOnClick(null)
+
+            if (dailyReport.isDummy) {
+                setBackgroundResource(R.color.lightGray)
             } else {
-                setOnClick(null)
+
+                setBackgroundResource(R.drawable.gray_right_border)
+
+                dayNumberText.text = dailyReport.date.get(Calendar.DAY_OF_MONTH).toString()
+                dayNumberText.visibility = View.VISIBLE
+
+                timeInDayText.text = dailyReport.durationString
+                timeInDayText.visibility = View.VISIBLE
+
+                if (dailyReport.hasData) {
+                    setOnClick {
+                        onTransitToWorkFragment?.invoke()
+                        (context as MainActivity).showWorkFragment(dailyReport.date)
+                    }
+                }
+
+                workMark.visibility = if (dailyReport.hasWork) View.VISIBLE else View.GONE
+                visitMark.visibility = if (dailyReport.hasVisit) View.VISIBLE else View.GONE
+                rvMark.visibility = if (dailyReport.hasRV) View.VISIBLE else View.GONE
+                studyMark.visibility = if (dailyReport.hasStudy) View.VISIBLE else View.GONE
+                plcMark.visibility = if (dailyReport.hasPlacement) View.VISIBLE else View.GONE
+                videoMark.visibility = if (dailyReport.hasShowVideo) View.VISIBLE else View.GONE
             }
         }
     }

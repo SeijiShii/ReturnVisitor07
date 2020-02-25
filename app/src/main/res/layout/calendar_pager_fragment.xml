@@ -67,18 +67,6 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <View
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:background="@drawable/ic_parasol"
-            android:layout_centerInParent="true"/>
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0"
         android:background="@color/whiteFog"

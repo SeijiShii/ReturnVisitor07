@@ -139,7 +139,12 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
     private inner class CalendarPagerAdapter(fm: FragmentManager, val months: ArrayList<Calendar>): FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
-            return CalendarFragment(months[position])
+            return CalendarFragment(months[position]).also {
+                it.onTransitToWorkFragment = {
+                    val fm = mainActivity?.supportFragmentManager
+                    fm?.beginTransaction()?.remove(this@CalendarPagerFragment)?.commit()
+                }
+            }
         }
 
         override fun getCount(): Int {
@@ -155,8 +160,6 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
             }
             return -1
         }
-
-
     }
 
     private fun backToMapFragment() {
