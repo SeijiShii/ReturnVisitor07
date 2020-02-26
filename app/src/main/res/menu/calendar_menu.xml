@@ -6,4 +6,6 @@
         android:title="@string/report_mail"/>
     <item android:id="@+id/switch_week_start"
         android:title="@string/switch_to_sunday_start"/>
+    <item android:id="@+id/meaning_of_colors"
+        android:title="@string/meaning_of_colors"/>
 </menu>

@@ -18,6 +18,7 @@ import kotlinx.android.synthetic.main.day_cell.view.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.DailyReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.DailyReport
@@ -188,15 +189,13 @@ class CalendarFragment(val month: Calendar) :Fragment() {
                     continue
                 }
 
-                val worksInDay = WorkCollection.instance.loadAllWorksInDate(counter)
-                val visitsInDay = VisitCollection.instance.loadVisitsByDate(counter)
-
-                report = DailyReport(counter.clone() as Calendar).also {
-                    it.works = worksInDay
-                    it.visits = visitsInDay
+//                val start = System.currentTimeMillis()
+                report = DailyReportCollection.instance.loadByDate(counter.clone() as Calendar).also {
                     it.isDummy = false
                     it.loaded = true
                 }
+
+//                Log.d(debugTag, "Loading daily report for ${report.date.toJPDateText()}, took ${System.currentTimeMillis() - start}ms.")
 
                 synchronized(dailyReports) {
                     val oldReport = getReportByDate(counter)
@@ -218,7 +217,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
                 counter.add(Calendar.DAY_OF_MONTH, 1)
             }
             handler.post {
-                loadingCalendarOverlay.fadeVisibility(false)
+                loadingCalendarOverlay?.fadeVisibility(false)
             }
         }
     }

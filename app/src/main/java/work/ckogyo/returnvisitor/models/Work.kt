@@ -21,7 +21,7 @@ class Work : BaseDataModel(idPrefix) {
         end.add(Calendar.MILLISECOND, 5)
     }
 
-    override fun clone(): BaseDataModel {
+    override fun clone(): Work {
 
         val cloned = Work()
         super.cloneBaseProperties(cloned)

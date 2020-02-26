@@ -1,6 +1,7 @@
 package work.ckogyo.returnvisitor.utils
 
 import android.content.Context
+import java.text.ParsePosition
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -12,6 +13,19 @@ fun Calendar.toDateText(context: Context): String {
         android.text.format.DateFormat.getMediumDateFormat(context)
     }
     return format.format(this.time)
+}
+
+const val dateStringFormat = "yyyyMMdd"
+
+fun Calendar.toDateString(): String {
+    return SimpleDateFormat(dateStringFormat, Locale.getDefault()).format(time)
+}
+
+fun parseFromDateString(dateString: String): Calendar {
+    val f = SimpleDateFormat(dateStringFormat, Locale.getDefault())
+    val d = Calendar.getInstance()
+    d.time = f.parse(dateString, ParsePosition(0))
+    return d
 }
 
 fun Calendar.toJPDateText(): String {

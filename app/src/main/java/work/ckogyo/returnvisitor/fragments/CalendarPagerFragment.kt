@@ -17,6 +17,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.dialogs.CalendarColorDescriptionDialog
 import work.ckogyo.returnvisitor.firebasedb.loadMonthList
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
@@ -169,6 +170,9 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
                     }
                     R.id.switch_week_start -> {
                         switchWeekStartDay()
+                    }
+                    R.id.meaning_of_colors -> {
+                        CalendarColorDescriptionDialog().show(childFragmentManager, CalendarColorDescriptionDialog::class.java.simpleName)
                     }
                 }
                 return@setOnMenuItemClickListener true

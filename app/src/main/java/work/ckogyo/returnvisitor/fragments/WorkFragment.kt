@@ -146,7 +146,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 val previous = WorkElmList.instance.getNeighboringDate(dates[0], true)
                 if (previous != null) {
                     handler.post {
-                        loadingWorkProgressSmall.fadeVisibility(true)
+                        loadingWorkProgressSmall?.fadeVisibility(true)
                     }
                     dates.add(0, previous)
 //                    val start3 = System.currentTimeMillis()
@@ -161,7 +161,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 val next = WorkElmList.instance.getNeighboringDate(dates[dates.size - 1], false)
                 if (next != null) {
                     handler.post {
-                        loadingWorkProgressSmall.fadeVisibility(true)
+                        loadingWorkProgressSmall?.fadeVisibility(true)
                     }
                     dates.add(next)
 //                    val start4 = System.currentTimeMillis()
@@ -175,7 +175,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             }
 
             handler.post {
-                loadingWorkProgressSmall.fadeVisibility(false)
+                loadingWorkProgressSmall?.fadeVisibility(false)
             }
 
         }
@@ -184,8 +184,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
     private fun addNeighboringDateElmsIfNeeded() {
 
         handler.post {
-            loadingWorkProgressSmall ?: return@post
-            loadingWorkProgressSmall.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
+            loadingWorkProgressSmall?.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
         }
 
         GlobalScope.launch {
@@ -242,13 +241,16 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
     private fun updateDateByWorkList() {
         val layoutManager = workListView.layoutManager as LinearLayoutManager
         val topPos = layoutManager.findFirstCompletelyVisibleItemPosition()
-        val topCell = layoutManager.findViewByPosition(topPos) as WorkElmCell
+        val topCell = layoutManager.findViewByPosition(topPos) as? WorkElmCell
+
+        topCell ?: return
+
         date = topCell.dataElm?.dateTime ?: date
         updateWorkDateText()
     }
 
     private fun updateWorkDateText() {
-        workDateText.text = date.toDateText(context!!)
+        workDateText?.text = date.toDateText(context!!)
     }
 
 
@@ -417,6 +419,9 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         }
 
         private fun getTimeInMillisByPosition(pos: Int): Long {
+
+            if (dataElms.isEmpty()) return -1
+
             if (pos <= dataElms.size - 1) {
                 return dataElms[pos].dateTime.timeInMillis
             }
@@ -433,6 +438,8 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         }
 
         fun addElms(elms: ArrayList<WorkElement>) {
+
+            workListView ?: return
 
             val lManager = workListView.layoutManager as LinearLayoutManager
             val currTopPos = lManager.findFirstVisibleItemPosition()

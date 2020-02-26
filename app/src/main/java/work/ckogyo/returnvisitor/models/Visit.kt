@@ -68,6 +68,20 @@ class Visit : BaseDataModel {
         }
     }
 
+    /**
+     * 日時、レーティングその他基本情報のみを読みだす。
+     */
+    fun initFromHashMapSimple(map: HashMap<String, Any>) {
+        super.initFromHashMap(map)
+
+        var ratingStr = map[ratingKey].toString()
+        ratingStr = if (ratingStr == "Indifferent") Rating.ForNext.toString() else ratingStr
+        rating = Rating.valueOf(ratingStr)
+
+        dateTime = Calendar.getInstance()
+        dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
+    }
+
     suspend fun initVisitFromHashMap(map: HashMap<String, Any>, place2: Place? = null): Visit  = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)

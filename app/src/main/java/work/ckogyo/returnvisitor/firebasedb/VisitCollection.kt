@@ -191,6 +191,8 @@ class VisitCollection {
     private fun setAsync(visit: Visit): Deferred<Unit> {
         return GlobalScope.async{
             FirebaseDB.instance.set(visitsKey, visit.id, visit.hashMap)
+            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
+            Unit
         }
     }
 
@@ -202,6 +204,7 @@ class VisitCollection {
             val result = FirebaseDB.instance.delete(visitsKey, visit.id)
             visit.place.refreshRatingByVisitsAsync().await()
             PlaceCollection.instance.saveAsync(visit.place).await()
+            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
             result
         }
     }
@@ -218,8 +221,14 @@ class VisitCollection {
                 db.userDoc!!.collection(visitsKey).whereEqualTo(
                     placeIdKey, place.id).get().addOnSuccessListener {
                     for (doc in it) {
+
                         doc.reference.delete()
+
+                        val visit = Visit()
+                        visit.initFromHashMapSimple(doc.data as HashMap<String, Any>)
+                        DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
                     }
+
                     cont.resume(Unit)
                 }.addOnFailureListener {
                     cont.resume(Unit)
@@ -262,6 +271,7 @@ class VisitCollection {
             saveVisitAsync(visit)
 
             MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
 
 //            Log.d(debugTag, "addNotHomeVisitAsync, took ${System.currentTimeMillis() - start}ms.")
             cont.resume(visit)

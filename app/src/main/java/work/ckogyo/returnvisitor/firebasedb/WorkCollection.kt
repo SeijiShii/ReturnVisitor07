@@ -200,6 +200,7 @@ class WorkCollection {
     suspend fun set(work: Work): Unit = suspendCoroutine {
         GlobalScope.launch {
             FirebaseDB.instance.set(worksKey, work.id, work.hashMap)
+            DailyReportCollection.instance.initAndSaveDailyReportAsync(work.start)
             it.resume(Unit)
         }
     }
@@ -280,8 +281,14 @@ class WorkCollection {
 
     suspend fun delete(id: String): Boolean = suspendCoroutine { cont ->
         GlobalScope.launch {
-            cont.resume(FirebaseDB.instance.delete(worksKey, id))
+            val work = loadById(id)
 
+            val deleted = FirebaseDB.instance.delete(worksKey, id)
+
+            if (work != null) {
+                DailyReportCollection.instance.initAndSaveDailyReportAsync(work.start)
+            }
+            cont.resume(deleted)
         }
     }
 
