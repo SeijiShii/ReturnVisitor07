@@ -39,6 +39,8 @@ import kotlin.math.absoluteValue
 
 class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateSetListener {
 
+    var onBackToMapFragment: (() -> Unit)? = null
+
     // WorkFragmentでVisitを編集したときMapFragmentに伝播するメソッドが必要
 
     private val handler = Handler()
@@ -337,6 +339,8 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         mainActivity?.supportFragmentManager?.beginTransaction()
             ?.remove(this)
             ?.commit()
+
+        onBackToMapFragment?.invoke()
     }
 
 

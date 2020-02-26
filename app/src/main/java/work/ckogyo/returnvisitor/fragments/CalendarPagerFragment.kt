@@ -26,6 +26,8 @@ import kotlin.collections.ArrayList
 
 class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
+    var onBackToMapFragment: (() -> Unit)? = null
+
     enum class WeekStart{
         Sunday,
         Monday
@@ -225,6 +227,8 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         mainActivity?.supportFragmentManager?.beginTransaction()
             ?.remove(this)
             ?.commit()
+
+        onBackToMapFragment?.invoke()
     }
 
 }

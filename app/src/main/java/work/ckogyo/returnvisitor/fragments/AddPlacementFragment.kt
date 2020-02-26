@@ -14,7 +14,7 @@ import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.models.Placement
 import java.util.*
 
-class AddPlacementFragment(private val dialog: DialogFrameFragment) : Fragment() {
+class AddPlacementFragment(private val dialog: DialogFrameFragment) : Fragment(){
 
     companion object {
         private const val maxYearCount = 10

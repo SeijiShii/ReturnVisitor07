@@ -28,6 +28,8 @@ import work.ckogyo.returnvisitor.views.RoomCell
 
 class HousingComplexFragment : Fragment() {
 
+    var onBackToMapFragment: (() -> Unit)? = null
+
     var onOk: ((hComplex: Place) -> Unit)? = null
     var onClose: ((hComplex: Place, isNewHC: Boolean) -> Unit)? = null
     var onDeleted: ((hComplex: Place) -> Unit)? = null
@@ -122,7 +124,7 @@ class HousingComplexFragment : Fragment() {
 
         hComplex.name = housingComplexNameText.text.toString()
 
-        mainActivity?.supportFragmentManager?.popBackStack()
+        backToMapFragment()
 
         if(mainActivity != null) {
             hideKeyboard(mainActivity!!)
@@ -135,7 +137,7 @@ class HousingComplexFragment : Fragment() {
     }
 
     private fun onClickClose(v: View) {
-        mainActivity?.supportFragmentManager?.popBackStack()
+        backToMapFragment()
         onClose?.invoke(hComplex, isNewHC)
         hideKeyboard(mainActivity!!)
     }
@@ -164,7 +166,7 @@ class HousingComplexFragment : Fragment() {
                         PlaceCollection.instance.deleteAsync(hComplex).await()
                         onDeleted?.invoke(hComplex)
                     }
-                    mainActivity?.supportFragmentManager?.popBackStack()
+                    backToMapFragment()
                 }.create().show()
     }
 
@@ -407,6 +409,15 @@ class HousingComplexFragment : Fragment() {
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             (holder.itemView as RoomCell).refresh(roomsToShow[position])
         }
+    }
+
+    private fun backToMapFragment() {
+
+        mainActivity?.supportFragmentManager?.beginTransaction()
+            ?.remove(this)
+            ?.commit()
+
+        onBackToMapFragment?.invoke()
     }
 
 

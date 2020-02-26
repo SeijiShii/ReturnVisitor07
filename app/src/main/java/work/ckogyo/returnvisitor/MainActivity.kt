@@ -138,6 +138,9 @@ class MainActivity : AppCompatActivity() {
                     it.visit = visit ?: Visit(place)
                     it.onFinishEdit = onFinishEditVisit
                     it.mode = EditMode.Add
+                    it.onBackToMapFragment = {
+                        mapFragment.enableMyLocation(true)
+                    }
                 }
 
                 supportFragmentManager.beginTransaction().also {
@@ -149,6 +152,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         hideKeyboard(this)
+        mapFragment.enableMyLocation(false)
     }
 
     fun showRecordVisitFragmentForEdit(visit: Visit, onFinishEditVisit: (Visit, EditMode, OnFinishEditParam) -> Unit) {
@@ -157,13 +161,18 @@ class MainActivity : AppCompatActivity() {
             it.visit = visit
             it.onFinishEdit = onFinishEditVisit
             it.mode = EditMode.Edit
+            it.onBackToMapFragment = {
+                mapFragment.enableMyLocation(true)
+            }
         }
 
         supportFragmentManager.beginTransaction()
             .addToBackStack(null)
             .add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
             .commit()
+
         hideKeyboard(this)
+        mapFragment.enableMyLocation(false)
     }
 
     // 新規集合住宅を追加後、「閉じる」の場合はキャンセルとみなし、部屋が1つもなければ集合住宅を削除する
@@ -178,6 +187,9 @@ class MainActivity : AppCompatActivity() {
             it.onClose = onClose
             it.onDeleted = onDeleted
             it.isNewHC = isNewHC
+            it.onBackToMapFragment = {
+                mapFragment.enableMyLocation(true)
+            }
         }
 
         supportFragmentManager.beginTransaction().let {
@@ -186,6 +198,7 @@ class MainActivity : AppCompatActivity() {
             it.commit()
         }
         hideKeyboard(this)
+        mapFragment.enableMyLocation(false)
     }
 
     fun showWorkFragment(dateToShow: Calendar) {
@@ -194,22 +207,33 @@ class MainActivity : AppCompatActivity() {
 
         val workFragment = WorkFragment(dateToShow).also {
             it.onVisitEdited = mapFragment::onFinishEditVisitInFragments
+            it.onBackToMapFragment = {
+                mapFragment.enableMyLocation(true)
+            }
         }
         supportFragmentManager.beginTransaction().let {
             it.addToBackStack(null)
             it.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
             it.commit()
         }
+
+        hideKeyboard(this)
+        mapFragment.enableMyLocation(false)
     }
 
     fun showCalendarPagerFragment(monthToShow: Calendar) {
 
-        val cpFragment = CalendarPagerFragment(monthToShow)
+        val cpFragment = CalendarPagerFragment(monthToShow).also {
+            it.onBackToMapFragment = {
+                mapFragment.enableMyLocation(true)
+            }
+        }
         supportFragmentManager.beginTransaction().let {
             it.addToBackStack(null)
             it.add(R.id.fragmentContainer, cpFragment, CalendarPagerFragment::class.java.simpleName)
             it.commit()
         }
+        mapFragment.enableMyLocation(false)
     }
 
     fun checkPermissionAndEnableMyLocation(googleMap: GoogleMap?) {

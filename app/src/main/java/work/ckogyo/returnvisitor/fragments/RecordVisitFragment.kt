@@ -30,6 +30,8 @@ class RecordVisitFragment : Fragment(),
                             DatePickerDialog.OnDateSetListener,
                             TimePickerDialog.OnTimeSetListener {
 
+    var onBackToMapFragment: (() -> Unit)? = null
+
     private val mainActivity: MainActivity?
         get() = context as? MainActivity
 
@@ -127,6 +129,8 @@ class RecordVisitFragment : Fragment(),
         mainActivity?.supportFragmentManager?.beginTransaction()
             ?.remove(this)
             ?.commit()
+
+        onBackToMapFragment?.invoke()
     }
 
     private fun onAddPersonClicked(v: View) {

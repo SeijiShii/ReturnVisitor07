@@ -127,6 +127,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         isMapReady = true
     }
 
+    fun enableMyLocation(enabled: Boolean){
+        googleMap.isMyLocationEnabled = enabled
+    }
+
     private fun showPlacePopup(place: Place, marker: Marker?) {
 
         PlacePopup(context!!, place).also {
