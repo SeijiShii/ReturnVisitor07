@@ -8,6 +8,7 @@ class DailyReport(val date: Calendar) {
     var isDummy = false
     var works = ArrayList<Work>()
     var visits = ArrayList<Visit>()
+    var loaded = false
 
     val duration: Long
         get() = getTotalWorkDuration(works)

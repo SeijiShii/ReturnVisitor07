@@ -2,6 +2,7 @@ package work.ckogyo.returnvisitor.fragments
 
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -9,16 +10,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.calendar_fragment.*
 import kotlinx.android.synthetic.main.day_cell.view.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
@@ -31,22 +28,6 @@ import kotlin.collections.ArrayList
 
 class CalendarFragment(val month: Calendar) :Fragment() {
 
-    enum class WeekStart{
-        Sunday,
-        Monday
-    }
-
-    private val firstDayOfWeek: Int
-        get() {
-            return if (weekStart == WeekStart.Sunday) Calendar.SUNDAY else Calendar.MONDAY
-        }
-
-    private val lastDayOfWeek: Int
-        get() {
-            return if (weekStart == WeekStart.Sunday) Calendar.SATURDAY else Calendar.SUNDAY
-        }
-
-    private var weekStart = WeekStart.Monday
     private val dailyReports = ArrayList<DailyReport>()
 
     var onTransitToWorkFragment: (() -> Unit)? = null
@@ -63,24 +44,31 @@ class CalendarFragment(val month: Calendar) :Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        initDayHeaderRow()
-        loadingCalendarOverlay.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
-
         prepareEmptyReports()
+        refresh()
+    }
 
+    fun refresh() {
+
+        loadingCalendarOverlay.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
+        initDayHeaderRow()
+
+        calendarFrame?.removeAllViews()
         for (weekReport in getWeekReports()) {
             val weekRow = WeekRow(weekReport)
             calendarFrame?.addView(weekRow)
         }
-        loadingCalendarOverlay?.fadeVisibility(false)
+
         startPreparingDailyReport()
+        loadingCalendarOverlay?.fadeVisibility(false)
     }
 
     private fun initDayHeaderRow() {
 
         val date = Calendar.getInstance()
-        date.set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+        date.set(Calendar.DAY_OF_WEEK, CalendarPagerFragment.firstDayOfWeek)
+
+        dayHeaderRow.removeAllViews()
 
         for (i in 0 until 7) {
             val cell = DayHeaderCell(date)
@@ -95,18 +83,22 @@ class CalendarFragment(val month: Calendar) :Fragment() {
 
         // dailyReportsの前後に週の始まり日・終わり日にそろうようダミーデータを追加する
         val leadingDummyCounter = tmpReports[0].date.clone() as Calendar
-        while (leadingDummyCounter.get(Calendar.DAY_OF_WEEK) != firstDayOfWeek) {
+        while (leadingDummyCounter.get(Calendar.DAY_OF_WEEK) != CalendarPagerFragment.firstDayOfWeek) {
             leadingDummyCounter.add(Calendar.DAY_OF_MONTH, -1)
-            val dummy = DailyReport(leadingDummyCounter).also {
+//            Log.d(debugTag, "leadingDummyCounter: ${leadingDummyCounter.toJPDateText()}")
+            val date = leadingDummyCounter.clone() as Calendar
+            val dummy = DailyReport(date).also {
                 it.isDummy = true
             }
             tmpReports.add(0, dummy)
         }
 
         val trailingDummyCounter = tmpReports[tmpReports.size - 1].date.clone() as Calendar
-        while (trailingDummyCounter.get(Calendar.DAY_OF_WEEK) != lastDayOfWeek) {
+        while (trailingDummyCounter.get(Calendar.DAY_OF_WEEK) != CalendarPagerFragment.lastDayOfWeek) {
             trailingDummyCounter.add(Calendar.DAY_OF_MONTH, 1)
-            val dummy = DailyReport(trailingDummyCounter).also {
+//            Log.d(debugTag, "trailingDummyCounter: ${trailingDummyCounter.toJPDateText()}")
+            val date = trailingDummyCounter.clone() as Calendar
+            val dummy = DailyReport(date).also {
                 it.isDummy = true
             }
             tmpReports.add(dummy)
@@ -135,6 +127,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
         while (counter.isDateBefore(last, true)) {
             val report = DailyReport(counter.clone() as Calendar).also {
                 it.isDummy = true
+                it.loaded = false
             }
             dailyReports.add(report)
             counter.add(Calendar.DAY_OF_MONTH, 1)
@@ -159,7 +152,13 @@ class CalendarFragment(val month: Calendar) :Fragment() {
         return null
     }
 
+    private var job: Job? = null
+
     private fun startPreparingDailyReport() {
+
+        if (job?.isActive == true) {
+            job?.cancel()
+        }
 
         loadingCalendarOverlay.fadeVisibility(true)
         val handler = Handler()
@@ -169,26 +168,46 @@ class CalendarFragment(val month: Calendar) :Fragment() {
 
         val counter = first.clone() as Calendar
 
-        GlobalScope.launch {
+        job = GlobalScope.launch {
 
             while (counter.isDateBefore(last, true)) {
+
+//                Log.d(debugTag, "counter: ${counter.toJPDateText()}")
+//                Log.d(debugTag, "${this.toString()}, isActive: $isActive")
+
+                if (!isActive) {
+                    return@launch
+                }
+
+                var report = synchronized(dailyReports) {
+                    getReportByDate(counter)
+                }
+
+                if (report?.loaded == true) {
+                    counter.add(Calendar.DAY_OF_MONTH, 1)
+                    continue
+                }
 
                 val worksInDay = WorkCollection.instance.loadAllWorksInDate(counter)
                 val visitsInDay = VisitCollection.instance.loadVisitsByDate(counter)
 
-                val report = DailyReport(counter.clone() as Calendar).also {
+                report = DailyReport(counter.clone() as Calendar).also {
                     it.works = worksInDay
                     it.visits = visitsInDay
                     it.isDummy = false
+                    it.loaded = true
                 }
 
-                val oldReport = getReportByDate(counter)
-                if (oldReport != null) {
-                    dailyReports.remove(oldReport)
-                }
+                synchronized(dailyReports) {
+                    val oldReport = getReportByDate(counter)
 
-                dailyReports.add(report)
-                dailyReports.sortBy { r -> r.date.timeInMillis }
+                    if (oldReport != null) {
+                        dailyReports.remove(oldReport)
+                    }
+
+                    dailyReports.add(report)
+                    dailyReports.sortBy { r -> r.date.timeInMillis }
+                }
 
                 val cell = getDayCellByDate(counter)
                 if (cell != null) {
@@ -228,12 +247,23 @@ class CalendarFragment(val month: Calendar) :Fragment() {
             setBackgroundResource(R.drawable.gray_bottom_border)
 
             for (report in weekReport) {
-                val dayCell = DayCell(report)
+
+//                Log.d(debugTag, "report.date: ${report.date.toJPDateText()}")
+                val cell = getDayCellByDate(report.date)
+                val dayCell = if (cell == null) {
+                    val cell2 = DayCell(report)
+                    dayCells.add(cell2)
+                    cell2
+                } else {
+                    cell
+                }
+
+                (dayCell.parent as? ViewGroup)?.removeView(dayCell)
                 addView(dayCell)
-                dayCells.add(dayCell)
             }
         }
     }
+
 
     inner class DayCell(var dailyReport: DailyReport): FrameLayout(context!!) {
 

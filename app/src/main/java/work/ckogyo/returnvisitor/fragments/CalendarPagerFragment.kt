@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -18,15 +19,48 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.loadMonthList
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.weekStartKey
 import java.util.*
 import kotlin.collections.ArrayList
 
 class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
+    enum class WeekStart{
+        Sunday,
+        Monday
+    }
+
+    private val months = ArrayList<Calendar>()
+
+    companion object {
+        var weekStart = WeekStart.Monday
+
+        val firstDayOfWeek: Int
+            get() {
+                return if (weekStart == WeekStart.Sunday) Calendar.SUNDAY else Calendar.MONDAY
+            }
+
+        val lastDayOfWeek: Int
+            get() {
+                return if (weekStart == WeekStart.Sunday) Calendar.SATURDAY else Calendar.SUNDAY
+            }
+    }
+
     private lateinit var adapter: CalendarPagerAdapter
 
     private val mainActivity: MainActivity?
         get() = context as? MainActivity
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        context ?: return
+
+        val weekStartStr = context!!.getSharedPreferences(returnVisitorPrefsKey, Context.MODE_PRIVATE)!!.getString(
+            weekStartKey, WeekStart.Monday.toString())
+        weekStart = WeekStart.valueOf(weekStartStr!!)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,14 +88,16 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         loadingCalendarOverlay2.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
 
         GlobalScope.launch {
-            val months = loadMonthList()
+            months.clear()
+            months.addAll(loadMonthList())
+
             handler.post {
 
                 loadingCalendarOverlay2.fadeVisibility(false)
 
                 // Fragment内でViewPagerを使うときはchildFragmentManagerを渡すべし。
                 // https://phicdy.hatenablog.com/entry/fragmentmanager_to_fragmentpageradapter_in_fragment
-                adapter = CalendarPagerAdapter(childFragmentManager, months)
+                adapter = CalendarPagerAdapter(childFragmentManager)
                 calendarPager.adapter = adapter
 
                 val pos = adapter.getPositionByMonth(monthToShow)
@@ -76,7 +112,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
         calendarPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
-                monthToShow = adapter.months[position]
+                monthToShow = months[position]
 
                 refreshMonthText()
                 refreshLeftButton()
@@ -106,13 +142,19 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
     }
 
     private fun refreshRightButton() {
-        rightButton.isEnabled = calendarPager.currentItem < adapter.months.size - 1
+        rightButton.isEnabled = calendarPager.currentItem < months.size - 1
     }
 
     private fun showMenuPopup() {
 
         PopupMenu(context, calendarMenuButton).also {
             it.menuInflater.inflate(R.menu.calendar_menu, it.menu)
+
+            it.menu.findItem(R.id.switch_week_start)?.title = if (weekStart == WeekStart.Monday) {
+                getString(R.string.switch_to_sunday_start)
+            } else {
+                getString(R.string.switch_to_monday_start)
+            }
 
             it.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
@@ -124,6 +166,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
                         mainActivity?.prepareReportMail(monthToShow)
                     }
                     R.id.switch_week_start -> {
+                        switchWeekStartDay()
                     }
                 }
                 return@setOnMenuItemClickListener true
@@ -132,11 +175,26 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
         }
     }
 
+    private fun switchWeekStartDay() {
+        weekStart = if (weekStart == WeekStart.Monday) WeekStart.Sunday else WeekStart.Monday
+
+        context ?: return
+
+        context!!.getSharedPreferences(returnVisitorPrefsKey, Context.MODE_PRIVATE)
+            .edit()
+            .putString(weekStartKey, weekStart.toString())
+            .apply()
+
+        for (i in 0 until months.size) {
+            val cf = adapter.instantiateItem(calendarPager, i) as CalendarFragment
+            cf.refresh()
+        }
+    }
+
     /**
-     * @param months 最初のデータがある月から最後のデータがある月までの月初日のカレンダー。その期間の月はデータがなくても含む。
      *
      */
-    private inner class CalendarPagerAdapter(fm: FragmentManager, val months: ArrayList<Calendar>): FragmentPagerAdapter(fm) {
+    private inner class CalendarPagerAdapter(fm: FragmentManager): FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
             return CalendarFragment(months[position]).also {

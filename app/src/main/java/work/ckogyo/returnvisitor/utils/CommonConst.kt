@@ -18,6 +18,7 @@ object FirebaseCollectionKeys {
     const val monthReportsKey = "month_reports"
     const val placementIdsKey = "placement_ids"
     const val infoTagIdsKey = "info_tag_ids"
+
 }
 
 object SharedPrefKeys {
@@ -27,6 +28,7 @@ object SharedPrefKeys {
     const val latitudeKey = "latitude"
     const val longitudeKey = "longitude"
     const val isTimeCounting = "is_time_counting"
+    const val weekStartKey = "week_start"
 }
 
 object DataModelKeys {
