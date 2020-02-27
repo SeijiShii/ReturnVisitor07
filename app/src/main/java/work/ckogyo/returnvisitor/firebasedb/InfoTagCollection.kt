@@ -68,7 +68,11 @@ class InfoTagCollection {
                     }
             }
         }
+    }
 
-
+    fun loadInLatestUseOrderAsync(): Deferred<ArrayList<InfoTag>> {
+        return GlobalScope.async {
+            loadInLatestUseOrder()
+        }
     }
 }

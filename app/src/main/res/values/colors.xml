@@ -23,9 +23,14 @@
     <color name="lightGreen">#03cb00</color>
     <color name="visitGreen">#32CD32</color>
     <color name="plcViolet">#9400D3</color>
+    <color name="plcVioletTrans">#889400D3</color>
     <color name="videoBlue">#1E90FF</color>
     <color name="rvGold">#FFD700</color>
     <color name="studyOrange">#FFA500</color>
     <color name="workGreen">#66cdaa</color>
     <color name="paleGreen">#66cdaa</color>
+    <color name="personBlue">#0047ac</color>
+    <color name="personBlueTrans">#880047ac</color>
+    <color name="tagGreen">#00ac05</color>
+    <color name="tagGreenTrans">#8800ac05</color>
 </resources>

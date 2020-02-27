@@ -11,6 +11,7 @@ import android.widget.DatePicker
 import android.widget.TimePicker
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.record_visit_fragment.*
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
@@ -18,6 +19,7 @@ import work.ckogyo.returnvisitor.dialogs.PlacementDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
 import work.ckogyo.returnvisitor.dialogs.InfoTagDialog
+import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.models.*
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.InfoTagView
@@ -31,6 +33,8 @@ class RecordVisitFragment : Fragment(),
                             TimePickerDialog.OnTimeSetListener {
 
     var onBackToMapFragment: (() -> Unit)? = null
+
+    private lateinit var infoTagJob: Deferred<ArrayList<InfoTag>>
 
     private val mainActivity: MainActivity?
         get() = context as? MainActivity
@@ -90,6 +94,8 @@ class RecordVisitFragment : Fragment(),
         initInfoTagViewContainer()
 
         descriptionText.setText(visit.description)
+
+        infoTagJob = InfoTagCollection.instance.loadInLatestUseOrderAsync()
     }
 
     private fun initPVCells() {
