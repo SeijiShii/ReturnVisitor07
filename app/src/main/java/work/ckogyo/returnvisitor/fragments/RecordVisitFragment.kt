@@ -19,6 +19,7 @@ import work.ckogyo.returnvisitor.dialogs.PlacementDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
 import work.ckogyo.returnvisitor.dialogs.InfoTagDialog
+import work.ckogyo.returnvisitor.dialogs.InfoTagPopup
 import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.models.*
 import work.ckogyo.returnvisitor.utils.*
@@ -254,11 +255,17 @@ class RecordVisitFragment : Fragment(),
     }
 
     private fun onClickAddInfoTag(v: View) {
-        val tagDialog = InfoTagDialog(visit).also {
+//        val tagDialog = InfoTagDialog(visit).also {
+//            it.onInfoTagSelected = this::onAddTagInInfoTagDialog
+//            it.onInfoTagDeleted = this::onInfoTagDeletedInDialog
+//        }
+//        mainActivity?.showDialog(tagDialog)
+
+        val tagPopup = InfoTagPopup(infoTagViewContainer, R.id.recordVisitFrame, visit, infoTagJob).also {
             it.onInfoTagSelected = this::onAddTagInInfoTagDialog
             it.onInfoTagDeleted = this::onInfoTagDeletedInDialog
         }
-        mainActivity?.showDialog(tagDialog)
+        tagPopup.show(childFragmentManager)
     }
 
     private fun onInfoTagDeletedInDialog(tag: InfoTag) {
