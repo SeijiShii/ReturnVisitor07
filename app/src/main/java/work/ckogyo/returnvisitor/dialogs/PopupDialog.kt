@@ -79,7 +79,6 @@ abstract class PopupDialog(private val anchor: View, private val frameId: Int) :
             }
 
             oldFrameHeight = frame.height
-            oldPopupHeight = 0
 
             Log.d(debugTag, "width: ${popupDialog.width}, height: ${popupDialog.height}")
 
@@ -141,6 +140,8 @@ abstract class PopupDialog(private val anchor: View, private val frameId: Int) :
                     .commit()
             })
         }
+
+        hideKeyboard(context as Activity)
     }
 
     private fun decidePosition(anchorPos: Point) {
@@ -184,7 +185,6 @@ abstract class PopupDialog(private val anchor: View, private val frameId: Int) :
             }
         }
 
-
         popupDialog.layoutParams = FrameLayout.LayoutParams(popupDialog.width, popupDialog.height).also {
             it.leftMargin = x
             it.topMargin = y
@@ -196,7 +196,6 @@ abstract class PopupDialog(private val anchor: View, private val frameId: Int) :
 
     private var oldFrameHeight = 0
     private var oldPopupTop = 0
-    private var oldPopupHeight = 0
     private fun watchFrameHeightChange() {
         val handler = Handler()
         GlobalScope.launch {
@@ -207,30 +206,29 @@ abstract class PopupDialog(private val anchor: View, private val frameId: Int) :
 
                 if (oldFrameHeight != frame.height) {
 
-                    val newPopupTop = (frame.height - oldFrameHeight) + oldPopupTop
-                    handler.post {
-                        popupDialog ?: return@post
-
-                        (popupDialog.layoutParams as FrameLayout.LayoutParams).topMargin = newPopupTop
-                        oldPopupTop = newPopupTop
-                        
-                        if (popupDialog.height + context!!.toDP(20) > frame.height) {
-                            popupDialog.layoutParams.height = FrameLayout.LayoutParams.MATCH_PARENT
-                        } else {
-                            popupDialog.layoutParams.height = FrameLayout.LayoutParams.WRAP_CONTENT
-                        }
-
-                        popupDialog.requestLayout()
+                    var popupTop = 0
+                    val popupHeight = if (popupDialog.height > frame.height) {
+                        popupTop = context!!.toDP(10)
+                        frame.height - context!!.toDP(20)
+                    } else {
+                        popupTop = (frame.height - oldFrameHeight) + oldPopupTop
+                        FrameLayout.LayoutParams.WRAP_CONTENT
                     }
 
-                    oldFrameHeight = frame.height
+                    handler.post {
+                        context ?: return@post
+                        popupDialog ?: return@post
+
+                        (popupDialog.layoutParams as FrameLayout.LayoutParams).topMargin = popupTop
+                        oldPopupTop = popupTop
+
+                        popupDialog.layoutParams.height = popupHeight
+
+                        popupDialog.requestLayout()
+                        oldFrameHeight = frame.height
+                    }
                 }
-
-
-
             }
         }
-
     }
-
 }

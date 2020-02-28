@@ -18,7 +18,6 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.dialogs.PlacementDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
-import work.ckogyo.returnvisitor.dialogs.InfoTagDialog
 import work.ckogyo.returnvisitor.dialogs.InfoTagPopup
 import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.models.*

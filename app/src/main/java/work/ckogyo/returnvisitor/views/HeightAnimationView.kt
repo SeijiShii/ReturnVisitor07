@@ -21,7 +21,6 @@ abstract class HeightAnimationView: FrameLayout{
 
     open fun onRefreshHeight(height: Int){}
 
-
     var collapseHeight: Int = 0
     var extractHeight: Int = ViewGroup.LayoutParams.WRAP_CONTENT
 
@@ -70,7 +69,7 @@ abstract class HeightAnimationView: FrameLayout{
         animateHeight(target, onHeightAnimationEnd)
     }
 
-    private fun animateHeight(targetHeight: Int, onHeightAnimationEnd: ((HeightAnimationView) -> Unit)? = null){
+    protected fun animateHeight(targetHeight: Int, onHeightAnimationEnd: ((HeightAnimationView) -> Unit)? = null){
 
         val origin: Int = measuredHeight
 
