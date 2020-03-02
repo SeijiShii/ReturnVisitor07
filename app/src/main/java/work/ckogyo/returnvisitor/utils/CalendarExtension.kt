@@ -261,6 +261,28 @@ fun Calendar.getLastDay(): Calendar {
     return last
 }
 
+/**
+ * 月の最初のミリ秒を持つCalendarを返す
+ */
+fun Calendar.getStartOfMonth(): Calendar {
+    var start = clone() as Calendar
+    start.set(Calendar.DAY_OF_MONTH, 1)
+    start = start.cloneWith0Time()
+    return start
+}
+
+/**
+ * 月の最後のミリ秒を持つCalendarを返す
+ */
+fun Calendar.getEndOfMonth():Calendar {
+    var end = clone() as Calendar
+    end.add(Calendar.MONTH , 1)
+    end.set(Calendar.DAY_OF_MONTH, 1)
+    end = end.cloneWith0Time()
+    end.timeInMillis -= 1
+    return end
+}
+
 fun Calendar.toMonthTitleString(context: Context): String {
 
     val format = if (context.resources.configuration.locale == Locale.JAPAN) {

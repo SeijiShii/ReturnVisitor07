@@ -600,7 +600,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                     }
                 }
 
-                MonthReportCollection.instance.updateAndLoadByMonthAsync(work.start)
+                MonthReportCollection.instance.updateByMonthAsync(work.start)
             }
         }
 
@@ -621,7 +621,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                         notifyItemRemoved(dateBorderPos)
                     }
                 }
-                MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+                MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
             }
         }
 
@@ -740,7 +740,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                         // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                         TimeCountIntentService.saveWorkIfActive()
 
-                        MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+                        MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                     }
                 }
                 OnFinishEditParam.Deleted -> {

@@ -5,10 +5,11 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.DailyReport
+import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.dateStringKey
 import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.dailyReportsKey
-import work.ckogyo.returnvisitor.utils.toDateString
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -93,4 +94,66 @@ class DailyReportCollection {
             }
         }
     }
+
+//    fun prepareAllMonthAsync(month: Calendar): Deferred<Unit> {
+//
+//        return GlobalScope.async {
+//
+//            val counter = month.getFirstDay()
+//            val end = month.getLastDay()
+//
+//            while (counter.isDateBefore(end, allowSame = true)) {
+//
+//                val report = loadByDateCore(counter)
+//                if (report == null) {
+//                    val report2 = initDailyReportAsync(counter).await()
+//                    setAsync(report2).await()
+//                }
+//
+//                counter.add(Calendar.DAY_OF_MONTH, 1)
+//            }
+//        }
+//    }
+
+    private suspend fun loadByDateRange(start: Calendar, end: Calendar): ArrayList<DailyReport> = suspendCoroutine { cont ->
+
+        val reports = ArrayList<DailyReport>()
+
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc == null) {
+            cont.resume(reports)
+        } else {
+
+            val startStr = start.toDateString()
+            val endStr = end.toDateString()
+
+            userDoc.collection(dailyReportsKey)
+                .orderBy(dateStringKey)
+                .startAt(startStr)
+                .endAt(endStr)
+                .get()
+                .addOnSuccessListener {
+
+                    for (doc in it.documents) {
+                        val report = DailyReport()
+                        report.initFromHashMap(doc.data as HashMap<String, Any>)
+                        reports.add(report)
+                    }
+                    cont.resume(reports)
+                }
+                .addOnFailureListener {
+                    cont.resume(reports)
+                }
+        }
+    }
+
+//    suspend fun loadByMonth(month: Calendar): ArrayList<DailyReport> = suspendCoroutine { cont ->
+//
+//        val start = month.getFirstDay()
+//        val end = month.getLastDay()
+//
+//        GlobalScope.launch {
+//            cont.resume(loadByDateRange(start, end))
+//        }
+//    }
 }

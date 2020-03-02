@@ -73,6 +73,9 @@ object DataModelKeys {
     const val hasVisitKey = "has_visit"
 
     const val dateStringKey = "date_string"
+
+    const val pastCarryOverKey = "past_carry_over"
+    const val dayOfMonthKey = "day_of_month"
 }
 
 

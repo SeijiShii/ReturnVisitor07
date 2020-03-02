@@ -374,4 +374,13 @@ class WorkCollection {
         }
     }
 
+    suspend fun hasWorkInMonth(month: Calendar): Boolean = suspendCoroutine { cont ->
+        val start = month.getStartOfMonth()
+        val end = month.getEndOfMonth()
+
+        GlobalScope.launch {
+            cont.resume(hasWorkInDateTimeRange(start, end))
+        }
+    }
+
 }

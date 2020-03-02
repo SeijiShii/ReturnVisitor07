@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.utils
 
+import work.ckogyo.returnvisitor.models.DailyReport
 import work.ckogyo.returnvisitor.models.PersonVisit
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
@@ -51,6 +52,14 @@ fun getShowVideoCount(visits: ArrayList<Visit>): Int {
 fun getTotalWorkDuration(works: ArrayList<Work>): Long {
     var sum = 0L
     for (work in works) {
+        sum += work.duration
+    }
+    return sum
+}
+
+fun getTotalWorkDurationByDailyReports(reports: ArrayList<DailyReport>): Long {
+    var sum = 0L
+    for (work in reports) {
         sum += work.duration
     }
     return sum

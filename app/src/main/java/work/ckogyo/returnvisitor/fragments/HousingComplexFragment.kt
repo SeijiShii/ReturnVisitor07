@@ -265,7 +265,7 @@ class HousingComplexFragment : Fragment() {
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                     TimeCountIntentService.saveWorkIfActive()
 
-                    MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+                    MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                 }
             }
             OnFinishEditParam.Deleted -> {

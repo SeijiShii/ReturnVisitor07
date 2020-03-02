@@ -292,7 +292,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 placeMarkers.refreshMarker(place)
             }
 
-            MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+            MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
         }
 
         // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
@@ -384,7 +384,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                     TimeCountIntentService.saveWorkIfActive()
 
-                    MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+                    MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                 }
             }
             OnFinishEditParam.Deleted -> {
@@ -397,7 +397,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         placeMarkers.refreshMarker(visit.place)
                     }
 
-                    MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+                    MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                 }
             }
         }
@@ -437,6 +437,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         initShowCalendarButton()
         initMonthReportButton()
         initMailReportButton()
+        initTermOfUseButton()
     }
 
     private fun refreshDrawer() {
@@ -611,6 +612,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             switchDrawer()
             mainActivity?.prepareReportMail(Calendar.getInstance())
+        }
+    }
+
+    private fun initTermOfUseButton() {
+
+        termOfUseButton.setOnClickListener {
+
+            switchDrawer()
+            mainActivity?.showTermOfUseDialog()
         }
     }
 

@@ -27,10 +27,7 @@ import kotlinx.android.synthetic.main.main_activity.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
-import work.ckogyo.returnvisitor.dialogs.LoginDialog
-import work.ckogyo.returnvisitor.dialogs.MonthReportDialog
-import work.ckogyo.returnvisitor.dialogs.TextPopupDialog
+import work.ckogyo.returnvisitor.dialogs.*
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
@@ -429,7 +426,8 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch {
 
             Log.d(debugTag, "prepareReportMail: ${month.toMonthTitleString(this@MainActivity)}")
-            val report = MonthReportCollection.instance.updateAndLoadByMonthAsync(month).await()
+//            MonthReportCollection.instance.updateByMonthAsync(month).await()
+            val report = MonthReportCollection.instance.loadByMonth(month)
             handler.post {
                 switchProgressOverlay(false)
                 exportToMail(this@MainActivity, report)
@@ -471,6 +469,10 @@ class MainActivity : AppCompatActivity() {
     fun showTextPopupDialog(anchor: View, textId: Int) {
 
         TextPopupDialog(anchor, R.id.appFrame).show(supportFragmentManager, textId)
+    }
+
+    fun showTermOfUseDialog() {
+        WebViewDialog(getString(R.string.term_of_use_url)).show(R.id.appFrame, supportFragmentManager, WebViewDialog::class.java.simpleName)
     }
 
 }

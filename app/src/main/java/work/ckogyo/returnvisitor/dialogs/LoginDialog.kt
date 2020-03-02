@@ -28,6 +28,9 @@ class LoginDialog : DialogFrameFragment() {
             it.anonymousLoginHelpButton.setOnClick { v ->
                 mainActivity?.showTextPopupDialog(v, R.string.anonymous_login_description)
             }
+            it.seeTermOfUseButton.setOnClick {
+                mainActivity?.showTermOfUseDialog()
+            }
         }
     }
 

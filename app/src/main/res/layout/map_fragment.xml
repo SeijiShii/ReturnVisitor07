@@ -176,6 +176,18 @@
                     android:layout_height="1dp"
                     android:background="@color/colorPrimaryDark"/>
 
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/termOfUseButton"
+                    android:text="@string/term_of_use"
+                    style="@style/DarkGreenButton"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
+
             </LinearLayout>
 
         </ScrollView>

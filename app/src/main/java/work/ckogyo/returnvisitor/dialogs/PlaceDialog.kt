@@ -185,7 +185,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
         GlobalScope.launch {
             VisitCollection.instance.deleteAsync(visit).await()
 
-            MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+            MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
             place.refreshRatingByVisitsAsync().await()
 
             handler.post {

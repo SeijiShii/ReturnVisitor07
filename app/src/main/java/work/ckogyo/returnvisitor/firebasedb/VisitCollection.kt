@@ -270,7 +270,7 @@ class VisitCollection {
             visit.turnToNotHome()
             saveVisitAsync(visit)
 
-            MonthReportCollection.instance.updateAndLoadByMonthAsync(visit.dateTime)
+            MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
             DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
 
 //            Log.d(debugTag, "addNotHomeVisitAsync, took ${System.currentTimeMillis() - start}ms.")
@@ -298,6 +298,16 @@ class VisitCollection {
                 }
         } else {
             cont.resume(false)
+        }
+    }
+
+    suspend fun hasVisitInMonth(month: Calendar): Boolean = suspendCoroutine { cont ->
+
+        val start = month.getStartOfMonth()
+        val end = month.getEndOfMonth()
+
+        GlobalScope.launch {
+            cont.resume(hasVisitInDateTimeRange(start, end))
         }
     }
 

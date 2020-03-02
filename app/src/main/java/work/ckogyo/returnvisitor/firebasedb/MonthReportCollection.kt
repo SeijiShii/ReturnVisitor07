@@ -4,6 +4,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import work.ckogyo.returnvisitor.models.DailyReport
 import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.monthKey
@@ -29,7 +30,7 @@ class MonthReportCollection {
         }
     }
 
-    private suspend fun loadByMonth(month: Calendar): MonthReport? = suspendCoroutine { cont ->
+    private suspend fun loadByMonthCore(month: Calendar): MonthReport? = suspendCoroutine { cont ->
 
         GlobalScope.launch {
 
@@ -59,28 +60,88 @@ class MonthReportCollection {
         }
     }
 
-    fun updateAndLoadByMonthAsync(month: Calendar): Deferred<MonthReport> {
+    fun updateByMonthAsync(month: Calendar): Deferred<Unit> {
 
         return GlobalScope.async {
 
-            val report = loadByMonth(month) ?: MonthReport().also {
+            val report = loadByMonthCore(month) ?: MonthReport().also {
                 it.month = month
             }
+
+            report.calcPastCarryOverAsync().await()
 
             val first = month.getFirstDay()
             val last = month.getLastDay()
 
             val works = WorkCollection.instance.loadWorksByDateRange(first, last)
             val visits = VisitCollection.instance.loadVisitsByDateRange(first, last)
-            val totalDurationUntilLastMonth = WorkCollection.instance.loadTotalDurationUntilLastMonth(month)
 
-            report.calculate(works, visits, totalDurationUntilLastMonth)
+            report.calculate(works, visits)
 
-            setAsync(report)
-
-            report
+            setAsync(report).await()
+            Unit
         }
     }
+
+    suspend fun loadByMonth(month: Calendar): MonthReport = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+            val report = loadByMonthCore(month)
+            if (report != null) {
+                cont.resume(report)
+            } else {
+                updateByMonthAsync(month).await()
+                val report2 = loadByMonthCore(month)
+                cont.resume(report2!!)
+            }
+        }
+    }
+
+//    fun prepareMonthReportsUntilNowAsync(): Deferred<Unit> {
+//
+//        return GlobalScope.async {
+//
+//            val workColl = WorkCollection.instance
+//            val visitColl = VisitCollection.instance
+//
+//            val firstWorkMonth = workColl.getRecordedDateAtEnd(getFirst = true)
+//            val firstVisitMonth = visitColl.getRecordedDateAtEnd(getFirst = true)
+//
+//            val firstMonth = when {
+//                firstWorkMonth != null && firstVisitMonth != null -> {
+//                    if (firstWorkMonth.isMonthBefore(firstVisitMonth)) {
+//                        firstWorkMonth
+//                    } else {
+//                        firstVisitMonth
+//                    }
+//                }
+//                firstWorkMonth != null -> firstWorkMonth
+//                firstVisitMonth != null -> firstVisitMonth
+//                else -> null
+//            }
+//
+//            firstMonth ?: return@async
+//
+//            val monthCounter = firstMonth.clone() as Calendar
+//
+//            while (monthCounter.isMonthBefore(Calendar.getInstance(), allowSame = true)) {
+//
+//                val hasRecord = workColl.hasWorkInMonth(monthCounter) || visitColl.hasVisitInMonth(monthCounter)
+//                if (hasRecord) {
+//
+//                    val report = loadByMonth(monthCounter)
+//                    if (report == null) {
+//
+//                        DailyReportCollection.instance.prepareAllMonthAsync(monthCounter).await()
+//                        val report2 =
+//                    }
+//
+//
+//                }
+//            }
+//        }
+//
+//    }
 
 
 }

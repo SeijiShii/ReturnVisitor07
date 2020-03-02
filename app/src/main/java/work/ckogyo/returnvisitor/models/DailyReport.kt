@@ -2,14 +2,17 @@ package work.ckogyo.returnvisitor.models
 
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.dateStringKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.dayOfMonthKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.durationKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.hasVisitKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.hasWorkKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.monthKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.plcCountKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.rvCountKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.showVideoCountKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.uniqueStudyCountKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.yearKey
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -118,6 +121,10 @@ class DailyReport: BaseDataModel {
             map[showVideoCountKey] = showVideoCount
             map[hasWorkKey] = hasWork
             map[hasVisitKey] = hasVisit
+
+            map[yearKey] = date.get(Calendar.YEAR)
+            map[monthKey] = date.get(Calendar.MONTH)
+            map[dayOfMonthKey] = date.get(Calendar.DAY_OF_MONTH)
 
             return map
         }
