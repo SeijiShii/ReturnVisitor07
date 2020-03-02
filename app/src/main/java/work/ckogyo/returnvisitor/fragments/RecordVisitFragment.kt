@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.record_visit_fragment.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.dialogs.PlacementDialog
@@ -61,7 +62,7 @@ class RecordVisitFragment : Fragment(),
             View.VISIBLE
         }
 
-        addPersonButton.setOnClickListener(this::onAddPersonClicked)
+        addPersonButton.setOnClickListener(this::onClickAddPerson)
         addPlacementButton.setOnClickListener(this::onClickAddPlacement)
         addInfoTagButton.setOnClickListener(this::onClickAddInfoTag)
 
@@ -102,9 +103,22 @@ class RecordVisitFragment : Fragment(),
 
         personVisitContainer.removeAllViews()
         for (pv in visit.personVisits) {
-            val pvCell = PersonVisitCell(pv, context!!)
+            val pvCell = PersonVisitCell(pv, PersonVisitCell.Mode.Show, context!!).also {
+                it.onPersonVisitDeleted = this::onDeletePersonVisit
+                it.onPersonDataEdited = this::onPersonDataEditedInPVCell
+            }
             personVisitContainer.addView(pvCell)
         }
+        refreshAddPersonButtonEnability()
+    }
+
+    private fun onDeletePersonVisit(pv: PersonVisit) {
+        visit.personVisits.remove(pv)
+        refreshAddPersonButtonEnability()
+    }
+
+    private fun onPersonDataEditedInPVCell(person: Person) {
+        refreshAddPersonButtonEnability()
     }
 
     private fun onCancelClicked(v: View){
@@ -139,22 +153,57 @@ class RecordVisitFragment : Fragment(),
         onBackToMapFragment?.invoke()
     }
 
-    private fun onAddPersonClicked(v: View) {
-        val addPersonDialog = EditPersonDialog()
-        addPersonDialog.mode = EditMode.Add
-        addPersonDialog.onOk = this::onOkInAddPersonDialog
-        mainActivity?.showDialog(addPersonDialog)
-    }
+    private fun onClickAddPerson(v: View) {
 
-    private fun onOkInAddPersonDialog(person: Person) {
-
+        val person = Person()
         val pv = PersonVisit(person)
         // 初めて会えて追加した人は「会えた」
         pv.seen = true
         visit.personVisits.add(pv)
 
-        val pvCell = PersonVisitCell(pv, context!!)
+        val pvCell = PersonVisitCell(pv, PersonVisitCell.Mode.Edit, context!!).also {
+            it.onPersonVisitDeleted = this::onDeletePersonVisit
+            it.onPersonDataEdited = this::onPersonDataEditedInPVCell
+        }
+
+        for (i in 0 until personVisitContainer.childCount) {
+            val pvCell2 = personVisitContainer.getChildAt(i) as? PersonVisitCell
+            pvCell2?.forceSwitchMode(PersonVisitCell.Mode.Show)
+        }
+
         personVisitContainer.addView(pvCell)
+        refreshAddPersonButtonEnability()
+
+        val handler = Handler()
+        GlobalScope.launch {
+            while (pvCell.width <= 0) {
+                delay(50)
+            }
+            val pos = pvCell.getPositionInAncestor(recordVisitScrollView)
+            handler.post {
+                recordVisitScrollView.smoothScrollTo(0, pos.y - pvCell.height)
+            }
+        }
+    }
+
+    private fun refreshAddPersonButtonEnability() {
+
+        var allPersonsHaveData = true
+
+        addPersonButton.isEnabled = when {
+            visit.personVisits.isEmpty() -> true
+            else -> {
+                for (i in 0 until personVisitContainer.childCount) {
+                    val cell = personVisitContainer.getChildAt(i) as? PersonVisitCell
+                    if (cell?.personVisit?.person?.hasData == false) {
+                        allPersonsHaveData = false
+                    }
+                }
+                // 既に追加されているPersonVisitCell内のPersonにデータが入力されていれば新しいPersonを追加できる。
+                allPersonsHaveData
+            }
+        }
+
     }
 
     private fun initDateTimeTexts() {

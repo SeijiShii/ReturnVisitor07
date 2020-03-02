@@ -102,4 +102,5 @@ class PersonVisit : BaseDataModel {
             if (isStudy) it.append(context.getText(R.string.study))
         }.toString()
     }
+
 }

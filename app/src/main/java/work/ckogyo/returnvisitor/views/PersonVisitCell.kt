@@ -8,34 +8,42 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.FrameLayout
 import android.widget.PopupMenu
 import kotlinx.android.synthetic.main.person_visit_cell.view.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
 import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.PersonVisit
-import work.ckogyo.returnvisitor.utils.EditMode
 import work.ckogyo.returnvisitor.utils.fadeVisibility
 import work.ckogyo.returnvisitor.utils.setOnClick
 import work.ckogyo.returnvisitor.utils.toDP
 
-class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : HeightAnimationView(context) {
+class PersonVisitCell(val personVisit: PersonVisit, var mode: Mode, context: Context) : HeightAnimationView(context) {
 
     enum class Mode {
         Show,
         Edit
     }
 
-    var mode = Mode.Edit
+    private val showModeHeight: Int
+        get() = context.toDP(82)
+
+    private val editModeHeight: Int
+        get() = context.toDP(205)
+
+    private val switchRowHeight: Int
+        get() = context.toDP(42)
 
     private val mainActivity: MainActivity?
     get() = context as? MainActivity
 
+    override fun onUpdateAnimation(animatedHeight: Int) {
+        personCellFrame.layoutParams.height = animatedHeight - switchRowHeight
+    }
 
-
-    var onDeletePersonVisit: ((PersonVisit) -> Unit)? = null
+    var onPersonVisitDeleted: ((PersonVisit) -> Unit)? = null
+    var onModeSwitched: ((PersonVisit, Mode) -> Unit)? = null
+    var onPersonDataEdited: ((Person) -> Unit)? = null
 
     init {
         View.inflate(context, R.layout.person_visit_cell, this)
@@ -59,11 +67,14 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
         editPersonButton.setOnClickListener {
             mode = Mode.Edit
             animateHeight()
+            onModeSwitched?.invoke(personVisit, mode)
         }
 
         fixPersonButton.setOnClickListener {
+            refreshPersonTextForShow()
             mode = Mode.Show
             animateHeight()
+            onModeSwitched?.invoke(personVisit, mode)
         }
 
         personVisitMenuButton.setOnClick { showPopupMenu() }
@@ -74,7 +85,10 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
         initDescriptionText()
 
         refreshMode()
+
         refreshPersonTextForShow()
+        refreshUIsForEdit()
+        refreshSwitches()
     }
 
     private fun refreshMode() {
@@ -95,12 +109,28 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
         personText.text = personVisit.person.toString(context)
     }
 
+    private fun refreshUIsForEdit() {
+        personNameText.setText(personVisit.person.name)
+        personDescriptionText.setText(personVisit.person.description)
+
+        maleRadioButton.isSelected = personVisit.person.sex == Person.Sex.Male
+        femaleRadioButton.isSelected = personVisit.person.sex == Person.Sex.Female
+
+        ageSpinner.setSelection(personVisit.person.age.ordinal)
+    }
+
+    private fun refreshSwitches() {
+        seenSwitch.isChecked = personVisit.seen
+        rvSwitch.isChecked = personVisit.isRv
+        studySwitch.isChecked = personVisit.isStudy
+    }
+
     private fun animateHeight() {
 
         val targetHeight = if (mode == Mode.Edit) {
-            context.toDP(202)
+            editModeHeight
         } else {
-            context.toDP(82)
+            showModeHeight
         }
 
         animateHeight(targetHeight){
@@ -121,9 +151,6 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
         popup.menuInflater.inflate(R.menu.person_visit_menu, popup.menu)
         popup.setOnMenuItemClickListener {
             when(it.itemId) {
-                R.id.edit_person -> {
-                    showEditPersonDialog()
-                }
                 R.id.delete_person -> {
                     showDeleteConfirm()
                 }
@@ -135,20 +162,6 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
             isPopupShowing = false
         }
         popup.show()
-    }
-
-    private fun showEditPersonDialog() {
-
-        val editPersonDialog = EditPersonDialog()
-        editPersonDialog.mode = EditMode.Edit
-        editPersonDialog.onOk = this::onOKInEditPersonDialog
-        editPersonDialog.person = personVisit.person
-        mainActivity?.showDialog(editPersonDialog)
-    }
-
-    private fun onOKInEditPersonDialog(person: Person) {
-        personVisit.person = person
-        personText.text = personVisit.person.toString(context)
     }
 
     private fun showDeleteConfirm() {
@@ -164,9 +177,10 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
 
     private fun onDeletePersonConfirmed() {
 
-        (parent as? ViewGroup)?.removeView(this)
-
-        onDeletePersonVisit?.invoke(personVisit)
+        collapseToHeight0 {
+            (parent as? ViewGroup)?.removeView(this)
+        }
+        onPersonVisitDeleted?.invoke(personVisit)
     }
 
     private fun initNameText() {
@@ -177,6 +191,7 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 personVisit.person.name = p0.toString()
+                onPersonDataEdited?.invoke(personVisit.person)
             }
         })
     }
@@ -194,12 +209,14 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
         maleRadioButton.setOnCheckedChangeListener { _, b ->
             if (b){
                 personVisit.person.sex = Person.Sex.Male
+                onPersonDataEdited?.invoke(personVisit.person)
             }
         }
 
         femaleRadioButton.setOnCheckedChangeListener { _, b ->
             if (b) {
                 personVisit.person.sex = Person.Sex.Female
+                onPersonDataEdited?.invoke(personVisit.person)
             }
         }
     }
@@ -217,6 +234,7 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
 
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
                 personVisit.person.age = Person.Age.values()[p2]
+                onPersonDataEdited?.invoke(personVisit.person)
             }
         }
     }
@@ -231,5 +249,12 @@ class PersonVisitCell(private val personVisit: PersonVisit, context: Context) : 
                 personVisit.person.description = p0.toString()
             }
         })
+    }
+
+    fun forceSwitchMode(mode: Mode) {
+        this.mode = mode
+        refreshPersonTextForShow()
+        refreshUIsForEdit()
+        animateHeight()
     }
 }

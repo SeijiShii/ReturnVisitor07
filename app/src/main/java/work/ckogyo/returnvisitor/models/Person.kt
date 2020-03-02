@@ -102,4 +102,7 @@ open class Person : BaseDataModel {
             "$sexStr ${ageArray[age.ordinal]}"
         }
     }
+
+    val hasData: Boolean
+        get() = name.isNotEmpty() || age != Age.Unknown || sex != Sex.Unknown
 }
