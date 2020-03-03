@@ -44,6 +44,44 @@
             android:id="@+id/visitListView"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/noVisitDataFrame">
+
+            <TextView
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:text="@string/no_data_matches_with_filter"
+                android:textColor="@color/gray"
+                android:textSize="20sp"
+                android:gravity="center"
+                android:layout_centerInParent="true"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/loadingFilteredVisitsOverlay">
+
+            <ProgressBar
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_centerInParent="true"
+                android:id="@+id/loadingFilteredVisitsProgress"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/loading_filtered_visits"
+                android:textColor="@color/darkGray"
+                android:textSize="15sp"
+                android:layout_below="@+id/loadingFilteredVisitsProgress"
+                android:layout_centerHorizontal="true"/>
+
+        </RelativeLayout>
+
     </FrameLayout>
 
     <RelativeLayout
@@ -109,49 +147,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_centerInParent="true">
-
-                    <Button
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:background="@drawable/circle_button_solid_red"
-                        android:id="@+id/redFilterButton"/>
-
-                    <Button
-                        android:layout_width="40dp"
-                        android:layout_height="30dp"
-                        android:background="@drawable/circle_button_solid_purple"
-                        android:id="@+id/purpleFilterButton"/>
-
-                    <Button
-                        android:layout_width="40dp"
-                        android:layout_height="30dp"
-                        android:background="@drawable/circle_button_solid_blue"
-                        android:id="@+id/blueFilterButton"/>
-
-                    <Button
-                        android:layout_width="40dp"
-                        android:layout_height="30dp"
-                        android:background="@drawable/circle_button_solid_green"
-                        android:id="@+id/greenFilterButton"/>
-
-                    <Button
-                        android:layout_width="40dp"
-                        android:layout_height="30dp"
-                        android:background="@drawable/circle_button_solid_gold"
-                        android:id="@+id/goldFilterButton"/>
-
-                    <Button
-                        android:layout_width="40dp"
-                        android:layout_height="30dp"
-                        android:background="@drawable/circle_button_solid_orange"
-                        android:id="@+id/orangeFilterButton"/>
-
-                </LinearLayout>
+                    android:layout_centerInParent="true"
+                    android:id="@+id/raterFilterContainer"/>
 
             </RelativeLayout>
 
         </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/filterTouchBlocker"
+            android:background="@color/whiteFog"/>
 
     </work.ckogyo.returnvisitor.views.HeightAnimationFrame>
 

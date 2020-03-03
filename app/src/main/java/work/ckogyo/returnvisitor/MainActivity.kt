@@ -235,6 +235,7 @@ class MainActivity : AppCompatActivity() {
 
     fun showWhereToGoNextFragment() {
         val goFragment = WhereToGoNextFragment().also {
+            it.onVisitEdited = mapFragment::onFinishEditVisitInFragments
             it.onBackToMapFragment = {
                 mapFragment.enableMyLocation(true)
             }

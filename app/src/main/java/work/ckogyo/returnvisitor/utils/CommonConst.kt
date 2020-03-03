@@ -116,3 +116,13 @@ val squareMarkerIds = arrayOf(
     R.mipmap.orange_square
 )
 
+val circleSolidResIds = arrayOf(
+    R.drawable.circle_button_solid_gray,
+    R.drawable.circle_button_solid_red,
+    R.drawable.circle_button_solid_purple,
+    R.drawable.circle_button_solid_blue,
+    R.drawable.circle_button_solid_green,
+    R.drawable.circle_button_solid_gold,
+    R.drawable.circle_button_solid_orange
+)
+

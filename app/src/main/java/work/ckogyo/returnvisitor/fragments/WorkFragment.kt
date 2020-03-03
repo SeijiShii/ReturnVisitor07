@@ -727,7 +727,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
 
-            // TODO: 編集後と削除後のWorkFragmentにおけるVisitCellの挙動
+            // 編集後と削除後のWorkFragmentにおけるVisitCellの挙動
             when(param) {
                 OnFinishEditParam.Canceled -> {}
                 OnFinishEditParam.Done -> {

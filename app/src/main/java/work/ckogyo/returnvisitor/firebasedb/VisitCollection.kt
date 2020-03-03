@@ -9,6 +9,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.models.VisitFilter
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.dateTimeMillisKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
@@ -425,6 +426,51 @@ class VisitCollection {
                     .addOnFailureListener {
                         cont.resume(null)
                     }
+            }
+        }
+    }
+
+    suspend fun loadByVisitFilter(filter: VisitFilter): ArrayList<Visit> = suspendCoroutine { cont ->
+
+        val visits = ArrayList<Visit>()
+
+        GlobalScope.launch {
+            val userDoc = FirebaseDB.instance.userDoc
+            if (userDoc == null) {
+                cont.resume(visits)
+            } else {
+
+                val start = filter.periodStartDate
+                val end = filter.periodEndDate
+
+                userDoc.collection(visitsKey).whereGreaterThanOrEqualTo(dateTimeMillisKey, start.timeInMillis)
+                    .whereLessThanOrEqualTo(dateTimeMillisKey, end.timeInMillis)
+                    .get()
+                    .addOnSuccessListener {
+                        val maps = ArrayList<HashMap<String, Any>>()
+                        for (doc in it.documents) {
+                            val visit = Visit()
+                            val map = doc.data as HashMap<String, Any>
+                            visit.initFromHashMapSimple(map)
+                            if (filter.ratings.contains(visit.rating)) {
+                                maps.add(map)
+                            }
+                        }
+
+                        GlobalScope.launch {
+                            for (map in maps) {
+                                val visit = Visit()
+                                visit.initVisitFromHashMap(map)
+                                visits.add(visit)
+                            }
+                            visits.sortByDescending { visit -> visit.rating.ordinal }
+                            cont.resume(visits)
+                        }
+                    }
+                    .addOnFailureListener {
+                        cont.resume(visits)
+                    }
+
             }
         }
     }

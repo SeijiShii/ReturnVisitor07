@@ -9,6 +9,7 @@ import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterPeriodStartKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterRatingsKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterUnitKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
+import work.ckogyo.returnvisitor.utils.cloneWith0Time
 import work.ckogyo.returnvisitor.utils.isDateBefore
 import java.util.*
 import kotlin.collections.HashSet
@@ -55,6 +56,49 @@ class VisitFilter {
 
     var periodStart = PeriodTerm.OneMonth
     var periodEnd = PeriodTerm.OneWeek
+
+    private fun periodTermToCalendar(term: PeriodTerm): Calendar {
+
+        val cal = Calendar.getInstance()
+
+        when(term) {
+            PeriodTerm.All -> {
+                cal.timeInMillis = 0
+            }
+            PeriodTerm.OneYear -> {
+                cal.add(Calendar.YEAR, -1)
+            }
+            PeriodTerm.SixMonths -> {
+                cal.add(Calendar.MONTH, -6)
+            }
+            PeriodTerm.ThreeMonths -> {
+                cal.add(Calendar.MONTH, -3)
+            }
+            PeriodTerm.OneMonth -> {
+                cal.add(Calendar.MONTH, -1)
+            }
+            PeriodTerm.OneWeek -> {
+                cal.add(Calendar.WEEK_OF_MONTH, -1)
+            }
+            else -> {}
+        }
+        return cal
+    }
+
+    val periodStartDate: Calendar
+         get() {
+             val d = periodTermToCalendar(periodStart)
+             return d.cloneWith0Time()
+         }
+
+    val periodEndDate: Calendar
+        get() {
+            var d = periodTermToCalendar(periodEnd)
+            d.add(Calendar.DAY_OF_MONTH, 1)
+            d = d.cloneWith0Time()
+            d.timeInMillis -= 1
+            return d
+        }
 
 //    var period = Period().also {
 //        it.start = PeriodPair(PeriodUnit.Month, 1)
