@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
-import android.view.ViewParent
 import android.widget.LinearLayout
 import android.widget.TextView
 import work.ckogyo.returnvisitor.R
@@ -12,7 +11,7 @@ import work.ckogyo.returnvisitor.utils.toDP
 
 class SmallTagView(context: Context, text: String) : TextView(context), TagView {
 
-    var backgroundResourceId = R.drawable.green_border_round
+    var backgroundResourceId = R.drawable.border_round_green
         set(value) {
             field = value
             setBackgroundResource(field)

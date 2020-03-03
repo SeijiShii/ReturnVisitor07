@@ -50,7 +50,7 @@
                 android:layout_width="50dp"
                 android:layout_height="match_parent"
                 android:id="@+id/mapHelpButton"
-                android:background="@drawable/white_help_solid"/>
+                android:background="@drawable/help_solid_white"/>
 
         </LinearLayout>
 
@@ -100,7 +100,7 @@
                     android:layout_height="50dp"
                     android:id="@+id/signOutButton"
                     android:paddingStart="10dp"
-                    android:drawableStart="@drawable/ic_dark_green_exit"
+                    android:drawableStart="@drawable/ic_exit_dark_green"
                     style="@style/DarkGreenButton"/>
 
                 <View
@@ -180,6 +180,20 @@
                     android:id="@+id/reportMailButton"
                     android:text="@string/report_mail"
                     android:drawableStart="@drawable/ic_mail_outline_dark_green_24dp"
+                    android:paddingStart="10dp"
+                    style="@style/DarkGreenButton"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:id="@+id/whereToGoNextButton"
+                    android:text="@string/where_to_go_next"
+                    android:drawableStart="@drawable/ic_lightbulb_outline_dark_green_24dp"
                     android:paddingStart="10dp"
                     style="@style/DarkGreenButton"/>
 

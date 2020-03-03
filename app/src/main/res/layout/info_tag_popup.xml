@@ -18,7 +18,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:background="@drawable/gray_border_round"
+                android:background="@drawable/border_round_gray"
                 android:layout_margin="3dp"
                 android:hint="@string/search"
                 android:textSize="14sp"
@@ -28,7 +28,7 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:id="@+id/createInfoTagButton"
-                android:background="@drawable/green_add_selector"/>
+                android:background="@drawable/add_selector_green"/>
 
         </LinearLayout>
 

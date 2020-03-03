@@ -2,10 +2,10 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="false"
         android:state_enabled="true"
-        android:drawable="@drawable/green_add_tag_button"/>
+        android:drawable="@drawable/add_placement_button_violet"/>
     <item android:state_pressed="true"
         android:state_enabled="true"
-        android:drawable="@drawable/green_trans_add_tag_button"/>
+        android:drawable="@drawable/add_placement_button_violet_trans"/>
     <item android:state_enabled="false"
-        android:drawable="@drawable/light_gray_add_tag_button"/>
+        android:drawable="@drawable/add_placement_button_light_gray"/>
 </selector>

@@ -3,10 +3,10 @@
     <item>
         <shape
             android:shape="rectangle">
-            <solid android:color="@color/tagGreen"/>
+            <solid android:color="@color/plcViolet"/>
             <corners android:radius="5dp"/>
         </shape>
     </item>
-    <item android:drawable="@drawable/ic_white_add_tag_button"
+    <item android:drawable="@drawable/ic_add_placement_white_button"
         android:gravity="center"/>
 </layer-list>

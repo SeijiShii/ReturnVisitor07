@@ -16,16 +16,14 @@
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:id="@+id/backToMapButton"
-            android:background="@drawable/dark_gray_chevron_left_solid"
+            android:background="@drawable/chevron_left_solid_dark_gray"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"/>
-
-
 
         <TextView
             android:layout_width="150dp"
             android:layout_height="40dp"
-            android:background="@drawable/whitesmoke_round"
+            android:background="@drawable/round_whitesmoke"
             android:id="@+id/workDateText"
             android:gravity="center"
             android:textSize="15sp"
@@ -35,7 +33,7 @@
             android:layout_width="50dp"
             android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
-            android:background="@drawable/dark_gray_horiz_dots_solid"
+            android:background="@drawable/horiz_dots_solid_dark_gray"
             android:id="@+id/workFragmentMenuButton"/>
 
     </RelativeLayout>

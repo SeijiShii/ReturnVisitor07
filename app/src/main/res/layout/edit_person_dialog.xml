@@ -12,7 +12,7 @@
             android:paddingEnd="10dp"
             android:gravity="center_vertical|start"
             android:id="@+id/personNameText"
-            android:background="@drawable/gray_border_round"
+            android:background="@drawable/border_round_gray"
             android:layout_margin="3dp"/>
 
     <RadioGroup
@@ -66,7 +66,7 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:id="@+id/personDescriptionText"
-            android:background="@drawable/gray_border_round"
+            android:background="@drawable/border_round_gray"
             android:inputType="textMultiLine"
             android:layout_margin="3dp"
             android:padding="5dp"

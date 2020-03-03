@@ -39,5 +39,15 @@
         <item>目ざめよ!</item>
         <item>研究用ものみの塔</item>
     </array>
+
+    <array name="periodUnitArray">
+        <item>全期間</item>
+        <item>1年前</item>
+        <item>6か月前</item>
+        <item>3か月前</item>
+        <item>1か月前</item>
+        <item>1週間前</item>
+        <item>今日</item>
+    </array>
 </resources>
 

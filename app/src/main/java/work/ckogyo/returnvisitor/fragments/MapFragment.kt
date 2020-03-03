@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -468,6 +467,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         initShowCalendarButton()
         initMonthReportButton()
         initMailReportButton()
+        initWhereToGoNextButton()
         initTermOfUseButton()
     }
 
@@ -593,7 +593,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun initTimeCountButton(){
-        timeCountButton.refreshCellHeight()
+        timeCountButton.refreshHeight()
     }
 
     private fun initWorkButton() {
@@ -645,6 +645,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             mainActivity?.prepareReportMail(Calendar.getInstance())
         }
     }
+
+    private fun initWhereToGoNextButton() {
+
+        whereToGoNextButton.setOnClickListener {
+
+            switchDrawer()
+            mainActivity?.showWhereToGoNextFragment()
+        }
+    }
+
 
     private fun initTermOfUseButton() {
 

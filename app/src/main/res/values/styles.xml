@@ -22,19 +22,19 @@
 
     <style name="DarkGreenButton" parent="MiddleTextView">
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@drawable/dark_green_button_text</item>
-        <item name="android:background">@drawable/trans_gray_solid_round</item>
+        <item name="android:textColor">@drawable/text_button_selector_dark_green</item>
+        <item name="android:background">@drawable/solid_round_trans_gray</item>
     </style>
 
     <style name="DarkBlueButton" parent="MiddleTextView">
         <item name="android:gravity">center</item>
-        <item name="android:textColor">@drawable/dark_blue_button_text</item>
-        <item name="android:background">@drawable/trans_gray_solid_round</item>
+        <item name="android:textColor">@drawable/text_button_selector_dark_blue</item>
+        <item name="android:background">@drawable/solid_round_trans_gray</item>
     </style>
 
     <style name="GrayBorderRoundFixedInput" parent="MiddleTextView">
         <item name="android:gravity">center</item>
-        <item name="android:background">@drawable/gray_border_round</item>
+        <item name="android:background">@drawable/border_round_gray</item>
         <item name="android:layout_height">40dp</item>
         <item name="android:textColor">@color/darkGray</item>
         <item name="android:layout_margin">3dp</item>

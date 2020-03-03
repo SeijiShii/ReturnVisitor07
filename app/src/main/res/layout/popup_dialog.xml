@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:padding="10dp"
         android:id="@+id/popupDialog"
-        android:background="@drawable/whitesmoke_trans_card">
+        android:background="@drawable/card_whitesmoke_trans">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -23,7 +23,7 @@
                 android:layout_width="25dp"
                 android:layout_height="match_parent"
                 android:id="@+id/closeTextPopupButton"
-                android:background="@drawable/gray_clear_solid"
+                android:background="@drawable/clear_solid_gray"
                 android:layout_alignParentRight="true"/>
 
         </RelativeLayout>

@@ -2,7 +2,6 @@ package work.ckogyo.returnvisitor.fragments
 
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -19,8 +18,6 @@ import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.DailyReportCollection
-import work.ckogyo.returnvisitor.firebasedb.VisitCollection
-import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.DailyReport
 import work.ckogyo.returnvisitor.utils.*
 import java.text.SimpleDateFormat
@@ -225,7 +222,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
     private inner class DayHeaderCell(day: Calendar): AppCompatTextView(context) {
 
         init {
-            setBackgroundResource(R.drawable.gray_right_border)
+            setBackgroundResource(R.drawable.right_border_gray)
             gravity = Gravity.CENTER
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             text = SimpleDateFormat("EEE", Locale.getDefault()).format(day.time)
@@ -243,7 +240,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0).also {
                 it.weight = 1f
             }
-            setBackgroundResource(R.drawable.gray_bottom_border)
+            setBackgroundResource(R.drawable.bottom_border_gray)
 
             for (report in weekReport) {
 
@@ -298,7 +295,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
                 setBackgroundResource(R.color.lightGray)
             } else {
 
-                setBackgroundResource(R.drawable.gray_right_border)
+                setBackgroundResource(R.drawable.right_border_gray)
 
                 dayNumberText.text = dailyReport.date.get(Calendar.DAY_OF_MONTH).toString()
                 dayNumberText.visibility = View.VISIBLE

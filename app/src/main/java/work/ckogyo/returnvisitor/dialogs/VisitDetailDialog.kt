@@ -48,7 +48,7 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
         val plcTagViews = ArrayList<SmallTagView>()
         for (plc in visit.placements) {
             val tagView = SmallTagView(context!!, plc.toShortString(context!!)).also {
-                it.backgroundResourceId = R.drawable.dark_violet_border_round
+                it.backgroundResourceId = R.drawable.border_round_dark_violet
             }
             plcTagViews.add(tagView)
         }

@@ -26,7 +26,7 @@
             <View
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
-                android:background="@drawable/dark_gray_horiz_dots_solid"
+                android:background="@drawable/horiz_dots_solid_dark_gray"
                 android:id="@+id/visitDetailMenuButton"
                 android:layout_alignParentEnd="true"/>
 
@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="40dp"
-            android:background="@drawable/gray_bottom_border"
+            android:background="@drawable/bottom_border_gray"
             android:paddingBottom="5dp">
 
             <TextView
@@ -60,7 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="40dp"
-            android:background="@drawable/gray_bottom_border"
+            android:background="@drawable/bottom_border_gray"
             android:paddingBottom="5dp">
 
             <TextView
@@ -84,7 +84,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="40dp"
-            android:background="@drawable/gray_bottom_border"
+            android:background="@drawable/bottom_border_gray"
             android:paddingBottom="5dp">
 
             <TextView
@@ -108,7 +108,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="40dp"
-            android:background="@drawable/gray_bottom_border"
+            android:background="@drawable/bottom_border_gray"
             android:paddingBottom="5dp">
 
             <TextView
@@ -167,7 +167,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="40dp"
-            android:background="@drawable/gray_bottom_border"
+            android:background="@drawable/bottom_border_gray"
             android:paddingBottom="5dp">
 
             <TextView

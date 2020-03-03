@@ -9,7 +9,7 @@
         android:layout_height="30dp"
         android:orientation="horizontal"
         android:id="@+id/dayHeaderRow"
-        android:background="@drawable/gray_bottom_border"/>
+        android:background="@drawable/bottom_border_gray"/>
 
     <FrameLayout
         android:layout_width="match_parent"

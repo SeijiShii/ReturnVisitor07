@@ -29,6 +29,12 @@ object SharedPrefKeys {
     const val longitudeKey = "longitude"
     const val isTimeCounting = "is_time_counting"
     const val weekStartKey = "week_start"
+    const val filterPeriodKey = "filter_period"
+    const val filterPeriodStartKey = "filter_period_start"
+    const val filterPeriodEndKey = "filter_period_end"
+    const val filterRatingsKey = "filter_ratings"
+    const val filterUnitKey = "filter_unit"
+    const val filterNumberKey = "filter_number"
 }
 
 object DataModelKeys {

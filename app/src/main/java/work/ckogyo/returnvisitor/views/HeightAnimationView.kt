@@ -37,7 +37,7 @@ abstract class HeightAnimationView: FrameLayout{
 
     var isExtracted = false
 
-    open fun refreshCellHeight(extracted: Boolean? = null){
+    open fun refreshHeight(extracted: Boolean? = null){
 
         if (extracted != null){
             isExtracted = extracted

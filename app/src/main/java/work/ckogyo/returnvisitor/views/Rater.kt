@@ -24,13 +24,13 @@ class Rater : LinearLayout {
     }
 
     private val resIds = arrayOf(
-        R.drawable.gray_circle_button,
-        R.drawable.red_circle_button,
-        R.drawable.purple_circle_button,
-        R.drawable.blue_circle_button,
-        R.drawable.green_circle_button,
-        R.drawable.gold_circle_button,
-        R.drawable.orange_circle_button
+        R.drawable.circle_button_gray,
+        R.drawable.circle_button_red,
+        R.drawable.circle_button_purple,
+        R.drawable.circle_button_blue,
+        R.drawable.circle_button_green,
+        R.drawable.circle_button_gold,
+        R.drawable.circle_button_orange
     )
 
     private val buttons = ArrayList<ImageView>()

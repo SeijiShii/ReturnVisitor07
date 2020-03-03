@@ -233,6 +233,21 @@ class MainActivity : AppCompatActivity() {
         mapFragment.enableMyLocation(false)
     }
 
+    fun showWhereToGoNextFragment() {
+        val goFragment = WhereToGoNextFragment().also {
+            it.onBackToMapFragment = {
+                mapFragment.enableMyLocation(true)
+            }
+        }
+        supportFragmentManager.beginTransaction().let {
+            it.addToBackStack(null)
+            it.add(R.id.fragmentContainer, goFragment, WhereToGoNextFragment::class.java.simpleName)
+            it.commit()
+        }
+        mapFragment.enableMyLocation(false)
+    }
+
+
     fun checkPermissionAndEnableMyLocation(googleMap: GoogleMap?) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
             || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {

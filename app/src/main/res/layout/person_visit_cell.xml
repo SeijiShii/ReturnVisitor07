@@ -3,7 +3,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/gray_border_round"
+    android:background="@drawable/border_round_gray"
     android:layout_margin="2dp">
 
     <FrameLayout
@@ -30,7 +30,7 @@
                 android:layout_height="36dp"
                 android:layout_margin="2dp"
                 android:id="@+id/editPersonButton"
-                android:background="@drawable/blue_edit_button_selector"/>
+                android:background="@drawable/edit_button_selector_blue"/>
 
         </LinearLayout>
 
@@ -54,7 +54,7 @@
                     android:paddingEnd="10dp"
                     android:gravity="center_vertical|start"
                     android:id="@+id/personNameText"
-                    android:background="@drawable/gray_border_round"
+                    android:background="@drawable/border_round_gray"
                     android:layout_margin="3dp"/>
 
                 <Button
@@ -62,7 +62,7 @@
                     android:layout_height="36dp"
                     android:layout_margin="2dp"
                     android:id="@+id/fixPersonButton"
-                    android:background="@drawable/blue_arrow_up_button_selector"/>
+                    android:background="@drawable/arrow_up_button_selector_blue"/>
 
             </LinearLayout>
 
@@ -109,7 +109,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:id="@+id/personDescriptionText"
-                android:background="@drawable/gray_border_round"
+                android:background="@drawable/border_round_gray"
                 android:inputType="textMultiLine"
                 android:layout_margin="3dp"
                 android:padding="5dp"
@@ -157,7 +157,7 @@
             android:layout_width="36dp"
             android:layout_height="match_parent"
             android:layout_margin="2dp"
-            android:background="@drawable/dark_gray_horiz_dots_solid"
+            android:background="@drawable/horiz_dots_solid_dark_gray"
             android:id="@+id/personVisitMenuButton"/>
 
     </LinearLayout>

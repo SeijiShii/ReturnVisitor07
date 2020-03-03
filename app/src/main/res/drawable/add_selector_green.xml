@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_enabled="false"
-        android:drawable="@drawable/light_gray_add_solid"/>
-    <item android:drawable="@drawable/green_add_solid"/>
+        android:drawable="@drawable/add_solid_light_gray"/>
+    <item android:drawable="@drawable/add_solid_green"/>
 </selector>
