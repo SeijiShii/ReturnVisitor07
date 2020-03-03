@@ -106,10 +106,25 @@ class RecordVisitFragment : Fragment(),
             val pvCell = PersonVisitCell(pv, PersonVisitCell.Mode.Show, context!!).also {
                 it.onPersonVisitDeleted = this::onDeletePersonVisit
                 it.onPersonDataEdited = this::onPersonDataEditedInPVCell
+                it.onModeSwitched = this::onPersonVisitCellModeSwitched
             }
             personVisitContainer.addView(pvCell)
         }
         refreshAddPersonButtonEnability()
+    }
+
+    private fun onPersonVisitCellModeSwitched(pv: PersonVisit, mode: PersonVisitCell.Mode) {
+
+        if (mode == PersonVisitCell.Mode.Edit) {
+            for (i in 0 until personVisitContainer.childCount) {
+                val pvCell = personVisitContainer.getChildAt(i) as? PersonVisitCell
+                pvCell ?: continue
+
+                if (pvCell.personVisit != pv) {
+                    pvCell.forceSwitchMode(PersonVisitCell.Mode.Show)
+                }
+            }
+        }
     }
 
     private fun onDeletePersonVisit(pv: PersonVisit) {

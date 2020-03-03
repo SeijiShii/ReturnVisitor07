@@ -206,6 +206,8 @@ abstract class PopupDialog(private val anchor: View, private val frameId: Int) :
 
                 if (oldFrameHeight != frame.height) {
 
+                    popupDialog ?: return@launch
+
                     var popupTop = 0
                     val popupHeight = if (popupDialog.height > frame.height) {
                         popupTop = context!!.toDP(10)

@@ -148,8 +148,11 @@ class MainActivity : AppCompatActivity() {
                 switchProgressOverlay(false)
             }
         }
-        hideKeyboard(this)
-        mapFragment.enableMyLocation(false)
+
+        handler.post {
+            hideKeyboard(this)
+            mapFragment.enableMyLocation(false)
+        }
     }
 
     fun showRecordVisitFragmentForEdit(visit: Visit, onFinishEditVisit: (Visit, EditMode, OnFinishEditParam) -> Unit) {
@@ -159,7 +162,10 @@ class MainActivity : AppCompatActivity() {
             it.onFinishEdit = onFinishEditVisit
             it.mode = EditMode.Edit
             it.onBackToMapFragment = {
-                mapFragment.enableMyLocation(true)
+                handler.post {
+                    hideKeyboard(this)
+                    mapFragment.enableMyLocation(true)
+                }
             }
         }
 
@@ -168,8 +174,10 @@ class MainActivity : AppCompatActivity() {
             .add(R.id.fragmentContainer, rvFragment, RecordVisitFragment::class.java.simpleName)
             .commit()
 
-        hideKeyboard(this)
-        mapFragment.enableMyLocation(false)
+        handler.post {
+            hideKeyboard(this)
+            mapFragment.enableMyLocation(false)
+        }
     }
 
     // 新規集合住宅を追加後、「閉じる」の場合はキャンセルとみなし、部屋が1つもなければ集合住宅を削除する
@@ -185,7 +193,10 @@ class MainActivity : AppCompatActivity() {
             it.onDeleted = onDeleted
             it.isNewHC = isNewHC
             it.onBackToMapFragment = {
-                mapFragment.enableMyLocation(true)
+                handler.post {
+                    hideKeyboard(this)
+                    mapFragment.enableMyLocation(true)
+                }
             }
         }
 
@@ -194,8 +205,11 @@ class MainActivity : AppCompatActivity() {
             it.add(R.id.fragmentContainer, hcFragment, HousingComplexFragment::class.java.simpleName)
             it.commit()
         }
-        hideKeyboard(this)
-        mapFragment.enableMyLocation(false)
+
+        handler.post {
+            hideKeyboard(this)
+            mapFragment.enableMyLocation(false)
+        }
     }
 
     fun showWorkFragment(dateToShow: Calendar) {
@@ -205,7 +219,10 @@ class MainActivity : AppCompatActivity() {
         val workFragment = WorkFragment(dateToShow).also {
             it.onVisitEdited = mapFragment::onFinishEditVisitInFragments
             it.onBackToMapFragment = {
-                mapFragment.enableMyLocation(true)
+                handler.post {
+                    hideKeyboard(this)
+                    mapFragment.enableMyLocation(true)
+                }
             }
         }
         supportFragmentManager.beginTransaction().let {
@@ -214,15 +231,20 @@ class MainActivity : AppCompatActivity() {
             it.commit()
         }
 
-        hideKeyboard(this)
-        mapFragment.enableMyLocation(false)
+        handler.post {
+            hideKeyboard(this)
+            mapFragment.enableMyLocation(false)
+        }
     }
 
     fun showCalendarPagerFragment(monthToShow: Calendar) {
 
         val cpFragment = CalendarPagerFragment(monthToShow).also {
             it.onBackToMapFragment = {
-                mapFragment.enableMyLocation(true)
+                handler.post {
+                    hideKeyboard(this)
+                    mapFragment.enableMyLocation(true)
+                }
             }
         }
         supportFragmentManager.beginTransaction().let {
@@ -230,14 +252,21 @@ class MainActivity : AppCompatActivity() {
             it.add(R.id.fragmentContainer, cpFragment, CalendarPagerFragment::class.java.simpleName)
             it.commit()
         }
-        mapFragment.enableMyLocation(false)
+
+        handler.post {
+            hideKeyboard(this)
+            mapFragment.enableMyLocation(false)
+        }
     }
 
     fun showWhereToGoNextFragment() {
         val goFragment = WhereToGoNextFragment().also {
             it.onVisitEdited = mapFragment::onFinishEditVisitInFragments
             it.onBackToMapFragment = {
-                mapFragment.enableMyLocation(true)
+                handler.post {
+                    hideKeyboard(this)
+                    mapFragment.enableMyLocation(true)
+                }
             }
         }
         supportFragmentManager.beginTransaction().let {
@@ -245,7 +274,10 @@ class MainActivity : AppCompatActivity() {
             it.add(R.id.fragmentContainer, goFragment, WhereToGoNextFragment::class.java.simpleName)
             it.commit()
         }
-        mapFragment.enableMyLocation(false)
+        handler.post {
+            hideKeyboard(this)
+            mapFragment.enableMyLocation(false)
+        }
     }
 
 
