@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -86,45 +87,75 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         googleMap.setPadding(context!!.toDP(10), context!!.toDP(70), 0, context!!.toDP(50))
 
-        googleMap.setOnMapLongClickListener {
+        googleMap.setOnMapLongClickListener(this::onMapLongClick)
+        googleMap.setOnMarkerClickListener(this::onMarkerClick)
+        googleMap.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener{
+            override fun onMarkerDragEnd(marker: Marker?) {
+                marker ?: return
+                val placeId = marker.tag as? String
+                placeId ?: return
 
-            val place = Place()
-            place.latLng = it
-            place.category = Place.Category.House
+                val handler = Handler()
 
-            googleMap.animateCamera(CameraUpdateFactory.newLatLng(it))
-            val marker = placeMarkers.addMarker(place)
-
-            showPlacePopup(place, marker)
-        }
-
-        googleMap.setOnMarkerClickListener {
-
-            val id = it.tag as? String
-            if (id != null) {
                 GlobalScope.launch {
-                    val place = PlaceCollection.instance.loadById(id)
-                    if (place != null) {
-                        when(place.category) {
-                            Place.Category.Place,
-                            Place.Category.House -> handler.post {
-                                showPlaceDialog(place)
-                            }
-                            Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
-                                onOk = this@MapFragment::onOkInHousingComplexFragment,
-                                onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
-                                onClose = this@MapFragment::onCloseHousingComplexFragment,
-                                isNewHC = false)
+                    val place = PlaceCollection.instance.loadById(placeId)
+                    place ?: return@launch
+
+                    handler.post {
+                        place.latLng = marker.position
+                        context ?: return@post
+                        GlobalScope.launch {
+                            place.address = ""
+                            place.address = requestAddressIfNeeded(place, context!!)
+                            PlaceCollection.instance.saveAsync(place)
                         }
                     }
                 }
             }
-            return@setOnMarkerClickListener true
-        }
+
+            override fun onMarkerDragStart(p0: Marker?) {}
+
+            override fun onMarkerDrag(p0: Marker?) {}
+        })
 
         loadCameraPosition()
 
         isMapReady = true
+    }
+
+    private fun onMapLongClick(latLng: LatLng) {
+        val place = Place().also {
+            it.latLng = latLng
+            it.category = Place.Category.House
+        }
+
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+        val marker = placeMarkers.addMarker(place)
+
+        showPlacePopup(place, marker)
+    }
+
+    private fun onMarkerClick(marker: Marker): Boolean {
+        val id = marker.tag as? String
+        if (id != null) {
+            GlobalScope.launch {
+                val place = PlaceCollection.instance.loadById(id)
+                if (place != null) {
+                    when(place.category) {
+                        Place.Category.Place,
+                        Place.Category.House -> handler.post {
+                            showPlaceDialog(place)
+                        }
+                        Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
+                            onOk = this@MapFragment::onOkInHousingComplexFragment,
+                            onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
+                            onClose = this@MapFragment::onCloseHousingComplexFragment,
+                            isNewHC = false)
+                    }
+                }
+            }
+        }
+        return true
     }
 
     fun enableMyLocation(enabled: Boolean){

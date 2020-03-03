@@ -24,7 +24,12 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
     private val markers = ArrayList<Marker>()
 
     private fun addMarker(place: Place, resId:Int):Marker? {
-        val marker = googleMap.addMarker(MarkerOptions().position(place.latLng).icon(BitmapDescriptorFactory.fromResource(resId)))
+        val marker = googleMap.addMarker(MarkerOptions()
+            .position(place.latLng)
+            .icon(BitmapDescriptorFactory.fromResource(resId))).also {
+            it.isDraggable = true
+        }
+
         markers.add(marker)
         marker.tag = place.id
         return marker
