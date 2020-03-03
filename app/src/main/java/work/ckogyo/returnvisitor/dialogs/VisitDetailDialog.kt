@@ -8,18 +8,19 @@ import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.DialogFragment
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
 import kotlinx.android.synthetic.main.visit_detail_dialog.*
 import kotlinx.android.synthetic.main.visit_detail_dialog.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Visit
-import work.ckogyo.returnvisitor.utils.confirmDeleteVisit
-import work.ckogyo.returnvisitor.utils.ratingToColorButtonResId
-import work.ckogyo.returnvisitor.utils.setOnClick
+import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.SmallTagView
 
-class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
+class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReadyCallback {
 
     var onClickEditVisit: ((Visit) -> Unit)? = null
     var onDeleteVisitConfirmed: ((Visit) -> Unit)? = null
@@ -66,12 +67,49 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
             showMenuPopup()
         }
 
+        v.mapView.onCreate(savedInstanceState)
+        v.mapView.getMapAsync(this)
+
+        v.showInMapButton.setOnClickListener {
+            refreshMapFrame(true)
+        }
+
+        v.goBackToDetailButton.setOnClickListener {
+            refreshMapFrame(false)
+        }
+
+        v.showInWideMapButton.setOnClickListener {
+            // TODO: MapFragmentへ戻る。
+        }
+
         return AlertDialog.Builder(context).also {
 
             it.setView(v)
             it.setNeutralButton(R.string.close, null)
 
         }.create()
+    }
+
+    private var googleMap: GoogleMap? = null
+    private var placeMarkers: PlaceMarkers? = null
+
+    override fun onMapReady(p0: GoogleMap?) {
+        googleMap = p0
+
+        googleMap ?: return
+
+        googleMap!!.uiSettings?.isZoomControlsEnabled = true
+        googleMap!!.uiSettings?.isZoomGesturesEnabled = true
+        googleMap!!.mapType = GoogleMap.MAP_TYPE_HYBRID
+        googleMap!!.uiSettings?.setAllGesturesEnabled(true)
+
+        placeMarkers = PlaceMarkers(googleMap!!)
+        placeMarkers!!.addMarker(visit.place)
+
+        context ?: return
+        googleMap?.setPadding(0, 0, 0, context!!.toDP(50))
+
+        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(visit.place.latLng, 19f))
     }
 
 
@@ -94,5 +132,33 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment() {
             return@setOnMenuItemClickListener true
         }
         popup.show()
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        dialog?.mapView?.onStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        dialog?.mapView?.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        dialog?.mapView?.onPause()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        dialog?.mapView?.onDestroy()
+    }
+
+    private fun refreshMapFrame(show: Boolean) {
+        dialog?.mapFrame?.fadeVisibility(show)
     }
 }

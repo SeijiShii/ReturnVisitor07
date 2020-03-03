@@ -33,4 +33,5 @@
     <color name="personBlueTrans">#880047ac</color>
     <color name="tagGreen">#00ac05</color>
     <color name="tagGreenTrans">#8800ac05</color>
+    <color name="greenTrans">#88028700</color>
 </resources>
