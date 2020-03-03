@@ -255,6 +255,11 @@ class WhereToGoNextFragment : Fragment() {
         }
     }
 
+    private fun onShowInWideMapInVisitDetail(visit: Visit) {
+        backToMapFragment()
+        mainActivity?.mapFragment?.animateToLatLng(visit.place.latLng)
+    }
+
     private inner class VisitListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -265,6 +270,7 @@ class WhereToGoNextFragment : Fragment() {
                             mainActivity?.showRecordVisitFragmentForEdit(visit2, this::onFinishEditVisit)
                         }
                         dialog.onDeleteVisitConfirmed = this::onVisitDeleted
+                        dialog.onClickShowInWideMap = this@WhereToGoNextFragment::onShowInWideMapInVisitDetail
                     }.show(childFragmentManager, VisitDetailDialog::class.java.simpleName)
                 }
             }

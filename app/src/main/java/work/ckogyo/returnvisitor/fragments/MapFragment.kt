@@ -220,6 +220,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             onRefreshPlace = this@MapFragment::onRefreshPlaceInPlaceDialog
             onEditVisitInvoked = this@MapFragment::onEditVisitInvokedInPlaceDialog
             onRecordNewVisitInvoked = this@MapFragment::onRecordNewVisitInvokedInPlaceDialog
+            onShowInWideMap = {
+                animateToLatLng(it.place.latLng)
+            }
         }
         mainActivity?.showDialog(dialog)
     }
@@ -690,5 +693,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    fun animateToLatLng(latLng: LatLng) {
+
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 19f))
+    }
 
 }

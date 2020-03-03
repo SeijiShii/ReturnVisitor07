@@ -321,9 +321,15 @@ class HousingComplexFragment : Fragment() {
             }
             onClose = this@HousingComplexFragment::onClosePlaceDialogForRoom
             onRefreshPlace = this@HousingComplexFragment::onRefreshPlaceInPlaceDialog
+            onShowInWideMap = this@HousingComplexFragment::onShowInWideMapInVisitDetail
         }
         mainActivity!!.showDialog(dialog)
         hideKeyboard(mainActivity!!)
+    }
+
+    private fun onShowInWideMapInVisitDetail(visit: Visit) {
+        backToMapFragment()
+        mainActivity?.mapFragment?.animateToLatLng(visit.place.latLng)
     }
 
     private fun onRefreshPlaceInPlaceDialog(room: Place) {

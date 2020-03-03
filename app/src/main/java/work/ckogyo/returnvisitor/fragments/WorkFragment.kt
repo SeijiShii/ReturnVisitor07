@@ -345,7 +345,10 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
         onBackToMapFragment?.invoke()
     }
 
-
+    private fun onShowInWideMapInVisitDetail(visit: Visit) {
+        backToMapFragment()
+        mainActivity?.mapFragment?.animateToLatLng(visit.place.latLng)
+    }
 
     inner class WorkElmAdapter(private val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -395,6 +398,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                             mainActivity?.showRecordVisitFragmentForEdit(visit2, this::onFinishEditVisit)
                         }
                         dialog.onDeleteVisitConfirmed = this::onVisitDeleted
+                        dialog.onClickShowInWideMap = this@WorkFragment::onShowInWideMapInVisitDetail
                     }.show(childFragmentManager, VisitDetailDialog::class.java.simpleName)
                 }
             }

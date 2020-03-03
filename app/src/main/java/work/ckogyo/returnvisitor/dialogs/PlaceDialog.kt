@@ -33,6 +33,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
     var onEditVisitInvoked: ((Visit) -> Unit)? = null
     var onRecordNewVisitInvoked: ((Place) -> Unit)? = null
+    var onShowInWideMap: ((Visit) -> Unit)? = null
 
     private val visitsToPlace = ArrayList<Visit>()
 
@@ -165,7 +166,13 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
         VisitDetailDialog(visit).also {
             it.onClickEditVisit = this@PlaceDialog::onClickEditVisitInCell
             it.onDeleteVisitConfirmed = this@PlaceDialog::onDeleteConfirmedInCell
+            it.onClickShowInWideMap = this::onClickShowInWideMapInVisitDetailDialog
         }.show(childFragmentManager, VisitDetailDialog::class.java.simpleName)
+    }
+
+    private fun onClickShowInWideMapInVisitDetailDialog(visit: Visit) {
+        close()
+        onShowInWideMap?.invoke(visit)
     }
 
     private fun onClickEditVisitInCell(visit: Visit) {

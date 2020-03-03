@@ -48,7 +48,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
 
-    private lateinit var mapFragment: MapFragment
+    lateinit var mapFragment: MapFragment
+        private set
 
     val googleMap: GoogleMap
         get() = mapFragment.googleMap

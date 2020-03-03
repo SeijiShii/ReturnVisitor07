@@ -24,6 +24,7 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
 
     var onClickEditVisit: ((Visit) -> Unit)? = null
     var onDeleteVisitConfirmed: ((Visit) -> Unit)? = null
+    var onClickShowInWideMap: ((Visit) -> Unit)? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
@@ -70,16 +71,18 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
         v.mapView.onCreate(savedInstanceState)
         v.mapView.getMapAsync(this)
 
-        v.showInMapButton.setOnClickListener {
+        v.showInMapButton.setOnClick {
             refreshMapFrame(true)
         }
 
-        v.goBackToDetailButton.setOnClickListener {
+        v.goBackToDetailButton.setOnClick {
             refreshMapFrame(false)
         }
 
-        v.showInWideMapButton.setOnClickListener {
-            // TODO: MapFragmentへ戻る。
+        v.showInWideMapButton.setOnClick {
+            // MapFragmentへ戻る。
+            dismiss()
+            onClickShowInWideMap?.invoke(visit)
         }
 
         return AlertDialog.Builder(context).also {
@@ -159,6 +162,14 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
     }
 
     private fun refreshMapFrame(show: Boolean) {
+
+        if (show) {
+            dialog ?: return
+            context ?: return
+
+            dialog!!.mapFrame?.layoutParams?.height = dialog!!.visitDetailScrollView.height + context!!.toDP(10)
+        }
+
         dialog?.mapFrame?.fadeVisibility(show)
     }
 }
