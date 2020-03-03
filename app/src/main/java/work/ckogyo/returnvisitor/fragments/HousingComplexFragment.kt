@@ -222,7 +222,11 @@ class HousingComplexFragment : Fragment() {
         loadingRoomsProgressFrame.fadeVisibility(true)
 
         when(param) {
-            OnFinishEditParam.Canceled -> {}
+            OnFinishEditParam.Canceled -> {
+                handler.post {
+                    loadingRoomsProgressFrame.fadeVisibility(false)
+                }
+            }
             OnFinishEditParam.Done -> {
 
                 if (mode != EditMode.Add) return

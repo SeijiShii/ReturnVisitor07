@@ -170,6 +170,9 @@ class RecordVisitFragment : Fragment(),
 
     private fun onClickAddPerson(v: View) {
 
+        mainActivity ?: return
+        hideKeyboard(mainActivity!!)
+
         val person = Person()
         val pv = PersonVisit(person)
         // 初めて会えて追加した人は「会えた」
@@ -282,6 +285,10 @@ class RecordVisitFragment : Fragment(),
     }
 
     private fun onClickAddPlacement(v: View) {
+
+        mainActivity ?: return
+        hideKeyboard(mainActivity!!)
+
         val plcDialog = PlacementDialog().also {
             it.onAddPlacement = this::onAddPlacementInPlcDialog
             it.onPlacementDeleted = this::onPlacementDeletedInDialog
@@ -318,11 +325,9 @@ class RecordVisitFragment : Fragment(),
     }
 
     private fun onClickAddInfoTag(v: View) {
-//        val tagDialog = InfoTagDialog(visit).also {
-//            it.onInfoTagSelected = this::onAddTagInInfoTagDialog
-//            it.onInfoTagDeleted = this::onInfoTagDeletedInDialog
-//        }
-//        mainActivity?.showDialog(tagDialog)
+
+        mainActivity ?: return
+        hideKeyboard(mainActivity!!)
 
         val tagPopup = InfoTagPopup(infoTagViewContainer, R.id.recordVisitFrame, visit, infoTagJob).also {
             it.onInfoTagSelected = this::onAddTagInInfoTagDialog
