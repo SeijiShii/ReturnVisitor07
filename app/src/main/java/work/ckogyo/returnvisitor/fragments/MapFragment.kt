@@ -129,7 +129,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
 
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
-        val marker = placeMarkers.addMarker(place)
+        val marker = placeMarkers.addMarker(context!!, place)
 
         showPlacePopup(place, marker)
     }
@@ -175,7 +175,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun onOkInHousingComplexFragment(hComplex: Place) {
         handler.post {
-            placeMarkers.refreshMarker(hComplex)
+            placeMarkers.refreshMarker(context!!, hComplex)
             mainActivity ?: return@post
             hideKeyboard(mainActivity!!)
         }
@@ -195,7 +195,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 hComplex.refreshRatingByVisitsAsync().await()
                 placeColl.saveAsync(hComplex).await()
                 handler.post {
-                    placeMarkers.refreshMarker(hComplex)
+                    placeMarkers.refreshMarker(context!!, hComplex)
                 }
             } else {
                 if (isNewHC) {
@@ -207,7 +207,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     hComplex.refreshRatingByVisitsAsync().await()
                     placeColl.saveAsync(hComplex).await()
                     handler.post{
-                        placeMarkers.refreshMarker(hComplex)
+                        placeMarkers.refreshMarker(context!!, hComplex)
                     }
                 }
             }
@@ -264,7 +264,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             place.refreshRatingByVisitsAsync().await()
 
             handler.post{
-                placeMarkers.refreshMarker(place)
+                placeMarkers.refreshMarker(context!!, place)
             }
             PlaceCollection.instance.saveAsync(place)
         }
@@ -293,7 +293,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun onClickButtonInPlacePopup(place: Place) {
 
-        placeMarkers.refreshMarker(place)
+        placeMarkers.refreshMarker(context!!, place)
 
         when(place.category) {
             Place.Category.Place,
@@ -322,7 +322,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             VisitCollection.instance.saveVisitAsync(visit).await()
             handler.post {
-                placeMarkers.refreshMarker(place)
+                placeMarkers.refreshMarker(context!!, place)
             }
 
             MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
@@ -386,7 +386,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             val places = PlaceCollection.instance.loadPlacesForMap()
             handler.post{
                 for (place in places) {
-                    placeMarkers.addMarker(place)
+                    placeMarkers.addMarker(context!!, place)
                 }
                 markerShown = true
             }
@@ -410,7 +410,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                     VisitCollection.instance.saveVisitAsync(visit).await()
                     handler.post{
-                        placeMarkers.refreshMarker(visit.place)
+                        placeMarkers.refreshMarker(context!!, visit.place)
                         mainActivity?.switchProgressOverlay(false)
                     }
 
@@ -427,7 +427,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 GlobalScope.launch {
                     VisitCollection.instance.deleteAsync(visit).await()
                     handler.post {
-                        placeMarkers.refreshMarker(visit.place)
+                        placeMarkers.refreshMarker(context!!, visit.place)
                     }
 
                     MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
@@ -685,7 +685,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     val rating = visit.place.rating
                     handler.post {
                         visit.place.rating = rating
-                        placeMarkers.refreshMarker(visit.place)
+                        placeMarkers.refreshMarker(context!!, visit.place)
                     }
                     PlaceCollection.instance.saveAsync(visit.place)
                 }

@@ -107,7 +107,7 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
         googleMap!!.uiSettings?.setAllGesturesEnabled(true)
 
         placeMarkers = PlaceMarkers(googleMap!!)
-        placeMarkers!!.addMarker(visit.place)
+        placeMarkers!!.addMarker(context!!, visit.place)
 
         context ?: return
         googleMap?.setPadding(0, 0, 0, context!!.toDP(50))

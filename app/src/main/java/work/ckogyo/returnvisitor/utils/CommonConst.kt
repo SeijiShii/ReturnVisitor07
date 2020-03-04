@@ -87,33 +87,33 @@ object DataModelKeys {
 
 
 val pinMarkerIds = arrayOf(
-    R.mipmap.gray_pin,
-    R.mipmap.red_pin,
-    R.mipmap.purple_pin,
-    R.mipmap.blue_pin,
-    R.mipmap.green_pin,
-    R.mipmap.yellow_pin,
-    R.mipmap.orange_pin
+    R.drawable.ic_pin_marker_gray,
+    R.drawable.ic_pin_marker_red,
+    R.drawable.ic_pin_marker_purple,
+    R.drawable.ic_pin_marker_blue,
+    R.drawable.ic_pin_marker_green,
+    R.drawable.ic_pin_marker_gold,
+    R.drawable.ic_pin_marker_orange
 )
 
 val roundMarkerIds = arrayOf(
-    R.mipmap.gray_round,
-    R.mipmap.red_round,
-    R.mipmap.purple_round,
-    R.mipmap.blue_round,
-    R.mipmap.green_round,
-    R.mipmap.yellow_round,
-    R.mipmap.orange_round
+    R.drawable.ic_round_marker_gray,
+    R.drawable.ic_round_marker_red,
+    R.drawable.ic_round_marker_purple,
+    R.drawable.ic_round_marker_blue,
+    R.drawable.ic_round_marker_green,
+    R.drawable.ic_round_marker_gold,
+    R.drawable.ic_round_marker_orange
 )
 
 val squareMarkerIds = arrayOf(
-    R.mipmap.gray_square,
-    R.mipmap.red_square,
-    R.mipmap.purple_square,
-    R.mipmap.blue_square,
-    R.mipmap.green_square,
-    R.mipmap.yellow_square,
-    R.mipmap.orange_square
+    R.drawable.ic_round_square_marker_gray,
+    R.drawable.ic_round_square_marker_red,
+    R.drawable.ic_round_square_marker_purple,
+    R.drawable.ic_round_square_marker_blue,
+    R.drawable.ic_round_square_marker_green,
+    R.drawable.ic_round_square_marker_gold,
+    R.drawable.ic_round_square_marker_orange
 )
 
 val circleSolidResIds = arrayOf(

@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.utils
 
+import android.content.Context
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Marker
@@ -23,10 +24,10 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
 
     private val markers = ArrayList<Marker>()
 
-    private fun addMarker(place: Place, resId:Int):Marker? {
+    private fun addMarker(context: Context, place: Place, resId:Int):Marker? {
         val marker = googleMap.addMarker(MarkerOptions()
             .position(place.latLng)
-            .icon(BitmapDescriptorFactory.fromResource(resId))).also {
+            .icon(BitmapDescriptorFactory.fromBitmap(getBitmap(context, resId)))).also {
             it.isDraggable = true
         }
 
@@ -35,8 +36,8 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
         return marker
     }
 
-    fun addMarker(place: Place): Marker? {
-        return addMarker(place, ratingToMarkerId(place.rating, place.category))
+    fun addMarker(context: Context, place: Place): Marker? {
+        return addMarker(context, place, ratingToMarkerId(place.rating, place.category))
     }
 
     fun remove(place: Place) {
@@ -55,9 +56,9 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
         return null
     }
 
-    fun refreshMarker(place: Place) {
+    fun refreshMarker(context: Context, place: Place) {
         remove(place)
-        addMarker(place)
+        addMarker(context, place)
     }
 
     fun clear() {
