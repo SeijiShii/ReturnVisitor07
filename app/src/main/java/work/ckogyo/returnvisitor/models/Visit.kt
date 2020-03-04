@@ -53,6 +53,9 @@ class Visit : BaseDataModel {
             val pv2 = pv.clone()
             personVisits.add(pv2)
         }
+
+        infoTags.clear()
+        infoTags.addAll(ArrayList(lastVisit.infoTags))
     }
 
     constructor(place: Place): this() {

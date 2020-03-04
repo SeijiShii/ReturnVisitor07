@@ -26,6 +26,12 @@
             android:gravity="start|center_vertical"
             android:textSize="20sp"/>
 
+        <View
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/horiz_dots_solid_dark_gray"
+            android:id="@+id/whereToGoMenuButton"/>
+
     </LinearLayout>
 
     <View

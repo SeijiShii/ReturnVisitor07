@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.where_to_go_next_fragment.*
@@ -36,6 +37,11 @@ class WhereToGoNextFragment : Fragment() {
 
     private lateinit var visitFilter: VisitFilter
     private val visits = ArrayList<Visit>()
+    private var visitsToShow = ArrayList<Visit>()
+
+    private var sortInDescendingDateTime = true
+    private var sortInDescendingRating = true
+    private var showVisitsInDupPlace = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -70,13 +76,54 @@ class WhereToGoNextFragment : Fragment() {
             refreshArrowImage()
         }
 
+        whereToGoMenuButton.setOnClick {
+            showMenuPopup()
+        }
+
         periodTerms = context!!.resources.getStringArray(R.array.periodUnitArray).toCollection(ArrayList())
 
         refreshNoVisitsFrame(show = false, animated = false)
         refreshLoadingVisitsOverlay(show = false, animated = false)
 
         initFilterPanel()
-        refreshVisitList()
+        refreshVisitList(reloadFromDB = true)
+    }
+
+    private fun refreshVisitsToShow() {
+
+        if (showVisitsInDupPlace) {
+            visitsToShow = ArrayList(visits)
+        } else {
+
+            for (visit in visits) {
+                var visitAlreadyInList: Visit? = null
+                for (visit2 in visitsToShow) {
+                    if (visit.place == visit2.place) {
+                        visitAlreadyInList = visit2
+                    }
+                }
+                if (visitAlreadyInList != null) {
+                    if (visitAlreadyInList.dateTime.timeInMillis < visit.dateTime.timeInMillis) {
+                        visitsToShow.remove(visitAlreadyInList)
+                        visitsToShow.add(visit)
+                    }
+                }else {
+                    visitsToShow.add(visit)
+                }
+            }
+        }
+
+        if (sortInDescendingDateTime) {
+            visitsToShow.sortByDescending { v -> v.dateTime.timeInMillis }
+        } else {
+            visitsToShow.sortBy {  v -> v.dateTime.timeInMillis }
+        }
+
+        if (sortInDescendingRating) {
+            visitsToShow.sortByDescending { v -> v.rating.ordinal }
+        } else {
+            visitsToShow.sortBy { v -> v.rating.ordinal }
+        }
     }
 
     private fun refreshArrowImage() {
@@ -162,7 +209,7 @@ class WhereToGoNextFragment : Fragment() {
             }
 
             handler.post {
-                refreshVisitList()
+                refreshVisitList(reloadFromDB = true)
                 visitFilter.save(context!!)
             }
         }
@@ -186,7 +233,7 @@ class WhereToGoNextFragment : Fragment() {
                     periodStartSpinner?.setSelection(periodStart.ordinal)
                 }
                 visitFilter.periodStart = periodStart
-                refreshVisitList()
+                refreshVisitList(reloadFromDB = true)
                 visitFilter.save(context!!)
             }
         }
@@ -212,7 +259,7 @@ class WhereToGoNextFragment : Fragment() {
                     periodEndSpinner?.setSelection(periodEnd.ordinal - 1)
                 }
                 visitFilter.periodEnd = periodEnd
-                refreshVisitList()
+                refreshVisitList(reloadFromDB = true)
                 visitFilter.save(context!!)
             }
         }
@@ -228,7 +275,9 @@ class WhereToGoNextFragment : Fragment() {
         onBackToMapFragment?.invoke()
     }
 
-    private fun refreshVisitList() {
+
+    private fun refreshVisitList(reloadFromDB: Boolean) {
+
         val handler = Handler()
 
         refreshLoadingVisitsOverlay(show = true)
@@ -237,13 +286,11 @@ class WhereToGoNextFragment : Fragment() {
         visitListView?.fadeVisibility(fadeIn = false)
         refreshFilterTouchBlocker(true)
 
-        GlobalScope.launch {
-            val loadedVisits = VisitCollection.instance.loadByVisitFilter(visitFilter)
-            visits.clear()
-            visits.addAll(loadedVisits)
+        val refreshList = {
 
-            handler.post{
-                context ?: return@post
+            refreshVisitsToShow()
+
+            if (context != null) {
                 visitListView?.adapter = VisitListAdapter()
 
                 refreshLoadingVisitsOverlay(show = false)
@@ -253,11 +300,61 @@ class WhereToGoNextFragment : Fragment() {
                 refreshFilterTouchBlocker(false)
             }
         }
+
+        if (reloadFromDB) {
+            GlobalScope.launch {
+                val loadedVisits = VisitCollection.instance.loadByVisitFilter(visitFilter)
+                visits.clear()
+                visits.addAll(loadedVisits)
+
+                handler.post{
+                    refreshList()
+                }
+            }
+        } else {
+            refreshList()
+        }
+
     }
 
     private fun onShowInWideMapInVisitDetail(visit: Visit) {
         backToMapFragment()
         mainActivity?.mapFragment?.animateToLatLng(visit.place.latLng)
+    }
+
+    private fun showMenuPopup() {
+
+        val popup = PopupMenu(context, whereToGoMenuButton)
+        popup.menuInflater.inflate(R.menu.where_to_go_fragment_menu, popup.menu)
+
+        popup.menu.findItem(R.id.show_visits_in_dup_place).title =
+            if (showVisitsInDupPlace) getString(R.string.show_latest_visit_to_dup_place)
+            else getString(R.string.show_visits_in_dup_place)
+
+        popup.menu.findItem(R.id.date_time_sort).title =
+            if (sortInDescendingDateTime) getString(R.string.sort_by_ascending_date_time)
+            else getString(R.string.sort_by_descending_date_time)
+
+        popup.menu.findItem(R.id.rating_sort).title =
+            if (sortInDescendingRating) getString(R.string.sort_by_ascending_rating)
+            else getString(R.string.sort_by_descending_rating)
+
+        popup.setOnMenuItemClickListener {
+            when(it.itemId) {
+                R.id.show_visits_in_dup_place -> {
+                    showVisitsInDupPlace = !showVisitsInDupPlace
+                }
+                R.id.date_time_sort -> {
+                    sortInDescendingDateTime = !sortInDescendingDateTime
+                }
+                R.id.rating_sort -> {
+                    sortInDescendingRating = !sortInDescendingRating
+                }
+            }
+            refreshVisitList(reloadFromDB = false)
+            return@setOnMenuItemClickListener true
+        }
+        popup.show()
     }
 
     private inner class VisitListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -278,12 +375,12 @@ class WhereToGoNextFragment : Fragment() {
         }
 
         override fun getItemCount(): Int {
-            return visits.size
+            return visitsToShow.size
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val visitCell = holder.itemView as VisitCell
-            visitCell.refresh(visits[position])
+            visitCell.refresh(visitsToShow[position])
         }
 
         private fun onFinishEditVisit(visit: Visit, mode: EditMode, param: OnFinishEditParam) {
@@ -318,8 +415,8 @@ class WhereToGoNextFragment : Fragment() {
         }
 
         private fun getPositionByVisit(visit: Visit): Int {
-            for (i in 0 until visits.size) {
-                if (visits[i] == visit) {
+            for (i in 0 until visitsToShow.size) {
+                if (visitsToShow[i] == visit) {
                     return i
                 }
             }
@@ -330,7 +427,10 @@ class WhereToGoNextFragment : Fragment() {
             val pos = getPositionByVisit(visit)
             if (pos < 0) return
 
-            visits.removeAt(pos)
+            val visitToRemove = visitsToShow[pos]
+            visitsToShow.remove(visitToRemove)
+            visits.remove(visitToRemove)
+
             notifyItemRemoved(pos)
 
             GlobalScope.launch {

@@ -3,11 +3,13 @@ package work.ckogyo.returnvisitor.utils
 import android.app.Activity
 import android.content.Context
 import android.location.Geocoder
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import java.io.IOException
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -54,13 +56,18 @@ suspend fun requestAddressIfNeeded(place: Place, context: Context):String = susp
     if(place.address.isNotEmpty()) {
         cont.resume(place.address)
     } else {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        val addressList = geocoder.getFromLocation(place.latLng.latitude, place.latLng.longitude, 1)
-        if (addressList.isNotEmpty()) {
-            place.address = addressList[0].getAddressLine(0)
+        // 接続環境の悪いところでIOExceptionが出る。
+        try {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            val addressList = geocoder.getFromLocation(place.latLng.latitude, place.latLng.longitude, 1)
+            if (addressList.isNotEmpty()) {
+                place.address = addressList[0].getAddressLine(0)
+            }
+        } catch (e: IOException) {
+            Log.d(debugTag, e.localizedMessage)
+        } finally {
+            cont.resume(place.address)
         }
-
-        cont.resume(place.address)
     }
 }
 
