@@ -430,49 +430,118 @@ class VisitCollection {
         }
     }
 
-    suspend fun loadByVisitFilter(filter: VisitFilter): ArrayList<Visit> = suspendCoroutine { cont ->
+//    suspend fun loadByVisitFilter(filter: VisitFilter): ArrayList<Visit> = suspendCoroutine { cont ->
+//
+//        val visits = ArrayList<Visit>()
+//
+//        GlobalScope.launch {
+//            val userDoc = FirebaseDB.instance.userDoc
+//            if (userDoc == null) {
+//                cont.resume(visits)
+//            } else {
+//
+//                val start = filter.periodStartDate
+//                val end = filter.periodEndDate
+//
+//                userDoc.collection(visitsKey).whereGreaterThanOrEqualTo(dateTimeMillisKey, start.timeInMillis)
+//                    .whereLessThanOrEqualTo(dateTimeMillisKey, end.timeInMillis)
+//                    .get()
+//                    .addOnSuccessListener {
+//                        val maps = ArrayList<HashMap<String, Any>>()
+//                        for (doc in it.documents) {
+//                            val visit = Visit()
+//                            val map = doc.data as HashMap<String, Any>
+//                            visit.initFromHashMapSimple(map)
+//                            if (filter.ratings.contains(visit.rating)) {
+//                                maps.add(map)
+//                            }
+//                        }
+//
+//                        GlobalScope.launch {
+//                            for (map in maps) {
+//                                val visit = Visit()
+//                                visit.initVisitFromHashMap(map)
+//                                visits.add(visit)
+//                            }
+//                            visits.sortByDescending { visit -> visit.rating.ordinal }
+//                            cont.resume(visits)
+//                        }
+//                    }
+//                    .addOnFailureListener {
+//                        cont.resume(visits)
+//                    }
+//
+//            }
+//        }
+//    }
+
+    suspend fun loadLatestVisits(limitInAYear: Boolean = true): ArrayList<Visit> = suspendCoroutine { cont ->
 
         val visits = ArrayList<Visit>()
 
         GlobalScope.launch {
+
             val userDoc = FirebaseDB.instance.userDoc
+
             if (userDoc == null) {
                 cont.resume(visits)
             } else {
 
-                val start = filter.periodStartDate
-                val end = filter.periodEndDate
+                if (limitInAYear) {
+                    val aYearAgo = Calendar.getInstance().cloneWith0Time()
+                    aYearAgo.add(Calendar.YEAR, -1)
+                    userDoc.collection(visitsKey).whereGreaterThan(dateTimeMillisKey, aYearAgo.timeInMillis)
+                } else {
+                    userDoc.collection(visitsKey)
+                }.get().addOnSuccessListener {
 
-                userDoc.collection(visitsKey).whereGreaterThanOrEqualTo(dateTimeMillisKey, start.timeInMillis)
-                    .whereLessThanOrEqualTo(dateTimeMillisKey, end.timeInMillis)
-                    .get()
-                    .addOnSuccessListener {
-                        val maps = ArrayList<HashMap<String, Any>>()
-                        for (doc in it.documents) {
-                            val visit = Visit()
-                            val map = doc.data as HashMap<String, Any>
-                            visit.initFromHashMapSimple(map)
-                            if (filter.ratings.contains(visit.rating)) {
-                                maps.add(map)
+                    val pairs = ArrayList<VisitMapPair>()
+
+                    for (doc in it.documents) {
+                        val map = doc.data as HashMap<String, Any>
+                        val visit = Visit()
+                        visit.initFromHashMapSimple(map)
+                        pairs.add(VisitMapPair(visit, map))
+                    }
+
+                    // 場所に対する最新のVisitだけを取得
+                    val pairs2 = ArrayList<VisitMapPair>()
+
+                    for (pair in pairs) {
+                        var pairAlreadyContained: VisitMapPair? = null
+                        for (pair2 in pairs2) {
+                            if (pair.map[placeIdKey] == pair2.map[placeIdKey]) {
+                                pairAlreadyContained = pair2
+                                break
                             }
                         }
 
-                        GlobalScope.launch {
-                            for (map in maps) {
-                                val visit = Visit()
-                                visit.initVisitFromHashMap(map)
-                                visits.add(visit)
+                        if (pairAlreadyContained != null) {
+                            if (pair.visit.dateTime.timeInMillis > pairAlreadyContained.visit.dateTime.timeInMillis) {
+                                pairs2.remove(pairAlreadyContained)
+                                pairs2.add(pair)
                             }
-                            visits.sortByDescending { visit -> visit.rating.ordinal }
-                            cont.resume(visits)
+                        } else {
+                            pairs2.add(pair)
                         }
                     }
-                    .addOnFailureListener {
+
+                    GlobalScope.launch {
+                        for (pair in pairs2) {
+                            val visit = Visit()
+                            visit.initVisitFromHashMap(pair.map)
+                            visits.add(visit)
+                        }
                         cont.resume(visits)
                     }
-
+                }.addOnFailureListener {
+                    cont.resume(visits)
+                }
             }
+
         }
     }
 
 }
+
+data class VisitMapPair(val visit: Visit, val map: HashMap<String, Any>)

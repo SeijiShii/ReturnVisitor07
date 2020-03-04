@@ -2,6 +2,7 @@ package work.ckogyo.returnvisitor.fragments
 
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,7 +42,9 @@ class WhereToGoNextFragment : Fragment() {
 
     private var sortInDescendingDateTime = true
     private var sortInDescendingRating = true
-    private var showVisitsInDupPlace = false
+//    private var showVisitsInDupPlace = false
+
+    private var visitsLoaded = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -85,33 +88,61 @@ class WhereToGoNextFragment : Fragment() {
         refreshNoVisitsFrame(show = false, animated = false)
         refreshLoadingVisitsOverlay(show = false, animated = false)
 
-        initFilterPanel()
-        refreshVisitList(reloadFromDB = true)
+        refreshLoadingVisitsOverlay(show = true)
+        refreshNoVisitsFrame(show = false)
+
+        loadLatestVisits()
+
+//        val handler = Handler()
+//        GlobalScope.launch {
+//            while (!visitsLoaded) {
+//                delay(50)
+//            }
+//
+//            handler.post {
+//                initFilterPanel()
+//            }
+//        }
+    }
+
+    private fun loadLatestVisits() {
+
+        val handler = Handler()
+        GlobalScope.launch {
+            val loadedVisits = VisitCollection.instance.loadLatestVisits()
+            visits.clear()
+            visits.addAll(loadedVisits)
+
+            visitsLoaded = true
+
+            handler.post {
+                initFilterPanel()
+                refreshVisitList()
+                refreshLoadingVisitsOverlay(show = false)
+            }
+        }
     }
 
     private fun refreshVisitsToShow() {
 
-        if (showVisitsInDupPlace) {
-            visitsToShow = ArrayList(visits)
-        } else {
+        visitsToShow.clear()
 
-            for (visit in visits) {
-                var visitAlreadyInList: Visit? = null
-                for (visit2 in visitsToShow) {
-                    if (visit.place == visit2.place) {
-                        visitAlreadyInList = visit2
-                    }
-                }
-                if (visitAlreadyInList != null) {
-                    if (visitAlreadyInList.dateTime.timeInMillis < visit.dateTime.timeInMillis) {
-                        visitsToShow.remove(visitAlreadyInList)
-                        visitsToShow.add(visit)
-                    }
-                }else {
-                    visitsToShow.add(visit)
-                }
+        val tmpVisits1 = ArrayList<Visit>()
+        for (visit in visits) {
+            if (visitFilter.ratings.contains(visit.rating)) {
+                tmpVisits1.add(visit)
             }
         }
+
+        val tmpVisits2 = ArrayList<Visit>()
+        for (visit in tmpVisits1) {
+            if (visitFilter.periodStartDate.timeInMillis <= visit.dateTime.timeInMillis
+                && visit.dateTime.timeInMillis <= visitFilter.periodEndDate.timeInMillis) {
+                tmpVisits2.add(visit)
+            }
+        }
+
+        visitsToShow = tmpVisits2
 
         if (sortInDescendingDateTime) {
             visitsToShow.sortByDescending { v -> v.dateTime.timeInMillis }
@@ -158,9 +189,9 @@ class WhereToGoNextFragment : Fragment() {
         }
     }
 
-    private fun refreshFilterTouchBlocker(block: Boolean) {
-        filterTouchBlocker?.fadeVisibility(block, addTouchBlockerOnFadeIn = true)
-    }
+//    private fun refreshFilterTouchBlocker(block: Boolean) {
+//        filterTouchBlocker?.fadeVisibility(block, addTouchBlockerOnFadeIn = true)
+//    }
 
     private fun initFilterPanel() {
 
@@ -184,7 +215,7 @@ class WhereToGoNextFragment : Fragment() {
         }
     }
 
-    private var changeRaterFilterJob: Job? = null
+//    private var changeRaterFilterJob: Job? = null
 
     private fun onRatingFilterChanged(rating: Visit.Rating, isChecked: Boolean) {
 
@@ -198,26 +229,29 @@ class WhereToGoNextFragment : Fragment() {
             }
         }
 
-        // 300ms以内にフィルタ操作が行われたらリセットする
-        changeRaterFilterJob?.cancel()
-
-        val handler = Handler()
-        changeRaterFilterJob = GlobalScope.launch {
-            delay(300)
-            if (!isActive) {
-                return@launch
-            }
-
-            handler.post {
-                refreshVisitList(reloadFromDB = true)
-                visitFilter.save(context!!)
-            }
-        }
+//        // 300ms以内にフィルタ操作が行われたらリセットする
+//        changeRaterFilterJob?.cancel()
+//
+//        val handler = Handler()
+//        changeRaterFilterJob = GlobalScope.launch {
+//            delay(300)
+//            if (!isActive) {
+//                return@launch
+//            }
+//
+//            handler.post {
+//                refreshVisitList(reloadFromDB = true)
+//                visitFilter.save(context!!)
+//            }
+//        }
     }
 
     private fun initPeriodStartSpinner() {
         val startArray = periodTerms.subList(0, periodTerms.size - 1)
         periodStartSpinner?.adapter = ArrayAdapter<String>(context!!, R.layout.simple_text_view, startArray)
+
+        periodStartSpinner?.setSelection(visitFilter.periodStart.ordinal)
+
         periodStartSpinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
@@ -233,17 +267,18 @@ class WhereToGoNextFragment : Fragment() {
                     periodStartSpinner?.setSelection(periodStart.ordinal)
                 }
                 visitFilter.periodStart = periodStart
-                refreshVisitList(reloadFromDB = true)
+                refreshVisitList()
                 visitFilter.save(context!!)
             }
         }
-        periodStartSpinner?.setSelection(visitFilter.periodStart.ordinal)
-
     }
 
     private fun initPeriodEndSpinner() {
         val endArray = periodTerms.subList(1, periodTerms.size)
         periodEndSpinner?.adapter = ArrayAdapter<String>(context!!, R.layout.simple_text_view, endArray)
+
+        periodEndSpinner?.setSelection(visitFilter.periodEnd.ordinal - 1)
+
         periodEndSpinner?.onItemSelectedListener = object: AdapterView.OnItemSelectedListener{
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
@@ -259,11 +294,10 @@ class WhereToGoNextFragment : Fragment() {
                     periodEndSpinner?.setSelection(periodEnd.ordinal - 1)
                 }
                 visitFilter.periodEnd = periodEnd
-                refreshVisitList(reloadFromDB = true)
+                refreshVisitList()
                 visitFilter.save(context!!)
             }
         }
-        periodEndSpinner?.setSelection(visitFilter.periodEnd.ordinal - 1)
     }
 
     private fun backToMapFragment() {
@@ -276,44 +310,35 @@ class WhereToGoNextFragment : Fragment() {
     }
 
 
-    private fun refreshVisitList(reloadFromDB: Boolean) {
-
-        val handler = Handler()
-
-        refreshLoadingVisitsOverlay(show = true)
-        refreshNoVisitsFrame(show = false)
+    private fun refreshVisitList() {
 
         visitListView?.fadeVisibility(fadeIn = false)
-        refreshFilterTouchBlocker(true)
+//        refreshFilterTouchBlocker(true)
 
-        val refreshList = {
+        refreshVisitsToShow()
 
-            refreshVisitsToShow()
+        visitListView?.adapter = VisitListAdapter()
 
-            if (context != null) {
-                visitListView?.adapter = VisitListAdapter()
+        refreshLoadingVisitsOverlay(show = false)
 
-                refreshLoadingVisitsOverlay(show = false)
+        visitListView?.fadeVisibility(visitsToShow.isNotEmpty())
+        refreshNoVisitsFrame(visitsToShow.isEmpty())
+//        refreshFilterTouchBlocker(false)
 
-                visitListView?.fadeVisibility(visits.isNotEmpty())
-                refreshNoVisitsFrame(visits.isEmpty())
-                refreshFilterTouchBlocker(false)
-            }
-        }
 
-        if (reloadFromDB) {
-            GlobalScope.launch {
-                val loadedVisits = VisitCollection.instance.loadByVisitFilter(visitFilter)
-                visits.clear()
-                visits.addAll(loadedVisits)
-
-                handler.post{
-                    refreshList()
-                }
-            }
-        } else {
-            refreshList()
-        }
+//        if (reloadFromDB) {
+//            GlobalScope.launch {
+//                val loadedVisits = VisitCollection.instance.loadByVisitFilter(visitFilter)
+//                visits.clear()
+//                visits.addAll(loadedVisits)
+//
+//                handler.post{
+//                    refreshList()
+//                }
+//            }
+//        } else {
+//            refreshList()
+//        }
 
     }
 
@@ -327,9 +352,9 @@ class WhereToGoNextFragment : Fragment() {
         val popup = PopupMenu(context, whereToGoMenuButton)
         popup.menuInflater.inflate(R.menu.where_to_go_fragment_menu, popup.menu)
 
-        popup.menu.findItem(R.id.show_visits_in_dup_place).title =
-            if (showVisitsInDupPlace) getString(R.string.show_latest_visit_to_dup_place)
-            else getString(R.string.show_visits_in_dup_place)
+//        popup.menu.findItem(R.id.show_visits_in_dup_place).title =
+//            if (showVisitsInDupPlace) getString(R.string.show_latest_visit_to_dup_place)
+//            else getString(R.string.show_visits_in_dup_place)
 
         popup.menu.findItem(R.id.date_time_sort).title =
             if (sortInDescendingDateTime) getString(R.string.sort_by_ascending_date_time)
@@ -341,9 +366,9 @@ class WhereToGoNextFragment : Fragment() {
 
         popup.setOnMenuItemClickListener {
             when(it.itemId) {
-                R.id.show_visits_in_dup_place -> {
-                    showVisitsInDupPlace = !showVisitsInDupPlace
-                }
+//                R.id.show_visits_in_dup_place -> {
+//                    showVisitsInDupPlace = !showVisitsInDupPlace
+//                }
                 R.id.date_time_sort -> {
                     sortInDescendingDateTime = !sortInDescendingDateTime
                 }
@@ -351,7 +376,7 @@ class WhereToGoNextFragment : Fragment() {
                     sortInDescendingRating = !sortInDescendingRating
                 }
             }
-            refreshVisitList(reloadFromDB = false)
+            refreshVisitList()
             return@setOnMenuItemClickListener true
         }
         popup.show()

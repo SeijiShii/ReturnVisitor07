@@ -17,12 +17,12 @@ import kotlin.collections.HashSet
 class VisitFilter {
 
     enum class PeriodTerm{
-        All,
         OneYear,
         SixMonths,
         ThreeMonths,
         OneMonth,
         OneWeek,
+        Yesterday,
         Today
     }
 
@@ -62,9 +62,6 @@ class VisitFilter {
         val cal = Calendar.getInstance()
 
         when(term) {
-            PeriodTerm.All -> {
-                cal.timeInMillis = 0
-            }
             PeriodTerm.OneYear -> {
                 cal.add(Calendar.YEAR, -1)
             }
@@ -79,6 +76,9 @@ class VisitFilter {
             }
             PeriodTerm.OneWeek -> {
                 cal.add(Calendar.WEEK_OF_MONTH, -1)
+            }
+            PeriodTerm.Yesterday -> {
+                cal.add(Calendar.DAY_OF_MONTH, -1)
             }
             else -> {}
         }

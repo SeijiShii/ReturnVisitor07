@@ -44,31 +44,124 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/visitListView"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/visitListView"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/noVisitDataFrame">
+
+                    <TextView
+                        android:layout_width="300dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/no_data_matches_with_filter"
+                        android:textColor="@color/gray"
+                        android:textSize="20sp"
+                        android:gravity="center"
+                        android:layout_centerInParent="true"/>
+
+                </RelativeLayout>
+
+            </FrameLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:id="@+id/panelExtractBar"
+                android:background="@color/colorPrimary">
+
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:id="@+id/arrowImageView"
+                    android:background="@drawable/ic_keyboard_arrow_up_white_24dp"
+                    android:layout_centerHorizontal="true"/>
+
+            </RelativeLayout>
+
+            <work.ckogyo.returnvisitor.views.HeightAnimationFrame
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:id="@+id/filterPanelFrame">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:background="@color/lightGray">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:orientation="horizontal">
+
+                        <Spinner
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/round_whitesmoke"
+                            android:layout_margin="5dp"
+                            android:id="@+id/periodStartSpinner"/>
+
+                        <TextView
+                            android:layout_width="30dp"
+                            android:layout_height="match_parent"
+                            android:text="~"
+                            android:gravity="center"/>
+
+                        <Spinner
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/round_whitesmoke"
+                            android:layout_margin="5dp"
+                            android:id="@+id/periodEndSpinner"/>
+
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_centerInParent="true"
+                            android:id="@+id/raterFilterContainer"/>
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+                <!--        <View-->
+                <!--            android:layout_width="match_parent"-->
+                <!--            android:layout_height="match_parent"-->
+                <!--            android:id="@+id/filterTouchBlocker"-->
+                <!--            android:background="@color/whiteFog"/>-->
+
+            </work.ckogyo.returnvisitor.views.HeightAnimationFrame>
+
+        </LinearLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/noVisitDataFrame">
-
-            <TextView
-                android:layout_width="300dp"
-                android:layout_height="wrap_content"
-                android:text="@string/no_data_matches_with_filter"
-                android:textColor="@color/gray"
-                android:textSize="20sp"
-                android:gravity="center"
-                android:layout_centerInParent="true"/>
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:background="@color/whiteFog"
             android:id="@+id/loadingFilteredVisitsOverlay">
 
             <ProgressBar
@@ -89,83 +182,5 @@
         </RelativeLayout>
 
     </FrameLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:id="@+id/panelExtractBar"
-        android:background="@color/colorPrimary">
-
-        <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:id="@+id/arrowImageView"
-            android:background="@drawable/ic_keyboard_arrow_up_white_24dp"
-            android:layout_centerHorizontal="true"/>
-
-    </RelativeLayout>
-
-    <work.ckogyo.returnvisitor.views.HeightAnimationFrame
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:id="@+id/filterPanelFrame">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:background="@color/lightGray">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:orientation="horizontal">
-
-                <Spinner
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@drawable/round_whitesmoke"
-                    android:layout_margin="5dp"
-                    android:id="@+id/periodStartSpinner"/>
-
-                <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="match_parent"
-                    android:text="~"
-                    android:gravity="center"/>
-
-                <Spinner
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@drawable/round_whitesmoke"
-                    android:layout_margin="5dp"
-                    android:id="@+id/periodEndSpinner"/>
-
-            </LinearLayout>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_centerInParent="true"
-                    android:id="@+id/raterFilterContainer"/>
-
-            </RelativeLayout>
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/filterTouchBlocker"
-            android:background="@color/whiteFog"/>
-
-    </work.ckogyo.returnvisitor.views.HeightAnimationFrame>
 
 </LinearLayout>

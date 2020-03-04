@@ -41,12 +41,12 @@
     </array>
 
     <array name="periodUnitArray">
-        <item>All</item>
         <item>1 year ago</item>
         <item>6 months ago</item>
         <item>3 months ago</item>
         <item>1 month ago</item>
         <item>1 week ago</item>
+        <item>Yesterday</item>
         <item>Today</item>
     </array>
 </resources>
