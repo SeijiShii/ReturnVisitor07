@@ -229,12 +229,14 @@ class HousingComplexFragment : Fragment() {
             }
             OnFinishEditParam.Done -> {
 
-                if (mode != EditMode.Add) return
+//                if (mode != EditMode.Add) return
 
                 GlobalScope.launch {
 
                     VisitCollection.instance.saveVisitAsync(visit).await()
                     PlaceCollection.instance.saveAsync(visit.place).await()
+                    PlaceCollection.instance.saveAsync(hComplex)
+                    
                     visit.place.refreshRatingByVisitsAsync().await()
 
                     if (rooms.contains(visit.place)) {
@@ -247,22 +249,23 @@ class HousingComplexFragment : Fragment() {
                                 loadingRoomsProgressFrame.fadeVisibility(false)
                             }
                         }
-
-
                     } else {
                         // HousingComplexDialog -> 部屋の追加 -> 訪問を記録 で帰ってきたパターン
                         rooms.add(visit.place)
                         rooms.sortBy { r -> r.name }
 
-                        refreshRoomsToShow()
+                        handler.post {
+                            if (roomListView?.adapter == null) {
+                                refreshRoomListView()
+                            } else {
+                                refreshRoomsToShow()
+                                val pos = getPositionByRoom(visit.place)
 
-                        val pos = getPositionByRoom(visit.place)
-
-                        if (pos >= 0) {
-                            handler.post {
-                                roomListView.adapter?.notifyItemInserted(pos)
-                                loadingRoomsProgressFrame.fadeVisibility(false)
+                                if (pos >= 0) {
+                                    roomListView.adapter?.notifyItemInserted(pos)
+                                }
                             }
+                            loadingRoomsProgressFrame.fadeVisibility(false)
                         }
                     }
 
