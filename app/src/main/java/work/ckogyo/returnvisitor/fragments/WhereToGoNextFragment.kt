@@ -1,5 +1,6 @@
 package work.ckogyo.returnvisitor.fragments
 
+import android.animation.ValueAnimator
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -13,6 +14,7 @@ import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.where_to_go_next_fragment.*
+import kotlinx.android.synthetic.main.where_to_go_next_fragment.visitListView
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
@@ -38,11 +40,10 @@ class WhereToGoNextFragment : Fragment() {
 
     private lateinit var visitFilter: VisitFilter
     private val visits = ArrayList<Visit>()
-    private var visitsToShow = ArrayList<Visit>()
+    private val visitsToShow = ArrayList<Visit>()
 
-    private var sortInDescendingDateTime = true
-    private var sortInDescendingRating = true
-//    private var showVisitsInDupPlace = false
+    private var sortByDescendingDateTime = true
+    private var sortByDescendingRating = true
 
     private var visitsLoaded = false
 
@@ -93,39 +94,109 @@ class WhereToGoNextFragment : Fragment() {
 
         loadLatestVisits()
 
-//        val handler = Handler()
-//        GlobalScope.launch {
-//            while (!visitsLoaded) {
-//                delay(50)
-//            }
-//
-//            handler.post {
-//                initFilterPanel()
-//            }
-//        }
     }
+
+    private var firstChunkLoaded = false
 
     private fun loadLatestVisits() {
 
         val handler = Handler()
-        GlobalScope.launch {
-            val loadedVisits = VisitCollection.instance.loadLatestVisits()
-            visits.clear()
-            visits.addAll(loadedVisits)
 
-            visitsLoaded = true
+        VisitCollection.instance.loadLatestVisits(chunkSize = 5,
+            sortByDateTimeDescending = sortByDescendingDateTime,
+            sortByRatingDescending = sortByDescendingRating){ visitChunk, totalCount ->
 
-            handler.post {
-                initFilterPanel()
-                refreshVisitList()
-                refreshLoadingVisitsOverlay(show = false)
+            if (!firstChunkLoaded) {
+                visits.clear()
+                visits.addAll(visitChunk)
+
+                visitsLoaded = true
+
+                handler.post {
+                    initFilterPanel()
+                    refreshVisitList()
+                    refreshLoadingVisitsOverlay(show = false)
+                    refreshLoadingRatioRater(visits.size, totalCount)
+                }
+
+                firstChunkLoaded = true
+            } else {
+
+                visits.addAll(visitChunk)
+
+                handler.post {
+                    for (visit in visitChunk) {
+                        if (visitFilter.ratings.contains(visit.rating)) {
+                            visitsToShow.add(visit)
+                            refreshSortings()
+                            val index = visitsToShow.indexOf(visit)
+                            if (index >= 0) {
+                                refreshNoVisitsFrame(visitsToShow.isEmpty())
+                                (visitListView?.adapter as? VisitListAdapter)?.notifyItemInserted(index)
+
+                                if (index == 0) {
+                                    if (visitListView != null) {
+                                        visitListView.smoothScrollToPosition(0)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    refreshLoadingRatioRater(visits.size, totalCount)
+                }
+
+//                refreshVisitsToShow()
+//
+//                handler.post{
+//                    (visitListView.adapter as VisitListAdapter).notifyDataSetChanged()
+//                    refreshLoadingRatioRater(visits.size, totalCount)
+//                    refreshNoVisitsFrame(visitsToShow.isEmpty())
+//                }
+
+//                for (visit in visitChunk) {
+//
+//                    visits.add(visit)
+//                    refreshVisitsToShow()
+//
+//                    val index = visitsToShow.indexOf(visit)
+//                    if (index >= 0) {
+//                        handler.post {
+//                            refreshNoVisitsFrame(visitsToShow.isEmpty())
+//                            Log.d(debugTag, "visitListView.adapter?.itemCount: ${visitListView.adapter?.itemCount}, visitsToShow.size: ${visitsToShow.size}, index: $index")
+//                            (visitListView.adapter as VisitListAdapter).notifyItemInserted(index)
+//                        }
+//                    }
+//                }
+//                handler.post {
+//                    refreshLoadingRatioRater(visits.size, totalCount)
+//                }
             }
         }
     }
 
-    private fun refreshVisitsToShow() {
+    private fun refreshLoadingRatioRater(loadedCount: Int, totalCount: Int) {
 
-        visitsToShow.clear()
+        Log.d(debugTag, "loadedCount: $loadedCount, totalCount: $totalCount")
+        val ratio = loadedCount.toFloat() / totalCount
+
+        if (ratio < 1f) {
+            loadingRatioRaterOverlay.fadeVisibility(true)
+
+            val origin = loadingRatioRater.width
+            val target = (loadingRatioRaterFrame.width.toFloat() * ratio).toInt()
+            ValueAnimator.ofInt(origin, target).also {
+                it.duration = 300
+                it.addUpdateListener { anim ->
+                    loadingRatioRater.layoutParams.width = anim.animatedValue as Int
+                }
+                it.start()
+            }
+        } else {
+            loadingRatioRaterOverlay.fadeVisibility(false)
+        }
+    }
+
+    private fun refreshVisitsToShow() {
 
         val tmpVisits1 = ArrayList<Visit>()
         for (visit in visits) {
@@ -142,15 +213,20 @@ class WhereToGoNextFragment : Fragment() {
             }
         }
 
-        visitsToShow = tmpVisits2
+        visitsToShow.clear()
+        visitsToShow.addAll(tmpVisits2)
 
-        if (sortInDescendingDateTime) {
+        refreshSortings()
+    }
+
+    private fun refreshSortings() {
+        if (sortByDescendingDateTime) {
             visitsToShow.sortByDescending { v -> v.dateTime.timeInMillis }
         } else {
             visitsToShow.sortBy {  v -> v.dateTime.timeInMillis }
         }
 
-        if (sortInDescendingRating) {
+        if (sortByDescendingRating) {
             visitsToShow.sortByDescending { v -> v.rating.ordinal }
         } else {
             visitsToShow.sortBy { v -> v.rating.ordinal }
@@ -189,10 +265,6 @@ class WhereToGoNextFragment : Fragment() {
         }
     }
 
-//    private fun refreshFilterTouchBlocker(block: Boolean) {
-//        filterTouchBlocker?.fadeVisibility(block, addTouchBlockerOnFadeIn = true)
-//    }
-
     private fun initFilterPanel() {
 
         initRaterFilters()
@@ -215,8 +287,6 @@ class WhereToGoNextFragment : Fragment() {
         }
     }
 
-//    private var changeRaterFilterJob: Job? = null
-
     private fun onRatingFilterChanged(rating: Visit.Rating, isChecked: Boolean) {
 
         if (visitFilter.ratings.contains(rating)) {
@@ -229,21 +299,7 @@ class WhereToGoNextFragment : Fragment() {
             }
         }
 
-//        // 300ms以内にフィルタ操作が行われたらリセットする
-//        changeRaterFilterJob?.cancel()
-//
-//        val handler = Handler()
-//        changeRaterFilterJob = GlobalScope.launch {
-//            delay(300)
-//            if (!isActive) {
-//                return@launch
-//            }
-//
-//            handler.post {
-//                refreshVisitList(reloadFromDB = true)
-//                visitFilter.save(context!!)
-//            }
-//        }
+        refreshVisitList()
     }
 
     private fun initPeriodStartSpinner() {
@@ -309,37 +365,13 @@ class WhereToGoNextFragment : Fragment() {
         onBackToMapFragment?.invoke()
     }
 
-
     private fun refreshVisitList() {
 
-        visitListView?.fadeVisibility(fadeIn = false)
-//        refreshFilterTouchBlocker(true)
-
         refreshVisitsToShow()
-
         visitListView?.adapter = VisitListAdapter()
-
+//        visitListView?.setHasFixedSize(false)
         refreshLoadingVisitsOverlay(show = false)
-
-        visitListView?.fadeVisibility(visitsToShow.isNotEmpty())
         refreshNoVisitsFrame(visitsToShow.isEmpty())
-//        refreshFilterTouchBlocker(false)
-
-
-//        if (reloadFromDB) {
-//            GlobalScope.launch {
-//                val loadedVisits = VisitCollection.instance.loadByVisitFilter(visitFilter)
-//                visits.clear()
-//                visits.addAll(loadedVisits)
-//
-//                handler.post{
-//                    refreshList()
-//                }
-//            }
-//        } else {
-//            refreshList()
-//        }
-
     }
 
     private fun onShowInWideMapInVisitDetail(visit: Visit) {
@@ -352,28 +384,21 @@ class WhereToGoNextFragment : Fragment() {
         val popup = PopupMenu(context, whereToGoMenuButton)
         popup.menuInflater.inflate(R.menu.where_to_go_fragment_menu, popup.menu)
 
-//        popup.menu.findItem(R.id.show_visits_in_dup_place).title =
-//            if (showVisitsInDupPlace) getString(R.string.show_latest_visit_to_dup_place)
-//            else getString(R.string.show_visits_in_dup_place)
-
         popup.menu.findItem(R.id.date_time_sort).title =
-            if (sortInDescendingDateTime) getString(R.string.sort_by_ascending_date_time)
+            if (sortByDescendingDateTime) getString(R.string.sort_by_ascending_date_time)
             else getString(R.string.sort_by_descending_date_time)
 
         popup.menu.findItem(R.id.rating_sort).title =
-            if (sortInDescendingRating) getString(R.string.sort_by_ascending_rating)
+            if (sortByDescendingRating) getString(R.string.sort_by_ascending_rating)
             else getString(R.string.sort_by_descending_rating)
 
         popup.setOnMenuItemClickListener {
             when(it.itemId) {
-//                R.id.show_visits_in_dup_place -> {
-//                    showVisitsInDupPlace = !showVisitsInDupPlace
-//                }
                 R.id.date_time_sort -> {
-                    sortInDescendingDateTime = !sortInDescendingDateTime
+                    sortByDescendingDateTime = !sortByDescendingDateTime
                 }
                 R.id.rating_sort -> {
-                    sortInDescendingRating = !sortInDescendingRating
+                    sortByDescendingRating = !sortByDescendingRating
                 }
             }
             refreshVisitList()

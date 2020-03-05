@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/show_visits_in_dup_place"
-        android:title="@string/show_latest_visit_to_dup_place"/>
     <item android:id="@+id/date_time_sort"
         android:title="@string/sort_by_descending_date_time"/>
     <item android:id="@+id/rating_sort"
