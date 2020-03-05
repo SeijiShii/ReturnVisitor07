@@ -222,7 +222,7 @@ class CalendarFragment(val month: Calendar) :Fragment() {
     private inner class DayHeaderCell(day: Calendar): AppCompatTextView(context) {
 
         init {
-            setBackgroundResource(R.drawable.right_border_gray)
+            setBackgroundResource(R.drawable.right_border_gray_bg_white_fog)
             gravity = Gravity.CENTER
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             text = SimpleDateFormat("EEE", Locale.getDefault()).format(day.time)
@@ -295,7 +295,12 @@ class CalendarFragment(val month: Calendar) :Fragment() {
                 setBackgroundResource(R.color.lightGray)
             } else {
 
-                setBackgroundResource(R.drawable.right_border_gray)
+                val bgResId = if (dailyReport.date.isSameDate(Calendar.getInstance())) {
+                    R.drawable.right_border_gray_bg_green_fog
+                } else {
+                    R.drawable.right_border_gray_bg_white_fog
+                }
+                setBackgroundResource(bgResId)
 
                 dayNumberText.text = dailyReport.date.get(Calendar.DAY_OF_MONTH).toString()
                 dayNumberText.visibility = View.VISIBLE

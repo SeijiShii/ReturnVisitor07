@@ -6,4 +6,9 @@
             <solid android:color="@color/lightGray"/>
         </shape>
     </item>
+    <item>
+        <shape>
+            <solid android:color="@color/whiteFog"/>
+        </shape>
+    </item>
 </layer-list>
