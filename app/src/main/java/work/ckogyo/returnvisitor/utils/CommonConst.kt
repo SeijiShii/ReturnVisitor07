@@ -19,6 +19,8 @@ object FirebaseCollectionKeys {
     const val placementIdsKey = "placement_ids"
     const val infoTagIdsKey = "info_tag_ids"
     const val dailyReportsKey = "daily_reports"
+    const val sortByDescendingDateTimeKey = "sort_by_descending_date_time"
+    const val sortByDescendingRatingKey = "sort_by_descending_rating"
 }
 
 object SharedPrefKeys {

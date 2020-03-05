@@ -505,7 +505,8 @@ class VisitCollection {
 
                         for (i in 0 until pairs2.size) {
                             val visit = Visit()
-                            visit.initVisitFromHashMap(pairs[i].map)
+                            visit.initVisitFromHashMap(pairs2[i].map)
+
                             visits.add(visit)
 
                             if ((i > 0 && i % chunkSize == 0) || i >= pairs2.size - 1) {

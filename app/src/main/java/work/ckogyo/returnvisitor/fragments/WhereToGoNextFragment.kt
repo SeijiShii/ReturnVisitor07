@@ -1,6 +1,7 @@
 package work.ckogyo.returnvisitor.fragments
 
 import android.animation.ValueAnimator
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -25,6 +26,9 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.VisitFilter
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.sortByDescendingDateTimeKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.sortByDescendingRatingKey
+import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
 import work.ckogyo.returnvisitor.views.RaterFilterToggleButton
 import work.ckogyo.returnvisitor.views.VisitCell
 
@@ -60,6 +64,7 @@ class WhereToGoNextFragment : Fragment() {
 
         context ?: return
 
+        loadSortConditions()
         visitFilter = VisitFilter.loadFromSharedPreferences(context!!)
 
         view.setOnTouchListener { _, _ -> true }
@@ -144,55 +149,31 @@ class WhereToGoNextFragment : Fragment() {
                     }
                     refreshLoadingRatioRater(visits.size, totalCount)
                 }
-
-//                refreshVisitsToShow()
-//
-//                handler.post{
-//                    (visitListView.adapter as VisitListAdapter).notifyDataSetChanged()
-//                    refreshLoadingRatioRater(visits.size, totalCount)
-//                    refreshNoVisitsFrame(visitsToShow.isEmpty())
-//                }
-
-//                for (visit in visitChunk) {
-//
-//                    visits.add(visit)
-//                    refreshVisitsToShow()
-//
-//                    val index = visitsToShow.indexOf(visit)
-//                    if (index >= 0) {
-//                        handler.post {
-//                            refreshNoVisitsFrame(visitsToShow.isEmpty())
-//                            Log.d(debugTag, "visitListView.adapter?.itemCount: ${visitListView.adapter?.itemCount}, visitsToShow.size: ${visitsToShow.size}, index: $index")
-//                            (visitListView.adapter as VisitListAdapter).notifyItemInserted(index)
-//                        }
-//                    }
-//                }
-//                handler.post {
-//                    refreshLoadingRatioRater(visits.size, totalCount)
-//                }
             }
         }
     }
 
     private fun refreshLoadingRatioRater(loadedCount: Int, totalCount: Int) {
 
-        Log.d(debugTag, "loadedCount: $loadedCount, totalCount: $totalCount")
+        loadingFilteredVisitsOverlay ?: return
+
+//        Log.d(debugTag, "loadedCount: $loadedCount, totalCount: $totalCount")
         val ratio = loadedCount.toFloat() / totalCount
 
         if (ratio < 1f) {
-            loadingRatioRaterOverlay.fadeVisibility(true)
+            loadingRatioRaterOverlay?.fadeVisibility(true)
 
             val origin = loadingRatioRater.width
             val target = (loadingRatioRaterFrame.width.toFloat() * ratio).toInt()
             ValueAnimator.ofInt(origin, target).also {
                 it.duration = 300
                 it.addUpdateListener { anim ->
-                    loadingRatioRater.layoutParams.width = anim.animatedValue as Int
+                    loadingRatioRater?.layoutParams?.width = anim.animatedValue as Int
                 }
                 it.start()
             }
         } else {
-            loadingRatioRaterOverlay.fadeVisibility(false)
+            loadingRatioRaterOverlay?.fadeVisibility(false)
         }
     }
 
@@ -402,9 +383,25 @@ class WhereToGoNextFragment : Fragment() {
                 }
             }
             refreshVisitList()
+            saveSortConditions()
             return@setOnMenuItemClickListener true
         }
         popup.show()
+    }
+
+    private fun loadSortConditions() {
+        context ?: return
+        val prefs = context!!.getSharedPreferences(returnVisitorPrefsKey, Context.MODE_PRIVATE)
+        sortByDescendingDateTime = prefs.getBoolean(sortByDescendingDateTimeKey, true)
+        sortByDescendingRating = prefs.getBoolean(sortByDescendingRatingKey, true)
+    }
+
+    private fun saveSortConditions() {
+        context ?: return
+        context!!.getSharedPreferences(returnVisitorPrefsKey, Context.MODE_PRIVATE).edit()
+            .putBoolean(sortByDescendingDateTimeKey, sortByDescendingDateTime)
+            .putBoolean(sortByDescendingRatingKey, sortByDescendingRating)
+            .apply()
     }
 
     private inner class VisitListAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
