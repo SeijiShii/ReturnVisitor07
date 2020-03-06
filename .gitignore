@@ -18,3 +18,4 @@ app/build
 images
 gradle.properties
 *.tmp
+release
