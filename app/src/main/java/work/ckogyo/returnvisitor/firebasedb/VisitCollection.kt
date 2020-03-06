@@ -3,10 +3,7 @@ package work.ckogyo.returnvisitor.firebasedb
 import android.util.Log
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.VisitFilter
@@ -430,22 +427,23 @@ class VisitCollection {
         }
     }
 
-    fun loadLatestVisits(limitInAYear: Boolean = true,
+    suspend fun loadLatestVisits(limitInAYear: Boolean = true,
                          chunkSize: Int,
                          sortByDateTimeDescending: Boolean,
                          sortByRatingDescending: Boolean,
-                         chunkLoadedCallback: (visitChunk: ArrayList<Visit>, totalCount: Int) -> Unit) {
+                         chunkLoadedCallback: (visitChunk: ArrayList<Visit>, totalCount: Int) -> Unit): Job?
+            = suspendCoroutine { cont ->
 
         GlobalScope.launch {
-
             val userDoc = FirebaseDB.instance.userDoc
 
             if (userDoc == null) {
                 chunkLoadedCallback(ArrayList(), 0)
+                cont.resume(null)
             } else {
 
                 val direction = if (sortByDateTimeDescending) Query.Direction.DESCENDING
-                                                else Query.Direction.ASCENDING
+                else Query.Direction.ASCENDING
 
                 if (limitInAYear) {
                     val aYearAgo = Calendar.getInstance().cloneWith0Time()
@@ -456,70 +454,78 @@ class VisitCollection {
                 }.orderBy(dateTimeMillisKey, direction)
                     .get().addOnSuccessListener {
 
-                    val pairs = ArrayList<VisitMapPair>()
+                        val pairs = ArrayList<VisitMapPair>()
 
-                    for (doc in it.documents) {
-                        val map = doc.data as HashMap<String, Any>
-                        val visit = Visit()
-                        visit.initFromHashMapSimple(map)
-                        pairs.add(VisitMapPair(visit, map))
-                    }
-
-                    // 場所に対する最新のVisitだけを取得
-                    val pairs2 = ArrayList<VisitMapPair>()
-
-                    if (sortByDateTimeDescending) {
-                        pairs2.sortByDescending { pair -> pair.visit.dateTime.timeInMillis }
-                    } else {
-                        pairs2.sortBy { pair -> pair.visit.dateTime.timeInMillis }
-                    }
-
-                    if (sortByRatingDescending) {
-                        pairs2.sortByDescending { pair -> pair.visit.rating.ordinal }
-                    } else {
-                        pairs2.sortBy { pair -> pair.visit.rating.ordinal }
-                    }
-
-                    for (pair in pairs) {
-                        var pairAlreadyContained: VisitMapPair? = null
-                        for (pair2 in pairs2) {
-                            if (pair.map[placeIdKey] == pair2.map[placeIdKey]) {
-                                pairAlreadyContained = pair2
-                                break
-                            }
+                        for (doc in it.documents) {
+                            val map = doc.data as HashMap<String, Any>
+                            val visit = Visit()
+                            visit.initFromHashMapSimple(map)
+                            pairs.add(VisitMapPair(visit, map))
                         }
 
-                        if (pairAlreadyContained != null) {
-                            if (pair.visit.dateTime.timeInMillis > pairAlreadyContained.visit.dateTime.timeInMillis) {
-                                pairs2.remove(pairAlreadyContained)
+                        // 場所に対する最新のVisitだけを取得
+                        val pairs2 = ArrayList<VisitMapPair>()
+
+                        if (sortByDateTimeDescending) {
+                            pairs2.sortByDescending { pair -> pair.visit.dateTime.timeInMillis }
+                        } else {
+                            pairs2.sortBy { pair -> pair.visit.dateTime.timeInMillis }
+                        }
+
+                        if (sortByRatingDescending) {
+                            pairs2.sortByDescending { pair -> pair.visit.rating.ordinal }
+                        } else {
+                            pairs2.sortBy { pair -> pair.visit.rating.ordinal }
+                        }
+
+                        for (pair in pairs) {
+                            var pairAlreadyContained: VisitMapPair? = null
+                            for (pair2 in pairs2) {
+                                if (pair.map[placeIdKey] == pair2.map[placeIdKey]) {
+                                    pairAlreadyContained = pair2
+                                    break
+                                }
+                            }
+
+                            if (pairAlreadyContained != null) {
+                                if (pair.visit.dateTime.timeInMillis > pairAlreadyContained.visit.dateTime.timeInMillis) {
+                                    pairs2.remove(pairAlreadyContained)
+                                    pairs2.add(pair)
+                                }
+                            } else {
                                 pairs2.add(pair)
                             }
-                        } else {
-                            pairs2.add(pair)
                         }
-                    }
 
-                    GlobalScope.launch {
+                        val job = GlobalScope.launch initVisitsLaunch@ {
 
-                        var visits = ArrayList<Visit>()
+                            var visits = ArrayList<Visit>()
 
-                        for (i in 0 until pairs2.size) {
-                            val visit = Visit()
-                            visit.initVisitFromHashMap(pairs2[i].map)
+                            for (i in 0 until pairs2.size) {
+                                val visit = Visit()
+                                visit.initVisitFromHashMap(pairs2[i].map)
 
-                            visits.add(visit)
+                                visits.add(visit)
 
-                            if ((i > 0 && i % chunkSize == 0) || i >= pairs2.size - 1) {
-                                chunkLoadedCallback(visits, pairs2.size)
-                                visits = ArrayList()
+                                Log.d(debugTag, "initVisitsLaunch@ isActive: $isActive")
+                                if (!isActive) {
+                                    return@initVisitsLaunch
+                                }
+
+                                if ((i > 0 && i % chunkSize == 0) || i >= pairs2.size - 1) {
+                                    chunkLoadedCallback(visits, pairs2.size)
+                                    visits = ArrayList()
+                                }
                             }
                         }
+                        cont.resume(job)
+                    }.addOnFailureListener {
+                        chunkLoadedCallback(ArrayList(), 0)
+                        cont.resume(null)
                     }
-                }.addOnFailureListener {
-                    chunkLoadedCallback(ArrayList(), 0)
-                }
             }
         }
+
     }
 
     data class VisitMapPair(val visit: Visit, val map: HashMap<String, Any>)

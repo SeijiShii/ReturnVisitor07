@@ -236,7 +236,7 @@ class HousingComplexFragment : Fragment() {
                     VisitCollection.instance.saveVisitAsync(visit).await()
                     PlaceCollection.instance.saveAsync(visit.place).await()
                     PlaceCollection.instance.saveAsync(hComplex)
-                    
+
                     visit.place.refreshRatingByVisitsAsync().await()
 
                     if (rooms.contains(visit.place)) {

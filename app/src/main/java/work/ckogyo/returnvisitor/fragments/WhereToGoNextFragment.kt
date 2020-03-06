@@ -102,52 +102,109 @@ class WhereToGoNextFragment : Fragment() {
     }
 
     private var firstChunkLoaded = false
+    private var loadingJob: Job? = null
+    private var loadingVisitsCanceled = false
 
     private fun loadLatestVisits() {
 
+        loadingStartTimeInMillis = System.currentTimeMillis()
+        watchLoadingTimedOut()
+
         val handler = Handler()
 
-        VisitCollection.instance.loadLatestVisits(chunkSize = 5,
-            sortByDateTimeDescending = sortByDescendingDateTime,
-            sortByRatingDescending = sortByDescendingRating){ visitChunk, totalCount ->
+        GlobalScope.launch {
+            loadingJob = VisitCollection.instance.loadLatestVisits(chunkSize = 5,
+                sortByDateTimeDescending = sortByDescendingDateTime,
+                sortByRatingDescending = sortByDescendingRating) loadLatestVisitsCallBack@ { visitChunk, totalCount ->
 
-            if (!firstChunkLoaded) {
-                visits.clear()
-                visits.addAll(visitChunk)
-
-                visitsLoaded = true
-
-                handler.post {
-                    initFilterPanel()
-                    refreshVisitList()
-                    refreshLoadingVisitsOverlay(show = false)
-                    refreshLoadingRatioRater(visits.size, totalCount)
+                if (!isVisible) {
+                    loadingJob?.cancel()
+                    loadingVisitsCanceled = true
+                    Log.d(debugTag, "Loading visits canceled!")
+                    return@loadLatestVisitsCallBack
                 }
 
-                firstChunkLoaded = true
-            } else {
+                chunkArrivedCount++
+                averageLoadingTimeInMillis = (System.currentTimeMillis() - loadingStartTimeInMillis) / chunkArrivedCount
+                chunkArrivedAt = System.currentTimeMillis()
 
-                visits.addAll(visitChunk)
+                Log.d(debugTag, "averageLoadingTimeInMillis: $averageLoadingTimeInMillis")
 
-                handler.post {
-                    for (visit in visitChunk) {
-                        if (visitFilter.ratings.contains(visit.rating)) {
-                            visitsToShow.add(visit)
-                            refreshSortings()
-                            val index = visitsToShow.indexOf(visit)
-                            if (index >= 0) {
-                                refreshNoVisitsFrame(visitsToShow.isEmpty())
-                                (visitListView?.adapter as? VisitListAdapter)?.notifyItemInserted(index)
+                if (!firstChunkLoaded) {
+                    visits.clear()
+                    visits.addAll(visitChunk)
 
-                                if (index == 0) {
-                                    if (visitListView != null) {
-                                        visitListView.smoothScrollToPosition(0)
+                    visitsLoaded = true
+
+                    handler.post {
+                        initFilterPanel()
+                        refreshVisitList()
+                        refreshLoadingVisitsOverlay(show = false)
+                        refreshLoadingRatioRater(visits.size, totalCount)
+                    }
+
+                    firstChunkLoaded = true
+                } else {
+
+                    visits.addAll(visitChunk)
+
+                    handler.post {
+                        for (visit in visitChunk) {
+                            if (visitFilter.ratings.contains(visit.rating)) {
+                                visitsToShow.add(visit)
+                                refreshSortings()
+                                val index = visitsToShow.indexOf(visit)
+                                if (index >= 0) {
+                                    refreshNoVisitsFrame(visitsToShow.isEmpty())
+                                    (visitListView?.adapter as? VisitListAdapter)?.notifyItemInserted(index)
+
+                                    if (index == 0) {
+                                        if (visitListView != null) {
+                                            visitListView.smoothScrollToPosition(0)
+                                        }
                                     }
                                 }
                             }
                         }
+                        refreshLoadingRatioRater(visits.size, totalCount)
                     }
-                    refreshLoadingRatioRater(visits.size, totalCount)
+                }
+            }
+        }
+
+    }
+
+    private var loadingStartTimeInMillis = 0L
+    private var chunkArrivedCount = 0L
+    private var chunkArrivedAt = 0L
+    private var averageLoadingTimeInMillis = -1L
+
+    /**
+     * ロード中に削除が発生すると件数の整合性が合わなくなり、プログレスが消えないことがあったのでタイムアウトを設定する。
+     */
+    private fun watchLoadingTimedOut() {
+
+        val handler = Handler()
+        GlobalScope.launch {
+            while (true) {
+                delay(25)
+
+                if (loadingVisitsCanceled) {
+                    return@launch
+                }
+
+                if (averageLoadingTimeInMillis < 0) {
+                    continue
+                }
+
+                val elapsedTimeFromLastChunk = System.currentTimeMillis() - chunkArrivedAt
+                if (elapsedTimeFromLastChunk / 3 > averageLoadingTimeInMillis) {
+
+                    Log.d(debugTag, "Loading visits timed out!")
+                    handler.post {
+                        loadingRatioRaterOverlay?.fadeVisibility(false)
+                    }
+                    return@launch
                 }
             }
         }
@@ -281,6 +338,9 @@ class WhereToGoNextFragment : Fragment() {
         }
 
         refreshVisitList()
+
+        context ?: return
+        visitFilter.save(context!!)
     }
 
     private fun initPeriodStartSpinner() {

@@ -291,6 +291,10 @@ class Visit : BaseDataModel {
             }
         }
 
+        if (builder.isEmpty()) {
+            builder.append(place.toString(context))
+        }
+
         return builder.toString()
     }
 
