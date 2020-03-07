@@ -348,17 +348,16 @@ class RecordVisitFragment : Fragment(),
     private fun onAddTagInInfoTagDialog(tag: InfoTag) {
         visit.infoTags.add(tag)
         val tagView = InfoTagView(context!!, tag)
-        infoTagViewContainer.also {
-            it.onTagViewRemoved = { tagView ->
-                visit.infoTags.remove((tagView as InfoTagView).tag)
-            }
-        }.addTagView(tagView)
+        infoTagViewContainer.addTagView(tagView)
     }
 
     private fun initInfoTagViewContainer() {
         val tagViews = ArrayList<InfoTagView>()
         for (tag in visit.infoTags) {
             tagViews.add(InfoTagView(context!!, tag))
+        }
+        infoTagViewContainer.onTagViewRemoved = { it ->
+            visit.infoTags.remove((it as InfoTagView).tag)
         }
         infoTagViewContainer.addTagViews(tagViews)
     }
