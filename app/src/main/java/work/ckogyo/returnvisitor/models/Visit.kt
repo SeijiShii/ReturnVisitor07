@@ -365,4 +365,17 @@ class Visit : BaseDataModel {
         }
     }
 
+    /**
+     * そのVisitで誰かに会っているか
+     */
+    val isSeen: Boolean
+        get() {
+            for (pv in personVisits) {
+                if (pv.seen) {
+                    return true
+                }
+            }
+            return false
+        }
+
 }

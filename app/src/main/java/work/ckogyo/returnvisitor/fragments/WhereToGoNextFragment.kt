@@ -150,7 +150,7 @@ class WhereToGoNextFragment : Fragment() {
 
                     handler.post {
                         for (visit in visitChunk) {
-                            if (visitFilter.ratings.contains(visit.rating)) {
+                            if (isVisitContainedInFilterRatings(visit) && isVisitInFilterPeriod(visit)) {
                                 visitsToShow.add(visit)
                                 refreshSortings()
                                 val index = visitsToShow.indexOf(visit)
@@ -171,7 +171,15 @@ class WhereToGoNextFragment : Fragment() {
                 }
             }
         }
+    }
 
+    private fun isVisitContainedInFilterRatings(visit: Visit): Boolean {
+        return visitFilter.ratings.contains(visit.rating)
+    }
+
+    private fun isVisitInFilterPeriod(visit: Visit): Boolean {
+        return visitFilter.periodStartDate.timeInMillis <= visit.dateTime.timeInMillis
+                && visit.dateTime.timeInMillis <= visitFilter.periodEndDate.timeInMillis
     }
 
     private var loadingStartTimeInMillis = 0L
@@ -238,15 +246,14 @@ class WhereToGoNextFragment : Fragment() {
 
         val tmpVisits1 = ArrayList<Visit>()
         for (visit in visits) {
-            if (visitFilter.ratings.contains(visit.rating)) {
+            if (isVisitContainedInFilterRatings(visit)) {
                 tmpVisits1.add(visit)
             }
         }
 
         val tmpVisits2 = ArrayList<Visit>()
         for (visit in tmpVisits1) {
-            if (visitFilter.periodStartDate.timeInMillis <= visit.dateTime.timeInMillis
-                && visit.dateTime.timeInMillis <= visitFilter.periodEndDate.timeInMillis) {
+            if (isVisitInFilterPeriod(visit)) {
                 tmpVisits2.add(visit)
             }
         }
