@@ -107,6 +107,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             place.address = ""
                             place.address = requestAddressIfNeeded(place, context!!)
                             PlaceCollection.instance.saveAsync(place)
+                            VisitCollection.instance.updatePlaceInVisitsAsync(place)
                         }
                     }
                 }
@@ -191,9 +192,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         GlobalScope.launch {
             val placeColl = PlaceCollection.instance
+            val visitColl = VisitCollection.instance
+
             if (placeColl.housingComplexHasRooms(hComplex.id)) {
                 hComplex.refreshRatingByVisitsAsync().await()
                 placeColl.saveAsync(hComplex).await()
+                visitColl.updatePlaceInVisitsAsync(hComplex)
                 handler.post {
                     placeMarkers.refreshMarker(context!!, hComplex)
                 }
@@ -206,6 +210,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 } else {
                     hComplex.refreshRatingByVisitsAsync().await()
                     placeColl.saveAsync(hComplex).await()
+                    visitColl.updatePlaceInVisitsAsync(hComplex)
                     handler.post{
                         placeMarkers.refreshMarker(context!!, hComplex)
                     }
@@ -267,6 +272,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 placeMarkers.refreshMarker(context!!, place)
             }
             PlaceCollection.instance.saveAsync(place)
+            VisitCollection.instance.updatePlaceInVisitsAsync(place)
         }
     }
 

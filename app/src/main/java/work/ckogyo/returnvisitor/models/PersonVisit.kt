@@ -11,6 +11,7 @@ import work.ckogyo.returnvisitor.utils.DataModelKeys.isRVKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.isStudyKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.personIdKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.seenKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.personModelKey
 import java.lang.StringBuilder
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -32,6 +33,17 @@ class PersonVisit : BaseDataModel {
         this.person = person
     }
 
+    override fun initFromHashMap(map: HashMap<String, Any>) {
+        super.initFromHashMap(map)
+
+        seen = map[seenKey].toString().toBoolean()
+        isRv = map[isRVKey].toString().toBoolean()
+        isStudy = map[isStudyKey].toString().toBoolean()
+
+        person = Person()
+        person.initFromHashMap(map[personModelKey] as HashMap<String, Any>)
+    }
+
     suspend fun initFromHashMap(map: HashMap<String, Any>, personColl: PersonCollection): PersonVisit = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)
@@ -40,14 +52,21 @@ class PersonVisit : BaseDataModel {
         isRv = map[isRVKey].toString().toBoolean()
         isStudy = map[isStudyKey].toString().toBoolean()
 
-        val personId = map[personIdKey].toString()
+        if (map.containsKey(personModelKey)) {
+            // 冗長化済み
+            person = Person()
+            person.initFromHashMap(map[personModelKey] as HashMap<String, Any>)
+            cont.resume(this)
+        } else {
+            val personId = map[personIdKey].toString()
 
-        GlobalScope.launch {
-            val person2 = personColl.loadById(personId)
-            if (person2 != null) {
-                person = person2
+            GlobalScope.launch {
+                val person2 = personColl.loadById(personId)
+                if (person2 != null) {
+                    person = person2
+                }
+                cont.resume(this@PersonVisit)
             }
-            cont.resume(this@PersonVisit)
         }
     }
 
@@ -67,7 +86,8 @@ class PersonVisit : BaseDataModel {
         get() {
             val map = super.hashMap
 
-            map[personIdKey] = person.id
+            map[personModelKey] = person.hashMap
+//            map[personIdKey] = person.id
             map[seenKey] = seen
             map[isRVKey] = isRv
             map[isStudyKey] = isStudy

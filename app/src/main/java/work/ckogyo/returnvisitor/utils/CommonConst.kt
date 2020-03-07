@@ -9,11 +9,15 @@ const val googleSingInRequestCode = 6100
 const val debugTag = "RETURN_VISITOR_DEBUG"
 
 object FirebaseCollectionKeys {
+    const val placeModelKey = "place_model"     // 本来ならplaceKeyで良いがtypoしそうなのでModelを付ける。
     const val placesKey = "places"
+    const val personModelKey = "person_model"   // 本来ならpersonKeyで良いがtypoしそうなのでModelを付ける。
     const val personsKey = "persons"
     const val visitsKey = "visits"
     const val worksKey = "works"
+    const val placementModelsKey = "placement_models"
     const val placementsKey = "placements"
+    const val infoTagModelsKey = "info_tag_models"
     const val infoTagsKey = "info_tags"
     const val monthReportsKey = "month_reports"
     const val placementIdsKey = "placement_ids"

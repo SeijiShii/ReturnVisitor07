@@ -14,7 +14,11 @@ import work.ckogyo.returnvisitor.utils.DataModelKeys.personVisitsKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.ratingKey
 import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.infoTagIdsKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.infoTagModelsKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placeModelKey
 import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementIdsKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementModelsKey
+import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementsKey
 import java.lang.StringBuilder
 import java.util.*
 import kotlin.collections.ArrayList
@@ -76,7 +80,49 @@ class Visit : BaseDataModel {
      */
     fun initFromHashMapSimple(map: HashMap<String, Any>) {
         super.initFromHashMap(map)
+        initSimpleDataFromHashMap(map)
+    }
 
+    override fun initFromHashMap(map: HashMap<String, Any>) {
+        super.initFromHashMap(map)
+
+        initSimpleDataFromHashMap(map)
+
+        placements.clear()
+        val plcMapList = map[placementModelsKey] as ArrayList<HashMap<String, Any>>
+        for (plcMap in plcMapList) {
+            val plc = Placement().apply {
+                initFromHashMap(plcMap)
+            }
+            placements.add(plc)
+        }
+
+        infoTags.clear()
+        val infoTagMapList = map[infoTagModelsKey] as ArrayList<HashMap<String, Any>>
+        for (infoTagMap in infoTagMapList) {
+            val infoTag = InfoTag().apply {
+                initFromHashMap(infoTagMap)
+            }
+            infoTags.add(infoTag)
+        }
+
+        val pvMapList = map[personVisitsKey] as? ArrayList<HashMap<String, Any>>
+        if (pvMapList != null) {
+            personVisits.clear()
+            for (pvMap in pvMapList) {
+                val pv = PersonVisit().apply {
+                    initFromHashMap(pvMap)
+                }
+                personVisits.add(pv)
+            }
+        }
+
+        place = Place()
+        place.initFromHashMap(map[placeModelKey] as HashMap<String, Any>)
+
+    }
+
+    private fun initSimpleDataFromHashMap(map: HashMap<String, Any>) {
         var ratingStr = map[ratingKey].toString()
         ratingStr = if (ratingStr == "Indifferent") Rating.ForNext.toString() else ratingStr
         rating = Rating.valueOf(ratingStr)
@@ -85,35 +131,55 @@ class Visit : BaseDataModel {
         dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
     }
 
-    suspend fun initVisitFromHashMap(map: HashMap<String, Any>, place2: Place? = null): Visit  = suspendCoroutine { cont ->
+    suspend fun initVisitFromHashMap(map: HashMap<String, Any>): Visit  = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)
-
-        var ratingStr = map[ratingKey].toString()
-        ratingStr = if (ratingStr == "Indifferent") Rating.ForNext.toString() else ratingStr
-        rating = Rating.valueOf(ratingStr)
-
-        dateTime = Calendar.getInstance()
-        dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
+        initSimpleDataFromHashMap(map)
 
         GlobalScope.launch {
-            val plcIdList = map[placementIdsKey] as? ArrayList<String>
-            if (plcIdList != null) {
+
+            if (map.containsKey(placementsKey)) {
+                // 冗長化済み
                 placements.clear()
-                for (plcId in plcIdList) {
-                    val plc = PlacementCollection.instance.loadById(plcId)
-                    plc ?: continue
+                val plcMapList = map[placementModelsKey] as ArrayList<HashMap<String, Any>>
+                for (plcMap in plcMapList) {
+                    val plc = Placement()
+                    plc.initFromHashMap(plcMap)
                     placements.add(plc)
+                }
+
+            } else {
+                val plcIdList = map[placementIdsKey] as? ArrayList<String>
+                if (plcIdList != null) {
+                    placements.clear()
+                    for (plcId in plcIdList) {
+                        val plc = PlacementCollection.instance.loadById(plcId)
+                        plc ?: continue
+                        placements.add(plc)
+                    }
                 }
             }
 
-            val tagIdList = map[infoTagIdsKey] as? ArrayList<String>
-            if (tagIdList != null) {
+            if (map.containsKey(infoTagModelsKey)) {
+                // 冗長化済み
                 infoTags.clear()
-                for (tagId in tagIdList) {
-                    val tag = InfoTagCollection.instance.loadById(tagId)
-                    tag ?: continue
-                    infoTags.add(tag)
+
+                val infoTagMapList = map[infoTagModelsKey] as ArrayList<HashMap<String, Any>>
+                for (infoTagMap in infoTagMapList) {
+                    val infoTag = InfoTag()
+                    infoTag.initFromHashMap(infoTagMap)
+                    infoTags.add(infoTag)
+                }
+
+            } else {
+                val tagIdList = map[infoTagIdsKey] as? ArrayList<String>
+                if (tagIdList != null) {
+                    infoTags.clear()
+                    for (tagId in tagIdList) {
+                        val tag = InfoTagCollection.instance.loadById(tagId)
+                        tag ?: continue
+                        infoTags.add(tag)
+                    }
                 }
             }
 
@@ -125,22 +191,23 @@ class Visit : BaseDataModel {
                     val pv = PersonVisit().initFromHashMap(pvm, PersonCollection.instance)
                     personVisits.add(pv)
                 }
+            }
 
+            if (map.containsKey(placeModelKey)) {
+                place = Place()
+                place.initFromHashMap(map[placeModelKey] as HashMap<String, Any>)
+
+            } else {
                 val placeId = map[placeIdKey].toString()
 
-                if (place2 != null) {
-                    place = place2
-                } else {
-                    val place3 = PlaceCollection.instance.loadById(placeId)
-                    if (place3 != null) {
-                        place = place3
-                    }
+                val place3 = PlaceCollection.instance.loadById(placeId)
+                if (place3 != null) {
+                    place = place3
                 }
             }
+
             cont.resume(this@Visit)
         }
-
-
     }
 
     override val hashMap: HashMap<String, Any>
@@ -155,19 +222,34 @@ class Visit : BaseDataModel {
                 personVisitList.add(pv.hashMap)
             }
             map[personVisitsKey] = personVisitList
-            map[placeIdKey] = place.id
 
-            val plcIdList = ArrayList<String>()
+            map[placeModelKey] = place.hashMap
+//            map[placeIdKey] = place.id
+
+
+            val plcMapList = ArrayList<HashMap<String, Any>>()
             for (plc in placements) {
-                plcIdList.add(plc.id)
+                plcMapList.add(plc.hashMap)
             }
-            map[placementIdsKey] = plcIdList
+            map[placementModelsKey] = plcMapList
 
-            val tagIdList = ArrayList<String>()
+            val infoTagMapList = ArrayList<HashMap<String, Any>>()
             for (tag in infoTags) {
-                tagIdList.add(tag.id)
+                infoTagMapList.add(tag.hashMap)
             }
-            map[infoTagIdsKey] = tagIdList
+            map[infoTagModelsKey] = infoTagMapList
+
+//            val plcIdList = ArrayList<String>()
+//            for (plc in placements) {
+//                plcIdList.add(plc.id)
+//            }
+//            map[placementIdsKey] = plcIdList
+//
+//            val tagIdList = ArrayList<String>()
+//            for (tag in infoTags) {
+//                tagIdList.add(tag.id)
+//            }
+//            map[infoTagIdsKey] = tagIdList
 
             return map
         }
