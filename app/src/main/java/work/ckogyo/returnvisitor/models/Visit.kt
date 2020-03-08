@@ -456,4 +456,21 @@ class Visit : BaseDataModel {
             return false
         }
 
+    fun hasPerson(person: Person):Boolean {
+        for (pv in personVisits) {
+            if (pv.person == person) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun replacePersonIfHas(person: Person) {
+        for (pv in personVisits) {
+            if (pv.person == person) {
+                pv.person = person
+            }
+        }
+    }
+
 }

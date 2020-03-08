@@ -251,6 +251,21 @@ class FirebaseDB {
             refreshPlaceRatingAsync(visit.place).await()
 
             GlobalScope.launch {
+                // Personが書き換わっていることもあるので
+                for (pv in visit.personVisits) {
+                    val visitsToPerson = visitColl.loadVisitsByPerson(pv.person)
+                    for (visit2 in visitsToPerson) {
+                        if (visit2 == visit) {
+                            continue
+                        }
+
+                        visit2.replacePersonIfHas(pv.person)
+                        visitColl.setAsync(visit2).await()
+                    }
+                }
+            }
+
+            GlobalScope.launch {
                 // 保存する場所が部屋の場合
                 if (visit.place.category == Place.Category.Room) {
                     val hc = placeColl.loadById(visit.place.parentId)

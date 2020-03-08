@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.*
+import work.ckogyo.returnvisitor.models.Person
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
@@ -551,25 +552,50 @@ class VisitCollection {
         }
     }
 
-    fun convertAllVisitsVerboseAsync(): Deferred<Unit> {
-        return GlobalScope.async {
+    suspend fun loadVisitsByPerson(person: Person): ArrayList<Visit> = suspendCoroutine {  cont ->
 
-            FirebaseDB.instance.userDoc?.collection(visitsKey)?.get()
-                ?.addOnSuccessListener {
+        val userDoc = FirebaseDB.instance.userDoc
+        if (userDoc == null) {
+            cont.resume(ArrayList())
+        } else {
+            userDoc.collection(visitsKey).get()
+                .addOnSuccessListener {
+                    val visitsToPerson = ArrayList<Visit>()
                     for (doc in it.documents) {
                         val map = doc.data as HashMap<String, Any>
-                        GlobalScope.launch {
-                            val visit = Visit()
-                            visit.initVisitFromHashMap(map)
-                            setAsync(visit)
+                        val visit = Visit()
+                        visit.initFromHashMap(map)
+                        if (visit.hasPerson(person)) {
+                            visitsToPerson.add(visit)
                         }
                     }
+                    cont.resume(visitsToPerson)
                 }
-                ?.addOnFailureListener {
-
+                .addOnFailureListener {
+                    cont.resume(ArrayList())
                 }
-            Unit
         }
     }
+
+//    fun convertAllVisitsVerboseAsync(): Deferred<Unit> {
+//        return GlobalScope.async {
+//
+//            FirebaseDB.instance.userDoc?.collection(visitsKey)?.get()
+//                ?.addOnSuccessListener {
+//                    for (doc in it.documents) {
+//                        val map = doc.data as HashMap<String, Any>
+//                        GlobalScope.launch {
+//                            val visit = Visit()
+//                            visit.initVisitFromHashMap(map)
+//                            setAsync(visit)
+//                        }
+//                    }
+//                }
+//                ?.addOnFailureListener {
+//
+//                }
+//            Unit
+//        }
+//    }
 }
 
