@@ -5,6 +5,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Place
+import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.DataModelKeys.categoryKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.parentIdKey
 import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placesKey
@@ -13,12 +14,12 @@ import kotlin.coroutines.suspendCoroutine
 
 class PlaceCollection {
 
-    companion object {
-
-        private val innerInstance = PlaceCollection()
-        val instance: PlaceCollection
-            get() = innerInstance
-    }
+//    companion object {
+//
+//        private val innerInstance = PlaceCollection()
+//        val instance: PlaceCollection
+//            get() = innerInstance
+//    }
 
     suspend fun loadPlacesForMap(): ArrayList<Place> = suspendCoroutine { cont ->
         GlobalScope.launch {
@@ -48,15 +49,17 @@ class PlaceCollection {
         }
     }
 
-    private fun setAsync(place: Place): Deferred<Unit> {
+    fun setAsync(place: Place): Deferred<Unit> {
         return GlobalScope.async {
             FirebaseDB.instance.set(placesKey, place.id, place.hashMap)
         }
     }
 
+    /**
+     * 集合住宅であれば部屋も削除する
+     */
     fun deleteAsync(place: Place): Deferred<Boolean> {
         return GlobalScope.async {
-            VisitCollection.instance.deleteVisitsToPlace(place)
             if (place.category == Place.Category.HousingComplex) {
                 deleteRoomsByParentId(place.id)
             }
@@ -64,15 +67,15 @@ class PlaceCollection {
         }
     }
 
-    /**
-     * Ratingの更新も内部で行う
-     */
-    fun saveAsync(place: Place): Deferred<Unit> {
-        return GlobalScope.async {
-            place.refreshRatingByVisitsAsync().await()
-            setAsync(place).await()
-        }
-    }
+//    /**
+//     * Ratingの更新も内部で行う
+//     */
+//    fun saveAsync(place: Place): Deferred<Unit> {
+//        return GlobalScope.async {
+//            place.refreshRatingByVisitsAsync().await()
+//            setAsync(place).await()
+//        }
+//    }
 
 
     suspend fun loadRoomsByParentId(parentId: String): ArrayList<Place> = suspendCoroutine {  cont ->
@@ -126,4 +129,6 @@ class PlaceCollection {
             cont.resume(rooms.size > 0)
         }
     }
+
+
 }

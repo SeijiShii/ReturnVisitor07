@@ -12,9 +12,7 @@ import kotlinx.android.synthetic.main.place_dialog.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
-import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
-import work.ckogyo.returnvisitor.firebasedb.VisitCollection
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
@@ -87,7 +85,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
         GlobalScope.launch {
 
-            val loadedVisitsToPlace = VisitCollection.instance.loadVisitsOfPlace(place)
+            val loadedVisitsToPlace = FirebaseDB.instance.loadVisitsToPlace(place)
             mergeLoadedVisits(loadedVisitsToPlace)
 
             handler.post {
@@ -190,17 +188,11 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
         val handler = Handler()
         GlobalScope.launch {
-            VisitCollection.instance.deleteAsync(visit).await()
-
-            MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
-            place.refreshRatingByVisitsAsync().await()
-
+            FirebaseDB.instance.deleteVisitAsync(visit).await()
             handler.post {
                 onRefreshPlace?.invoke(place)
                 refreshColorMark()
             }
-
-            PlaceCollection.instance.saveAsync(place)
         }
     }
 
@@ -244,7 +236,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
 
         loadingVisitsOfPlaceOverlay.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
         GlobalScope.launch {
-            val nhVisit = VisitCollection.instance.addNotHomeVisitAsync(place)
+            val nhVisit = FirebaseDB.instance.generateNotHomeVisitAsync(place)
 
             // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
             TimeCountIntentService.saveWorkIfActive()
@@ -258,7 +250,8 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
                 loadingVisitsOfPlaceOverlay.fadeVisibility(false)
             }
 
-            place.refreshRatingByVisitsAsync().await()
+            FirebaseDB.instance.saveVisitAsync(nhVisit).await()
+
             handler.post {
                 refreshColorMark()
             }

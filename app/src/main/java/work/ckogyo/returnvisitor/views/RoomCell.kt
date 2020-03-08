@@ -9,6 +9,7 @@ import kotlinx.android.synthetic.main.room_cell.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.utils.*
@@ -54,7 +55,7 @@ class RoomCell(context: Context) : FrameLayout(context) {
                 R.id.delete_room -> {
                     confirmDeleteRoom(context, room){
                         GlobalScope.launch {
-                            PlaceCollection.instance.deleteAsync(room).await()
+                            FirebaseDB.instance.deletePlaceAsync(room).await()
                             handler.post {
 //                                collapseToHeight0()
                                 onDeleteRoomConfirmed?.invoke(room)

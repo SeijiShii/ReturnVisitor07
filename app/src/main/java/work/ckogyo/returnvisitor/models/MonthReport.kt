@@ -4,6 +4,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.suspendAtomicCancellableCoroutine
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.durationKey
@@ -119,7 +120,7 @@ class MonthReport() :
 
     fun calcPastCarryOverAsync(): Deferred<Long> {
         return GlobalScope.async {
-            val totalDurationUntilLastMonth = WorkCollection.instance.loadTotalDurationUntilLastMonth(month)
+            val totalDurationUntilLastMonth = FirebaseDB.instance.loadTotalDurationUntilLastMonth(month)
             pastCarryOver = totalDurationUntilLastMonth % hourInMillis
             pastCarryOver
         }

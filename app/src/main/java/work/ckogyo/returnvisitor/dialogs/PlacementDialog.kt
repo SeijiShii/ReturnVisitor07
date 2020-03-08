@@ -13,6 +13,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
 import work.ckogyo.returnvisitor.fragments.AddPlacementFragment
 import work.ckogyo.returnvisitor.fragments.PlacementListFragment
@@ -159,7 +160,7 @@ class PlacementDialog :DialogFrameFragment() {
         onAddPlacement?.invoke(plc)
         GlobalScope.launch {
             plc.lastUsedAt = Calendar.getInstance()
-            PlacementCollection.instance.setAsync(plc)
+            FirebaseDB.instance.savePlacementAsync(plc)
         }
     }
 

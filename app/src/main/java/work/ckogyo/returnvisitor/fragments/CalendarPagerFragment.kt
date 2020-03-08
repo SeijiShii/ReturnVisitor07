@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.CalendarColorDescriptionDialog
-import work.ckogyo.returnvisitor.firebasedb.loadMonthList
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.weekStartKey
@@ -92,7 +92,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
 
         GlobalScope.launch {
             months.clear()
-            months.addAll(loadMonthList())
+            months.addAll(FirebaseDB.instance.loadMonthList())
 
             handler.post {
 

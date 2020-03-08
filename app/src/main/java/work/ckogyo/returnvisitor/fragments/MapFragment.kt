@@ -22,6 +22,7 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
@@ -97,7 +98,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 val handler = Handler()
 
                 GlobalScope.launch {
-                    val place = PlaceCollection.instance.loadById(placeId)
+                    val place = FirebaseDB.instance.loadPlaceById(placeId)
                     place ?: return@launch
 
                     handler.post {
@@ -106,8 +107,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         GlobalScope.launch {
                             place.address = ""
                             place.address = requestAddressIfNeeded(place, context!!)
-                            PlaceCollection.instance.saveAsync(place)
-                            VisitCollection.instance.updatePlaceInVisitsAsync(place)
+                            FirebaseDB.instance.savePlaceAsync(place)
                         }
                     }
                 }
@@ -139,19 +139,19 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val id = marker.tag as? String
         if (id != null) {
             GlobalScope.launch {
-                val place = PlaceCollection.instance.loadById(id)
-                if (place != null) {
-                    when(place.category) {
-                        Place.Category.Place,
-                        Place.Category.House -> handler.post {
-                            showPlaceDialog(place)
-                        }
-                        Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
-                            onOk = this@MapFragment::onOkInHousingComplexFragment,
-                            onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
-                            onClose = this@MapFragment::onCloseHousingComplexFragment,
-                            isNewHC = false)
+                val place = FirebaseDB.instance.loadPlaceById(id)
+                place ?: return@launch
+
+                when(place.category) {
+                    Place.Category.Place,
+                    Place.Category.House -> handler.post {
+                        showPlaceDialog(place)
                     }
+                    Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
+                        onOk = this@MapFragment::onOkInHousingComplexFragment,
+                        onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
+                        onClose = this@MapFragment::onCloseHousingComplexFragment,
+                        isNewHC = false)
                 }
             }
         }
@@ -191,13 +191,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun onCloseHousingComplexFragment(hComplex: Place, isNewHC: Boolean) {
 
         GlobalScope.launch {
-            val placeColl = PlaceCollection.instance
-            val visitColl = VisitCollection.instance
 
-            if (placeColl.housingComplexHasRooms(hComplex.id)) {
-                hComplex.refreshRatingByVisitsAsync().await()
-                placeColl.saveAsync(hComplex).await()
-                visitColl.updatePlaceInVisitsAsync(hComplex)
+            val db = FirebaseDB.instance
+            if (db.housingComplexHasRooms(hComplex.id)) {
+                db.refreshPlaceRatingAsync(hComplex).await()
+                db.savePlaceAsync(hComplex)
                 handler.post {
                     placeMarkers.refreshMarker(context!!, hComplex)
                 }
@@ -206,11 +204,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     handler.post {
                         placeMarkers.remove(hComplex)
                     }
-                    placeColl.deleteAsync(hComplex).await()
+                    db.deletePlaceAsync(hComplex)
                 } else {
-                    hComplex.refreshRatingByVisitsAsync().await()
-                    placeColl.saveAsync(hComplex).await()
-                    visitColl.updatePlaceInVisitsAsync(hComplex)
+                    db.refreshPlaceRatingAsync(hComplex).await()
+                    db.savePlaceAsync(hComplex)
                     handler.post{
                         placeMarkers.refreshMarker(context!!, hComplex)
                     }
@@ -266,13 +263,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         val handler = Handler()
         GlobalScope.launch {
-            place.refreshRatingByVisitsAsync().await()
+            val db = FirebaseDB.instance
+            db.refreshPlaceRatingAsync(place).await()
 
             handler.post{
                 placeMarkers.refreshMarker(context!!, place)
             }
-            PlaceCollection.instance.saveAsync(place)
-            VisitCollection.instance.updatePlaceInVisitsAsync(place)
+            db.savePlaceAsync(place)
         }
     }
 
@@ -289,7 +286,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         when(param) {
             OnFinishEditParam.Deleted -> {
                 GlobalScope.launch {
-                    PlaceCollection.instance.deleteAsync(place).await()
+                    FirebaseDB.instance.deletePlaceAsync(place)
                 }
                 placeMarkers.remove(place)
             }
@@ -326,12 +323,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             visit.place.address = requestAddressIfNeeded(visit.place, context!!)
 
-            VisitCollection.instance.saveVisitAsync(visit).await()
+            FirebaseDB.instance.saveVisitAsync(visit).await()
             handler.post {
-                placeMarkers.refreshMarker(context!!, place)
+                placeMarkers.refreshMarker(context!!, visit.place)
             }
-
-            MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
         }
 
         // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
@@ -389,7 +384,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 //        Log.d(debugTag, "showPlaceMarkers")
 
         GlobalScope.launch {
-            val places = PlaceCollection.instance.loadPlacesForMap()
+            val places = FirebaseDB.instance.loadPlacesForMap()
             handler.post{
                 for (place in places) {
                     placeMarkers.addMarker(context!!, place)
@@ -414,7 +409,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 mainActivity?.switchProgressOverlay(true, getString(R.string.updating))
                 GlobalScope.launch {
 
-                    VisitCollection.instance.saveVisitAsync(visit).await()
+                    FirebaseDB.instance.saveVisitAsync(visit)
                     handler.post{
                         placeMarkers.refreshMarker(context!!, visit.place)
                         mainActivity?.switchProgressOverlay(false)
@@ -422,8 +417,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                     TimeCountIntentService.saveWorkIfActive()
-
-                    MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                 }
             }
             OnFinishEditParam.Deleted -> {
@@ -431,12 +424,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 mainActivity?:return
 
                 GlobalScope.launch {
-                    VisitCollection.instance.deleteAsync(visit).await()
+                    FirebaseDB.instance.deleteVisitAsync(visit).await()
                     handler.post {
                         placeMarkers.refreshMarker(context!!, visit.place)
                     }
-
-                    MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                 }
             }
         }
@@ -681,19 +672,30 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     fun onFinishEditVisitInFragments(visit: Visit, param: OnFinishEditParam) {
+
+        val db = FirebaseDB.instance
         when(param) {
             OnFinishEditParam.Canceled -> {}
-            OnFinishEditParam.Done,
-            OnFinishEditParam.Deleted -> {
+            OnFinishEditParam.Done -> {
                 GlobalScope.launch {
-                    visit.place.refreshRatingByVisitsAsync().await()
+                    db.saveVisitAsync(visit).await()
                     // handler.post待ちしている間になぜかRatingが空き家になるが原因究明は断念し、キャッシュして再代入というズルをする。
                     val rating = visit.place.rating
                     handler.post {
                         visit.place.rating = rating
                         placeMarkers.refreshMarker(context!!, visit.place)
                     }
-                    PlaceCollection.instance.saveAsync(visit.place)
+                }
+            }
+            OnFinishEditParam.Deleted -> {
+                GlobalScope.launch {
+                    db.deleteVisitAsync(visit).await()
+                    // handler.post待ちしている間になぜかRatingが空き家になるが原因究明は断念し、キャッシュして再代入というズルをする。
+                    val rating = visit.place.rating
+                    handler.post {
+                        visit.place.rating = rating
+                        placeMarkers.refreshMarker(context!!, visit.place)
+                    }
                 }
             }
         }

@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         switchProgressOverlay(true, getString(R.string.preparing_visit))
         val handler = Handler()
         GlobalScope.launch {
-            val visit = VisitCollection.instance.prepareNextVisit(place)
+            val visit = FirebaseDB.instance.prepareNextVisit(place)
 
             handler.post {
                 val rvFragment = RecordVisitFragment().also {
@@ -480,8 +480,7 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch {
 
             Log.d(debugTag, "prepareReportMail: ${month.toMonthTitleString(this@MainActivity)}")
-//            MonthReportCollection.instance.updateByMonthAsync(month).await()
-            val report = MonthReportCollection.instance.loadByMonth(month)
+            val report = FirebaseDB.instance.loadMonthReport(month)
             handler.post {
                 switchProgressOverlay(false)
                 exportToMail(this@MainActivity, report)

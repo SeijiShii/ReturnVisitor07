@@ -17,9 +17,8 @@ import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
-import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
-import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
@@ -100,7 +99,7 @@ class HousingComplexFragment : Fragment() {
             isLoadingRooms = true
             refreshAddRoomButton()
 
-            val loadedRooms = PlaceCollection.instance.loadRoomsByParentId(hComplex.id)
+            val loadedRooms = FirebaseDB.instance.loadRoomsByParentId(hComplex.id)
             rooms.clear()
             rooms.addAll(loadedRooms)
             handler.post {
@@ -131,7 +130,7 @@ class HousingComplexFragment : Fragment() {
         }
 
         GlobalScope.launch {
-            PlaceCollection.instance.saveAsync(hComplex).await()
+            FirebaseDB.instance.savePlaceAsync(hComplex).await()
             onOk?.invoke(hComplex)
         }
     }
@@ -163,7 +162,7 @@ class HousingComplexFragment : Fragment() {
                 setPositiveButton(R.string.delete){_, _ ->
 
                     GlobalScope.launch {
-                        PlaceCollection.instance.deleteAsync(hComplex).await()
+                        FirebaseDB.instance.deletePlaceAsync(hComplex).await()
                         onDeleted?.invoke(hComplex)
                     }
                     backToMapFragment()
@@ -233,11 +232,7 @@ class HousingComplexFragment : Fragment() {
 
                 GlobalScope.launch {
 
-                    VisitCollection.instance.saveVisitAsync(visit).await()
-                    PlaceCollection.instance.saveAsync(visit.place).await()
-                    PlaceCollection.instance.saveAsync(hComplex)
-
-                    visit.place.refreshRatingByVisitsAsync().await()
+                    FirebaseDB.instance.saveVisitAsync(visit).await()
 
                     if (rooms.contains(visit.place)) {
                         // HousingComplexDialog -> PlaceDialog -> 訪問を記録　で帰ってきたパターン
@@ -271,8 +266,6 @@ class HousingComplexFragment : Fragment() {
 
                     // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                     TimeCountIntentService.saveWorkIfActive()
-
-                    MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                 }
             }
             OnFinishEditParam.Deleted -> {
@@ -323,7 +316,7 @@ class HousingComplexFragment : Fragment() {
                 mainActivity?.showRecordVisitFragmentForNew(it, this@HousingComplexFragment::onFinishEditVisit)
             }
             onClose = this@HousingComplexFragment::onClosePlaceDialogForRoom
-            onRefreshPlace = this@HousingComplexFragment::onRefreshPlaceInPlaceDialog
+            onRefreshPlace = this@HousingComplexFragment::onRefreshRoomInPlaceDialog
             onShowInWideMap = this@HousingComplexFragment::onShowInWideMapInVisitDetail
         }
         mainActivity!!.showDialog(dialog)
@@ -335,14 +328,14 @@ class HousingComplexFragment : Fragment() {
         mainActivity?.mapFragment?.animateToLatLng(visit.place.latLng)
     }
 
-    private fun onRefreshPlaceInPlaceDialog(room: Place) {
+    private fun onRefreshRoomInPlaceDialog(room: Place) {
 
         loadingRoomsProgressFrame.fadeVisibility(true)
         val handler = Handler()
 
         GlobalScope.launch {
 
-            room.refreshRatingByVisitsAsync().await()
+            FirebaseDB.instance.savePlaceAsync(room).await()
 
             handler.post {
                 val pos = getPositionByRoom(room)
@@ -371,10 +364,7 @@ class HousingComplexFragment : Fragment() {
                 }
 
                 GlobalScope.launch {
-
-                    PlaceCollection.instance.deleteAsync(room).await()
-                    hComplex.refreshRatingByVisitsAsync().await()
-
+                    FirebaseDB.instance.deletePlaceAsync(room)
                 }
             }
         }
@@ -388,7 +378,7 @@ class HousingComplexFragment : Fragment() {
         rooms.remove(room)
 
         GlobalScope.launch {
-            PlaceCollection.instance.deleteAsync(room)
+            FirebaseDB.instance.deletePlaceAsync(room)
         }
 
         if (pos >= 0) {

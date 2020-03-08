@@ -12,12 +12,12 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class PlacementCollection {
-    companion object {
-
-        private val innerInstance = PlacementCollection()
-        val instance: PlacementCollection
-            get() = innerInstance
-    }
+//    companion object {
+//
+//        private val innerInstance = PlacementCollection()
+//        val instance: PlacementCollection
+//            get() = innerInstance
+//    }
 
     suspend fun loadById(id: String): Placement? = suspendCoroutine {
         GlobalScope.launch {

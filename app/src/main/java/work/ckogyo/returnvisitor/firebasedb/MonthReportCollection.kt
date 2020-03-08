@@ -4,9 +4,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import work.ckogyo.returnvisitor.models.DailyReport
 import work.ckogyo.returnvisitor.models.MonthReport
-import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.monthKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.yearKey
 import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.monthReportsKey
@@ -17,12 +15,12 @@ import kotlin.coroutines.suspendCoroutine
 
 class MonthReportCollection {
 
-    companion object {
-
-        private val innerInstance = MonthReportCollection()
-        val instance: MonthReportCollection
-            get() = innerInstance
-    }
+//    companion object {
+//
+//        private val innerInstance = MonthReportCollection()
+//        val instance: MonthReportCollection
+//            get() = innerInstance
+//    }
 
     private fun setAsync(report: MonthReport): Deferred<Unit> {
         return GlobalScope.async {
@@ -70,13 +68,10 @@ class MonthReportCollection {
 
             report.calcPastCarryOverAsync().await()
 
-            val first = month.getFirstDay()
-            val last = month.getLastDay()
+            val worksInMonth = FirebaseDB.instance.loadWorksInMonth(month)
+            val visitsInMonth = FirebaseDB.instance.loadVisitsInMonth(month)
 
-            val works = WorkCollection.instance.loadWorksByDateRange(first, last)
-            val visits = VisitCollection.instance.loadVisitsByDateRange(first, last)
-
-            report.calculate(works, visits)
+            report.calculate(worksInMonth, visitsInMonth)
 
             setAsync(report).await()
             Unit

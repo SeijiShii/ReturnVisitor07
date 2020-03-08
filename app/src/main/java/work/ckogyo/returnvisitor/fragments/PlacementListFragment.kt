@@ -13,6 +13,7 @@ import kotlinx.android.synthetic.main.placement_list_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
 import work.ckogyo.returnvisitor.models.Placement
 import work.ckogyo.returnvisitor.utils.fadeVisibility
@@ -66,7 +67,7 @@ class PlacementListFragment : Fragment() {
 
         placements.clear()
         GlobalScope.launch {
-            val plcs = PlacementCollection.instance.loadInLatestUseOrder()
+            val plcs = FirebaseDB.instance.loadPlacementsInLatestUseOrder()
             placements.addAll(plcs)
 
             isLoadingPlacements = false
@@ -174,7 +175,7 @@ class PlacementListFragment : Fragment() {
             refreshSearchedPlacements()
 
             GlobalScope.launch {
-                PlacementCollection.instance.deleteAsync(cell.placement)
+                FirebaseDB.instance.deletePlacementAsync(cell.placement)
             }
 
             onPlacementDeleted?.invoke(cell.placement)

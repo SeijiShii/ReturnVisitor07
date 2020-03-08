@@ -1,6 +1,7 @@
 package work.ckogyo.returnvisitor.models
 
 import kotlinx.coroutines.*
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.*
@@ -130,8 +131,9 @@ class WorkElmList {
 
     suspend fun generateListByDate(date: Calendar): ArrayList<WorkElement> = suspendCoroutine { cont ->
         GlobalScope.launch {
-            val works = WorkCollection.instance.loadAllWorksInDate(date)
-            val visits = VisitCollection.instance.loadVisitsByDate(date)
+            val db = FirebaseDB.instance
+            val works = db.loadAllWorksInDate(date)
+            val visits = db.loadVisitsByDate(date)
 
             cont.resume(generateList(works, visits))
         }
@@ -139,8 +141,9 @@ class WorkElmList {
 
     suspend fun generateListByDateRange(start: Calendar, end: Calendar): ArrayList<WorkElement> = suspendCoroutine { cont ->
         GlobalScope.launch {
-            val works = WorkCollection.instance.loadWorksByDateRange(start, end)
-            val visits = VisitCollection.instance.loadVisitsByDateRange(start, end)
+            val db = FirebaseDB.instance
+            val works = db.loadWorksByDateRange(start, end)
+            val visits = db.loadVisitsByDateRange(start, end)
 
             cont.resume(generateList(works, visits))
         }
@@ -225,9 +228,9 @@ class WorkElmList {
         GlobalScope.launch {
 
             val visitDateTask
-                    = GlobalScope.async { VisitCollection.instance.getNeighboringDateWithData(date, previous) }
+                    = GlobalScope.async { FirebaseDB.instance.getNeighboringDateWithVisitData(date, previous) }
             val workDateTask
-                    = GlobalScope.async { WorkCollection.instance.getNeighboringDateWithData(date, previous) }
+                    = GlobalScope.async { FirebaseDB.instance.getNeighboringDateWithWorkData(date, previous) }
 
             val visitDate  = visitDateTask.await()
             val workDate = workDateTask.await()
@@ -257,8 +260,8 @@ class WorkElmList {
         var hasVisit = false
         var hasWork = false
         runBlocking {
-            hasVisit = VisitCollection.instance.hasVisitInDateTimeRange(start, end)
-            hasWork = WorkCollection.instance.hasWorkInDateTimeRange(start, end)
+            hasVisit = FirebaseDB.instance.hasVisitInDateTimeRange(start, end)
+            hasWork = FirebaseDB.instance.hasWorkInDateTimeRange(start, end)
         }
         return hasVisit || hasWork
     }
@@ -271,7 +274,7 @@ class WorkElmList {
 
     suspend fun aDayHasElm(date: Calendar):Boolean = suspendCoroutine {  cont ->
         GlobalScope.launch {
-            cont.resume(VisitCollection.instance.aDayHasVisit(date) || WorkCollection.instance.aDayHasWork(date))
+            cont.resume(FirebaseDB.instance.aDayHasVisit(date) || FirebaseDB.instance.aDayHasWork(date))
         }
     }
 

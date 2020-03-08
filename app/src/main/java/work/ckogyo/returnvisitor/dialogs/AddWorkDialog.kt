@@ -14,8 +14,7 @@ import kotlinx.android.synthetic.main.add_work_dialog.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
-import work.ckogyo.returnvisitor.firebasedb.WorkCollection
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
@@ -53,11 +52,10 @@ class AddWorkDialog : DialogFragment(),
             .setView(contentView)
             .setPositiveButton(R.string.add){_, _ ->
                 GlobalScope.launch {
-                    WorkCollection.instance.set(work)
+                    FirebaseDB.instance.saveWorkAsync(work)
                     handler.post {
                         onWorkAdded?.invoke(work)
                     }
-                    MonthReportCollection.instance.updateByMonthAsync(work.start)
                 }
             }
             .setNegativeButton(R.string.cancel){_, _ -> }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.models.InfoTag
 import work.ckogyo.returnvisitor.models.Visit
@@ -126,7 +127,7 @@ class InfoTagPopup(private val anchor: View,
         tag.lastUsedAt = Calendar.getInstance()
 
         GlobalScope.launch {
-            InfoTagCollection.instance.setAsync(tag)
+            FirebaseDB.instance.saveInfoTagAsync(tag)
         }
 
         onInfoTagSelected?.invoke(tag)
@@ -182,7 +183,7 @@ class InfoTagPopup(private val anchor: View,
             refreshSearchedTags()
 
             GlobalScope.launch {
-                InfoTagCollection.instance.deleteAsync(tag)
+                FirebaseDB.instance.deleteInfoTagAsync(tag)
             }
 
             onInfoTagDeleted?.invoke(tag)

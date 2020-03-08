@@ -20,6 +20,7 @@ import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.VisitDetailDialog
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Visit
@@ -107,69 +108,10 @@ class WhereToGoNextFragment : Fragment() {
 
     private fun loadLatestVisits() {
 
-//        loadingStartTimeInMillis = System.currentTimeMillis()
-        watchLoadingTimedOut()
-
         val handler = Handler()
 
         GlobalScope.launch {
-            val loadedVisits = VisitCollection.instance.loadLatestVisits(sortByDateTimeDescending = sortByDescendingDateTime, sortByRatingDescending = sortByDescendingRating)
-//            loadLatestVisitsCallBack@ { visitChunk, totalCount ->
-//
-//                if (!isVisible) {
-//                    loadingJob?.cancel()
-//                    loadingVisitsCanceled = true
-//                    Log.d(debugTag, "Loading visits canceled!")
-//                    return@loadLatestVisitsCallBack
-//                }
-//
-////                chunkArrivedCount++
-////                averageLoadingTimeInMillis = (System.currentTimeMillis() - loadingStartTimeInMillis) / chunkArrivedCount
-//                Log.d(debugTag, "Chunk arrived!")
-//                chunkArrivedAt = System.currentTimeMillis()
-////
-////                Log.d(debugTag, "averageLoadingTimeInMillis: $averageLoadingTimeInMillis")
-//
-//                if (!firstChunkLoaded) {
-//                    visits.clear()
-//                    visits.addAll(visitChunk)
-//
-//                    visitsLoaded = true
-//
-//                    handler.post {
-//                        initFilterPanel()
-//                        refreshVisitList()
-//                        refreshLoadingVisitsOverlay(show = false)
-//                        refreshLoadingRatioRater(visits.size, totalCount)
-//                    }
-//
-//                    firstChunkLoaded = true
-//                } else {
-//
-//                    visits.addAll(visitChunk)
-//
-//                    handler.post {
-//                        for (visit in visitChunk) {
-//                            if (isVisitContainedInFilterRatings(visit) && isVisitInFilterPeriod(visit)) {
-//                                visitsToShow.add(visit)
-//                                refreshSortings()
-//                                val index = visitsToShow.indexOf(visit)
-//                                if (index >= 0) {
-//                                    refreshNoVisitsFrame(visitsToShow.isEmpty())
-//                                    (visitListView?.adapter as? VisitListAdapter)?.notifyItemInserted(index)
-//
-//                                    if (index == 0) {
-//                                        if (visitListView != null) {
-//                                            visitListView.smoothScrollToPosition(0)
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        refreshLoadingRatioRater(visits.size, totalCount)
-//                    }
-//                }
-//            }
+            val loadedVisits = FirebaseDB.instance.loadLatestVisits(sortByDateTimeDescending = sortByDescendingDateTime, sortByRatingDescending = sortByDescendingRating)
             visits.clear()
             visits.addAll(loadedVisits)
 
@@ -177,7 +119,6 @@ class WhereToGoNextFragment : Fragment() {
                 initFilterPanel()
                 refreshVisitList()
                 refreshLoadingVisitsOverlay(show = false)
-//                refreshLoadingRatioRater(visits.size, totalCount)
             }
         }
     }
@@ -191,69 +132,8 @@ class WhereToGoNextFragment : Fragment() {
                 && visit.dateTime.timeInMillis <= visitFilter.periodEndDate.timeInMillis
     }
 
-//    private var loadingStartTimeInMillis = 0L
-//    private var chunkArrivedCount = 0L
     private var chunkArrivedAt = -1L
-//    private var averageLoadingTimeInMillis = -1L
 
-    /**
-     * ロード中に削除が発生すると件数の整合性が合わなくなり、プログレスが消えないことがあったのでタイムアウトを設定する。
-     */
-    private fun watchLoadingTimedOut() {
-
-        val handler = Handler()
-        GlobalScope.launch {
-            while (true) {
-                delay(25)
-
-                if (loadingVisitsCanceled) {
-                    return@launch
-                }
-
-                if (chunkArrivedAt < 0) {
-                    continue
-                }
-
-//                if (averageLoadingTimeInMillis < 0) {
-//                    continue
-//                }
-
-//                val elapsedTimeFromLastChunk = System.currentTimeMillis() - chunkArrivedAt
-                if (System.currentTimeMillis() - chunkArrivedAt > 10000) {
-
-                    Log.d(debugTag, "Loading visits timed out!")
-                    handler.post {
-                        loadingRatioRaterOverlay?.fadeVisibility(false)
-                    }
-                    return@launch
-                }
-            }
-        }
-    }
-
-//    private fun refreshLoadingRatioRater(loadedCount: Int, totalCount: Int) {
-//
-//        loadingFilteredVisitsOverlay ?: return
-//
-////        Log.d(debugTag, "loadedCount: $loadedCount, totalCount: $totalCount")
-//        val ratio = loadedCount.toFloat() / totalCount
-//
-//        if (ratio < 1f) {
-//            loadingRatioRaterOverlay?.fadeVisibility(true)
-//
-//            val origin = loadingRatioRater.width
-//            val target = (loadingRatioRaterFrame.width.toFloat() * ratio).toInt()
-//            ValueAnimator.ofInt(origin, target).also {
-//                it.duration = 300
-//                it.addUpdateListener { anim ->
-//                    loadingRatioRater?.layoutParams?.width = anim.animatedValue as Int
-//                }
-//                it.start()
-//            }
-//        } else {
-//            loadingRatioRaterOverlay?.fadeVisibility(false)
-//        }
-//    }
 
     private fun refreshVisitsToShow() {
 
@@ -525,12 +405,9 @@ class WhereToGoNextFragment : Fragment() {
 
                     GlobalScope.launch {
 
-                        VisitCollection.instance.saveVisitAsync(visit).await()
-
+                        FirebaseDB.instance.saveVisitAsync(visit).await()
                         // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                         TimeCountIntentService.saveWorkIfActive()
-
-                        MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                     }
                 }
                 OnFinishEditParam.Deleted -> {
@@ -561,8 +438,7 @@ class WhereToGoNextFragment : Fragment() {
             notifyItemRemoved(pos)
 
             GlobalScope.launch {
-                VisitCollection.instance.deleteAsync(visit).await()
-                MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
+                FirebaseDB.instance.deleteVisitAsync(visit)
             }
         }
     }

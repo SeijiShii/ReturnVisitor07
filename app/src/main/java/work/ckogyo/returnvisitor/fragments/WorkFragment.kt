@@ -19,6 +19,7 @@ import work.ckogyo.returnvisitor.MainActivity
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
 import work.ckogyo.returnvisitor.dialogs.VisitDetailDialog
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
@@ -562,10 +563,9 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             mainActivity?.switchProgressOverlay(true, context!!.getString(R.string.saving_changes))
             val handler = Handler()
             GlobalScope.launch {
-                val workColl = WorkCollection.instance
-                workColl.set(work)
+                FirebaseDB.instance.saveWorkAsync(work)
                 for (work4 in worksToRemove) {
-                    workColl.delete(work4.id)
+                    FirebaseDB.instance.deleteWorkAsync(work4)
                 }
                 handler.post {
                     mainActivity?.switchProgressOverlay(false)
@@ -585,7 +585,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             GlobalScope.launch {
 
                 // 終了ポジション先取得して削除しないと順番が狂うはず
-                WorkCollection.instance.delete(work.id)
+                FirebaseDB.instance.deleteWorkAsync(work)
 
                 val endPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
                 val startPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
@@ -603,8 +603,6 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                         notifyItemRemoved(dateBorderPos)
                     }
                 }
-
-                MonthReportCollection.instance.updateByMonthAsync(work.start)
             }
         }
 
@@ -617,7 +615,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
             val handler = Handler()
             GlobalScope.launch {
-                VisitCollection.instance.deleteAsync(visit).await()
+                FirebaseDB.instance.deleteVisitAsync(visit).await()
                 val dateBorderPos = deleteDateBorderPositionIfADayHasNoElm(visit.dateTime)
 
                 handler.post {
@@ -625,7 +623,6 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                         notifyItemRemoved(dateBorderPos)
                     }
                 }
-                MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
             }
         }
 
@@ -739,12 +736,10 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
                     GlobalScope.launch {
 
-                        VisitCollection.instance.saveVisitAsync(visit).await()
+                        FirebaseDB.instance.saveVisitAsync(visit).await()
 
                         // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
                         TimeCountIntentService.saveWorkIfActive()
-
-                        MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
                     }
                 }
                 OnFinishEditParam.Deleted -> {

@@ -1,7 +1,9 @@
 package work.ckogyo.returnvisitor.firebasedb
 
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.utils.*
@@ -16,11 +18,11 @@ import kotlin.coroutines.suspendCoroutine
 
 class WorkCollection {
 
-    companion object {
-        private val innerInstance = WorkCollection()
-        val instance: WorkCollection
-            get() = innerInstance
-    }
+//    companion object {
+//        private val innerInstance = WorkCollection()
+//        val instance: WorkCollection
+//            get() = innerInstance
+//    }
 
     private suspend fun loadWorksByDate(date: Calendar, byStart: Boolean): ArrayList<Work> = suspendCoroutine { cont ->
 
@@ -197,11 +199,10 @@ class WorkCollection {
     }
 
 
-    suspend fun set(work: Work): Unit = suspendCoroutine {
-        GlobalScope.launch {
+    fun setAsync(work: Work): Deferred<Unit> {
+        return GlobalScope.async {
             FirebaseDB.instance.set(worksKey, work.id, work.hashMap)
-            DailyReportCollection.instance.initAndSaveDailyReportAsync(work.start)
-            it.resume(Unit)
+            Unit
         }
     }
 
@@ -383,4 +384,13 @@ class WorkCollection {
         }
     }
 
+    suspend fun loadWorkInMonth(month: Calendar): ArrayList<Work> = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+
+            val start = month.getStartOfMonth()
+            val end = month.getEndOfMonth()
+            cont.resume(loadWorksByDateRange(start, end))
+        }
+    }
 }

@@ -21,12 +21,12 @@ import kotlin.coroutines.suspendCoroutine
 
 class VisitCollection {
 
-    companion object {
-        private val innerInstance = VisitCollection()
-
-        val instance: VisitCollection
-            get() = innerInstance
-    }
+//    companion object {
+//        private val innerInstance = VisitCollection()
+//
+//        val instance: VisitCollection
+//            get() = innerInstance
+//    }
 
     suspend fun loadVisitsOfPlace(place: Place, limitLatest10: Boolean = false): ArrayList<Visit> = suspendCoroutine { cont ->
 
@@ -71,15 +71,30 @@ class VisitCollection {
             } else {
 
                 userDoc.collection(visitsKey)
-                    .whereEqualTo(placeIdKey, place.id)
-                    .orderBy(dateTimeMillisKey, Query.Direction.DESCENDING)
-                    .limit(1)
                     .get()
                     .addOnSuccessListener {
                         if (it.documents.isEmpty()) {
                             cont.resume(null)
                         } else {
-                            initVisitFromHashMap(it.documents[0].data as HashMap<String, Any>, cont)
+
+                            var latestVisitToPlace: Visit? = null
+
+                            for (doc in it.documents) {
+                                val map = doc.data as HashMap<String, Any>
+                                val visit = Visit()
+                                visit.initFromHashMap(map)
+
+                                if (visit.place == place) {
+                                    if (latestVisitToPlace == null) {
+                                        latestVisitToPlace = visit
+                                    } else {
+                                        if (visit.dateTime.timeInMillis > latestVisitToPlace.dateTime.timeInMillis) {
+                                            latestVisitToPlace = visit
+                                        }
+                                    }
+                                }
+                            }
+                            cont.resume(latestVisitToPlace)
                         }
                     }
                     .addOnFailureListener {
@@ -204,10 +219,10 @@ class VisitCollection {
     }
 
 
-    private fun setAsync(visit: Visit): Deferred<Unit> {
+    fun setAsync(visit: Visit): Deferred<Unit> {
         return GlobalScope.async{
             FirebaseDB.instance.set(visitsKey, visit.id, visit.hashMap)
-            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
+//            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
             Unit
         }
     }
@@ -215,13 +230,10 @@ class VisitCollection {
     /**
      * Visitを削除し、Visitに属するPlaceのRatingを更新する。
      */
-    fun deleteAsync(visit: Visit): Deferred<Boolean> {
+    fun deleteAsync(visit: Visit): Deferred<Unit> {
         return GlobalScope.async {
-            val result = FirebaseDB.instance.delete(visitsKey, visit.id)
-            visit.place.refreshRatingByVisitsAsync().await()
-            PlaceCollection.instance.saveAsync(visit.place).await()
-            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
-            result
+            FirebaseDB.instance.delete(visitsKey, visit.id)
+            Unit
         }
     }
 
@@ -255,41 +267,35 @@ class VisitCollection {
         }
     }
 
-    /**
-     * Visitを追加または更新し、Visitに属するPlaceのRatingを更新する。
-    */
-    fun saveVisitAsync(visit: Visit): Deferred<Unit> {
-        return GlobalScope.async {
+//    /**
+//     * Visitを追加または更新し、Visitに属するPlaceのRatingを更新する。
+//    */
+//    fun saveVisitAsync(visit: Visit): Deferred<Unit> {
+//        return GlobalScope.async {
+//
+//            setAsync(visit).await()
+//            PlaceCollection.instance.saveAsync(visit.place).await()
+//
+//            for (person in visit.persons) {
+//                PersonCollection.instance.setAsync(person).await()
+//            }
+//        }
+//    }
 
-            setAsync(visit).await()
-            PlaceCollection.instance.saveAsync(visit.place).await()
-
-            for (person in visit.persons) {
-                PersonCollection.instance.setAsync(person).await()
-            }
-        }
-    }
-
-    suspend fun addNotHomeVisitAsync(place: Place):Visit = suspendCoroutine { cont ->
-
-//        val start = System.currentTimeMillis()
+    suspend fun generateNotHomeVisitAsync(place: Place):Visit = suspendCoroutine { cont ->
 
         GlobalScope.launch {
             val latestVisit = loadLatestVisitOfPlace(place)
             val visit = if (latestVisit == null) {
                 val v = Visit()
                 v.place = place
+                v.rating = Visit.Rating.NotHome
                 v
             } else {
                 Visit(latestVisit)
             }
             visit.turnToNotHome()
-            saveVisitAsync(visit)
 
-            MonthReportCollection.instance.updateByMonthAsync(visit.dateTime)
-            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
-
-//            Log.d(debugTag, "addNotHomeVisitAsync, took ${System.currentTimeMillis() - start}ms.")
             cont.resume(visit)
         }
     }
@@ -476,13 +482,10 @@ class VisitCollection {
                             val visit = Visit().apply {
                                 initFromHashMap(map)
                             }
-//                            visit.initFromHashMapSimple(map)
-//                            pairs.add(VisitMapPair(visit, map))
                             visits.add(visit)
                         }
 
                         // 場所に対する最新のVisitだけを取得
-//                        val pairs2 = ArrayList<VisitMapPair>()
 
                         val visits2 = ArrayList<Visit>()
 
@@ -516,57 +519,6 @@ class VisitCollection {
                             }
                         }
 
-//                        for (pair in pairs) {
-//                            var pairAlreadyContained: VisitMapPair? = null
-//                            for (pair2 in pairs2) {
-//
-//                                if (pair.map.containsKey(placeIdKey)
-//                                    && pair2.map.containsKey(placeIdKey)
-//                                    && pair.map[placeIdKey] == pair2.map[placeIdKey]) {
-//                                    pairAlreadyContained = pair2
-//                                    break
-//                                } else if (pair.visit.place == pair2.visit.place) {
-//                                    pairAlreadyContained = pair2
-//                                    break
-//                                }
-//                            }
-//
-//                            if (pairAlreadyContained != null) {
-//                                if (pair.visit.dateTime.timeInMillis > pairAlreadyContained.visit.dateTime.timeInMillis) {
-//                                    pairs2.remove(pairAlreadyContained)
-//                                    pairs2.add(pair)
-//                                }
-//                            } else {
-//                                pairs2.add(pair)
-//                            }
-//                        }
-
-//                        val job = GlobalScope.launch initVisitsLaunch@ {
-//
-//                            var visits = ArrayList<Visit>()
-//
-//                            Log.d(debugTag, "pairs2.size: ${pairs2.size}")
-//
-//                            for (i in 0 until pairs2.size) {
-//                                val visit = Visit()
-//                                visit.initVisitFromHashMap(pairs2[i].map)
-//                                setAsync(visit)
-//
-//                                Log.d(debugTag, "Visit initialized: ${visit.id}")
-//
-//                                visits.add(visit)
-//
-////                                Log.d(debugTag, "initVisitsLaunch@ isActive: $isActive")
-//                                if (!isActive) {
-//                                    return@initVisitsLaunch
-//                                }
-//
-//                                if ((i > 0 && i % chunkSize == 0) || i >= pairs2.size - 1) {
-//                                    chunkLoadedCallback(visits, pairs2.size)
-//                                    visits = ArrayList()
-//                                }
-//                            }
-//                        }
                         cont.resume(visits2)
                     }.addOnFailureListener {
                         cont.resume(ArrayList<Visit>())
@@ -575,8 +527,6 @@ class VisitCollection {
         }
 
     }
-
-//    data class VisitMapPair(val visit: Visit, val map: HashMap<String, Any>)
 
     fun updatePlaceInVisitsAsync(place: Place): Deferred<Unit> {
 
@@ -587,6 +537,38 @@ class VisitCollection {
                 visit.place = place
                 setAsync(visit)
             }
+        }
+    }
+
+    suspend fun loadVisitsInMonth(month: Calendar): ArrayList<Visit> = suspendCoroutine { cont ->
+
+        GlobalScope.launch {
+            val first = month.getFirstDay()
+            val last = month.getLastDay()
+
+            val visits = loadVisitsByDateRange(first, last)
+            cont.resume(visits)
+        }
+    }
+
+    fun convertAllVisitsVerboseAsync(): Deferred<Unit> {
+        return GlobalScope.async {
+
+            FirebaseDB.instance.userDoc?.collection(visitsKey)?.get()
+                ?.addOnSuccessListener {
+                    for (doc in it.documents) {
+                        val map = doc.data as HashMap<String, Any>
+                        GlobalScope.launch {
+                            val visit = Visit()
+                            visit.initVisitFromHashMap(map)
+                            setAsync(visit)
+                        }
+                    }
+                }
+                ?.addOnFailureListener {
+
+                }
+            Unit
         }
     }
 }

@@ -64,8 +64,8 @@ class DailyReportCollection {
 
     private fun initDailyReportAsync(date: Calendar) :Deferred<DailyReport> {
         return GlobalScope.async {
-            val works = WorkCollection.instance.loadAllWorksInDate(date)
-            val visits = VisitCollection.instance.loadVisitsByDate(date)
+            val works = FirebaseDB.instance.loadAllWorksInDate(date)
+            val visits = FirebaseDB.instance.loadVisitsByDate(date)
             val report = DailyReport(date, works, visits)
             report
         }

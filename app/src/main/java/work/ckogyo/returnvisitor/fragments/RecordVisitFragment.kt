@@ -20,6 +20,7 @@ import work.ckogyo.returnvisitor.dialogs.PlacementDialog
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.EditPersonDialog
 import work.ckogyo.returnvisitor.dialogs.InfoTagPopup
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
 import work.ckogyo.returnvisitor.models.*
 import work.ckogyo.returnvisitor.utils.*
@@ -96,7 +97,7 @@ class RecordVisitFragment : Fragment(),
 
         descriptionText.setText(visit.description)
 
-        infoTagJob = InfoTagCollection.instance.loadInLatestUseOrderAsync()
+        infoTagJob = FirebaseDB.instance.loadInfoTagsInLatestUseOrderAsync()
     }
 
     private fun initPVCells() {

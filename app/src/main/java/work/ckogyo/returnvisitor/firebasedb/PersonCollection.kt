@@ -11,12 +11,12 @@ import kotlin.coroutines.suspendCoroutine
 
 class PersonCollection {
 
-    companion object {
-
-        private val innerInstance = PersonCollection()
-        val instance: PersonCollection
-            get() = innerInstance
-    }
+//    companion object {
+//
+//        private val innerInstance = PersonCollection()
+//        val instance: PersonCollection
+//            get() = innerInstance
+//    }
 
     suspend fun loadById(id: String): Person? = suspendCoroutine { cont ->
 

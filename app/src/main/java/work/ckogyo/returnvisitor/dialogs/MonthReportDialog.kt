@@ -14,6 +14,7 @@ import kotlinx.android.synthetic.main.month_report_dialog.view.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.utils.*
@@ -29,7 +30,7 @@ class MonthReportDialog(private val month: Calendar) : DialogFragment() {
         val handler = Handler()
 
         GlobalScope.launch {
-            val report = MonthReportCollection.instance.loadByMonth(month)
+            val report = FirebaseDB.instance.loadMonthReport(month)
 
             if (isDialogClosed) return@launch
 

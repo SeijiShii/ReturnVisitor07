@@ -1,10 +1,13 @@
 package work.ckogyo.returnvisitor.models
 
 import android.content.Context
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.PersonCollection
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.isRVKey
@@ -44,7 +47,7 @@ class PersonVisit : BaseDataModel {
         person.initFromHashMap(map[personModelKey] as HashMap<String, Any>)
     }
 
-    suspend fun initFromHashMap(map: HashMap<String, Any>, personColl: PersonCollection): PersonVisit = suspendCoroutine { cont ->
+    private suspend fun initFromHashMapSuspend(map: HashMap<String, Any>): PersonVisit = suspendCoroutine { cont ->
 
         super.initFromHashMap(map)
 
@@ -61,12 +64,18 @@ class PersonVisit : BaseDataModel {
             val personId = map[personIdKey].toString()
 
             GlobalScope.launch {
-                val person2 = personColl.loadById(personId)
+                val person2 = FirebaseDB.instance.loadPersonById(personId)
                 if (person2 != null) {
                     person = person2
                 }
                 cont.resume(this@PersonVisit)
             }
+        }
+    }
+
+    fun initFromHashMapAsync(map: HashMap<String, Any>): Deferred<PersonVisit> {
+        return GlobalScope.async {
+            initFromHashMapSuspend(map)
         }
     }
 

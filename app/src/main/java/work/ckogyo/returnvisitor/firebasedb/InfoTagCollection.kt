@@ -13,12 +13,12 @@ import kotlin.coroutines.suspendCoroutine
 
 class InfoTagCollection {
 
-    companion object {
-
-        private val innerInstance = InfoTagCollection()
-        val instance: InfoTagCollection
-            get() = innerInstance
-    }
+//    companion object {
+//
+//        private val innerInstance = InfoTagCollection()
+//        val instance: InfoTagCollection
+//            get() = innerInstance
+//    }
 
     suspend fun loadById(id: String): InfoTag? = suspendCoroutine {
         GlobalScope.launch {
@@ -39,13 +39,14 @@ class InfoTagCollection {
         }
     }
 
-    fun deleteAsync(tag: InfoTag): Deferred<Boolean> {
+    fun deleteAsync(tag: InfoTag): Deferred<Unit> {
         return GlobalScope.async {
             FirebaseDB.instance.delete(infoTagsKey, tag.id)
+            Unit
         }
     }
 
-    suspend fun loadInLatestUseOrder(): ArrayList<InfoTag> = suspendCoroutine {  cont ->
+    private suspend fun loadInLatestUseOrder(): ArrayList<InfoTag> = suspendCoroutine {  cont ->
 
         val tags = ArrayList<InfoTag>()
         val userDoc = FirebaseDB.instance.userDoc

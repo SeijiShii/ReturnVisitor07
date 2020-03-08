@@ -16,6 +16,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.firebasedb.WorkCollection
@@ -82,8 +83,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
             work ?: return
 
             GlobalScope.launch {
-                WorkCollection.instance.set(work!!)
-                MonthReportCollection.instance.updateByMonthAsync(work!!.start)
+                FirebaseDB.instance.saveWorkAsync(work!!)
             }
         }
 
@@ -123,8 +123,6 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
     override fun onHandleIntent(intent: Intent?) {
 
-        val workColl = WorkCollection.instance
-
         if (intent != null) {
 
             if (intent.action == startCountingToService) {
@@ -132,13 +130,12 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
                 work = Work()
                 work!!.start = Calendar.getInstance()
                 GlobalScope.launch {
-                    workColl.set(work!!)
-                    MonthReportCollection.instance.updateByMonthAsync(work!!.start)
+                    FirebaseDB.instance.saveWorkAsync(work!!)
                 }
             } else if (intent.action == restartCountingToService) {
                 val workId = intent.getStringExtra(timeCountingWorkId)
                 runBlocking {
-                    work = workColl.loadById(workId)
+                    work = FirebaseDB.instance.loadWorkById(workId)
                     if (work == null) {
                         stopTimeCount(this@TimeCountIntentService)
                         return@runBlocking
@@ -176,8 +173,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
 
                     work!!.end = Calendar.getInstance()
                     GlobalScope.launch {
-                        WorkCollection.instance.set(work!!)
-                        MonthReportCollection.instance.updateByMonthAsync(work!!.start)
+                        FirebaseDB.instance.saveWorkAsync(work!!)
                     }
                     minCounter = 0
                 }

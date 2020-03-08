@@ -4,10 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
-import work.ckogyo.returnvisitor.firebasedb.InfoTagCollection
-import work.ckogyo.returnvisitor.firebasedb.PersonCollection
-import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
-import work.ckogyo.returnvisitor.firebasedb.PlacementCollection
+import work.ckogyo.returnvisitor.firebasedb.*
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.dateTimeMillisKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.personVisitsKey
@@ -67,7 +64,6 @@ class Visit : BaseDataModel {
     }
 
     fun turnToNotHome(){
-        rating = Rating.NotHome
         for (pv in personVisits) {
             pv.seen = false
             pv.isRv = false
@@ -153,7 +149,7 @@ class Visit : BaseDataModel {
                 if (plcIdList != null) {
                     placements.clear()
                     for (plcId in plcIdList) {
-                        val plc = PlacementCollection.instance.loadById(plcId)
+                        val plc = FirebaseDB.instance.loadPlacementById(plcId)
                         plc ?: continue
                         placements.add(plc)
                     }
@@ -176,7 +172,7 @@ class Visit : BaseDataModel {
                 if (tagIdList != null) {
                     infoTags.clear()
                     for (tagId in tagIdList) {
-                        val tag = InfoTagCollection.instance.loadById(tagId)
+                        val tag = FirebaseDB.instance.loadInfoTagById(tagId)
                         tag ?: continue
                         infoTags.add(tag)
                     }
@@ -188,7 +184,7 @@ class Visit : BaseDataModel {
             if (pvMapList != null) {
                 personVisits.clear()
                 for (pvm in pvMapList) {
-                    val pv = PersonVisit().initFromHashMap(pvm, PersonCollection.instance)
+                    val pv = PersonVisit().initFromHashMapAsync(pvm).await()
                     personVisits.add(pv)
                 }
             }
@@ -200,7 +196,7 @@ class Visit : BaseDataModel {
             } else {
                 val placeId = map[placeIdKey].toString()
 
-                val place3 = PlaceCollection.instance.loadById(placeId)
+                val place3 = FirebaseDB.instance.loadPlaceById(placeId)
                 if (place3 != null) {
                     place = place3
                 }
