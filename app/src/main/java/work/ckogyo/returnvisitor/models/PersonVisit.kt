@@ -8,13 +8,10 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
-import work.ckogyo.returnvisitor.firebasedb.PersonCollection
-import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.isRVKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.isStudyKey
-import work.ckogyo.returnvisitor.utils.DataModelKeys.personIdKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.personModelKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.seenKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.personModelKey
 import java.lang.StringBuilder
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -47,43 +44,31 @@ class PersonVisit : BaseDataModel {
         person.initFromHashMap(map[personModelKey] as HashMap<String, Any>)
     }
 
-    private suspend fun initFromHashMapSuspend(map: HashMap<String, Any>): PersonVisit = suspendCoroutine { cont ->
+//    override fun initFromHashMap(map: HashMap<String, Any>): PersonVisit  {
+//
+//        super.initFromHashMap(map)
+//
+//        seen = map[seenKey].toString().toBoolean()
+//        isRv = map[isRVKey].toString().toBoolean()
+//        isStudy = map[isStudyKey].toString().toBoolean()
+//
+//        person = Person()
+//        person.initFromHashMap(map[personModelKey] as HashMap<String, Any>)
+//
+//        return this
+//    }
 
-        super.initFromHashMap(map)
-
-        seen = map[seenKey].toString().toBoolean()
-        isRv = map[isRVKey].toString().toBoolean()
-        isStudy = map[isStudyKey].toString().toBoolean()
-
-        if (map.containsKey(personModelKey)) {
-            // 冗長化済み
-            person = Person()
-            person.initFromHashMap(map[personModelKey] as HashMap<String, Any>)
-            cont.resume(this)
-        } else {
-            val personId = map[personIdKey].toString()
-
-            GlobalScope.launch {
-                val person2 = FirebaseDB.instance.loadPersonById(personId)
-                if (person2 != null) {
-                    person = person2
-                }
-                cont.resume(this@PersonVisit)
-            }
-        }
-    }
-
-    fun initFromHashMapAsync(map: HashMap<String, Any>): Deferred<PersonVisit> {
-        return GlobalScope.async {
-            initFromHashMapSuspend(map)
-        }
-    }
+//    fun initFromHashMapAsync(map: HashMap<String, Any>): Deferred<PersonVisit> {
+//        return GlobalScope.async {
+//            initFromHashMapSuspend(map)
+//        }
+//    }
 
     override val jsonObject: JSONObject
         get() {
             val o = super.jsonObject
 
-            o.put(personIdKey, person.id)
+            o.put(personModelKey, person.hashMap)
             o.put(seenKey, seen)
             o.put(isRVKey, isRv)
             o.put(isStudyKey, isStudy)

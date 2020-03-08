@@ -9,9 +9,6 @@ import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.dateTimeMillisKey
-import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.infoTagIdsKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementIdsKey
 import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.visitsKey
 import java.util.*
 import kotlin.collections.ArrayList
@@ -106,35 +103,34 @@ class VisitCollection {
         }
     }
 
-    private fun initVisitFromHashMap(map: HashMap<String, Any>, cont: Continuation<Visit>) {
-        val visit = Visit()
-        if (map.containsKey(placeIdKey)
-            || map.containsKey(placementIdsKey)
-            || map.containsKey(infoTagIdsKey)) {
-            GlobalScope.launch {
-                visit.initVisitFromHashMap(map)
-                setAsync(visit)
-                cont.resume(visit)
-            }
-        } else {
-            visit.initFromHashMap(map)
-            cont.resume(visit)
-        }
-    }
+//    private fun initVisitFromHashMap(map: HashMap<String, Any>, cont: Continuation<Visit>) {
+//        val visit = Visit()
+//        if (map.containsKey(placeIdKey)
+//            || map.containsKey(placementIdsKey)
+//            || map.containsKey(infoTagIdsKey)) {
+//            GlobalScope.launch {
+//                visit.initVisitFromHashMap(map)
+//                setAsync(visit)
+//                cont.resume(visit)
+//            }
+//        } else {
+//            visit.initFromHashMap(map)
+//            cont.resume(visit)
+//        }
+//    }
 
-    private suspend fun querySnapshotToVisitList(qs: QuerySnapshot?): ArrayList<Visit> = suspendCoroutine{ cont ->
+    private fun querySnapshotToVisitList(qs: QuerySnapshot?): ArrayList<Visit> {
 
         val visits = ArrayList<Visit>()
 
-        GlobalScope.launch {
-            if (qs != null) {
-                for (doc in qs.documents) {
-                    val v = Visit().initVisitFromHashMap(doc.data as HashMap<String, Any>)
-                    visits.add(v)
-                }
+        if (qs != null) {
+            for (doc in qs.documents) {
+                val visit = Visit()
+                visit.initFromHashMap(doc.data as HashMap<String, Any>)
+                visits.add(visit)
             }
-            cont.resume(visits)
         }
+        return visits
     }
 
     suspend fun loadVisitsByDate(date: Calendar): ArrayList<Visit> = suspendCoroutine { cont ->
@@ -243,19 +239,19 @@ class VisitCollection {
      */
     suspend fun deleteVisitsToPlace(place: Place) = suspendCoroutine<Unit> { cont ->
 
-        val db = FirebaseDB.instance
+        val userDoc = FirebaseDB.instance.userDoc
 
-        if (db.userDoc != null) {
+        if (userDoc != null) {
             GlobalScope.launch {
-                db.userDoc!!.collection(visitsKey).whereEqualTo(
-                    placeIdKey, place.id).get().addOnSuccessListener {
-                    for (doc in it) {
+                userDoc.collection(visitsKey).get().addOnSuccessListener {
 
-                        doc.reference.delete()
-
+                    for (doc in it.documents) {
                         val visit = Visit()
-                        visit.initFromHashMapSimple(doc.data as HashMap<String, Any>)
-                        DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
+                        visit.initFromHashMap(doc.data as HashMap<String, Any>)
+
+                        if (visit.place == place) {
+                            FirebaseDB.instance.deleteVisitAsync(visit)
+                        }
                     }
 
                     cont.resume(Unit)
@@ -351,9 +347,7 @@ class VisitCollection {
                 .whereGreaterThanOrEqualTo(dateTimeMillisKey, startMillis)
                 .whereLessThanOrEqualTo(dateTimeMillisKey, endMillis)
                 .get().addOnSuccessListener {
-                    GlobalScope.launch {
-                        cont.resume(querySnapshotToVisitList(it))
-                    }
+                    cont.resume(querySnapshotToVisitList(it))
                 }.addOnFailureListener {
                     cont.resume(visits)
                 }
@@ -432,13 +426,11 @@ class VisitCollection {
                     .get()
                     .addOnSuccessListener {
                         if (it.documents.isNotEmpty())  {
-                            val visit = Visit()
                             val map = it.documents[0].data as HashMap<String, Any>
                             GlobalScope.launch {
-                                initVisitFromHashMap(map, cont)
-//                                visit.initVisitFromHashMap(map)
-//                                visit.initFromHashMap(map)
-//                                cont.resume(visit)
+                                val visit = Visit()
+                                visit.initFromHashMap(map)
+                                cont.resume(visit)
                             }
                         } else {
                             cont.resume(null)

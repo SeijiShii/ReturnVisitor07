@@ -7,7 +7,6 @@ import work.ckogyo.returnvisitor.utils.DataModelKeys.durationKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.hasVisitKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.hasWorkKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.monthKey
-import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.plcCountKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.rvCountKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.showVideoCountKey

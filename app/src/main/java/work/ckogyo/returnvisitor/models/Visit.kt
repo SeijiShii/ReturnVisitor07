@@ -7,14 +7,11 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.*
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.dateTimeMillisKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.infoTagModelsKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.personVisitsKey
-import work.ckogyo.returnvisitor.utils.DataModelKeys.placeIdKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.placeModelKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.placementModelsKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.ratingKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.infoTagIdsKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.infoTagModelsKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placeModelKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementIdsKey
-import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementModelsKey
 import work.ckogyo.returnvisitor.utils.FirebaseCollectionKeys.placementsKey
 import java.lang.StringBuilder
 import java.util.*
@@ -127,84 +124,84 @@ class Visit : BaseDataModel {
         dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
     }
 
-    suspend fun initVisitFromHashMap(map: HashMap<String, Any>): Visit  = suspendCoroutine { cont ->
-
-        super.initFromHashMap(map)
-        initSimpleDataFromHashMap(map)
-
-        GlobalScope.launch {
-
-            if (map.containsKey(placementsKey)) {
-                // 冗長化済み
-                placements.clear()
-                val plcMapList = map[placementModelsKey] as ArrayList<HashMap<String, Any>>
-                for (plcMap in plcMapList) {
-                    val plc = Placement()
-                    plc.initFromHashMap(plcMap)
-                    placements.add(plc)
-                }
-
-            } else {
-                val plcIdList = map[placementIdsKey] as? ArrayList<String>
-                if (plcIdList != null) {
-                    placements.clear()
-                    for (plcId in plcIdList) {
-                        val plc = FirebaseDB.instance.loadPlacementById(plcId)
-                        plc ?: continue
-                        placements.add(plc)
-                    }
-                }
-            }
-
-            if (map.containsKey(infoTagModelsKey)) {
-                // 冗長化済み
-                infoTags.clear()
-
-                val infoTagMapList = map[infoTagModelsKey] as ArrayList<HashMap<String, Any>>
-                for (infoTagMap in infoTagMapList) {
-                    val infoTag = InfoTag()
-                    infoTag.initFromHashMap(infoTagMap)
-                    infoTags.add(infoTag)
-                }
-
-            } else {
-                val tagIdList = map[infoTagIdsKey] as? ArrayList<String>
-                if (tagIdList != null) {
-                    infoTags.clear()
-                    for (tagId in tagIdList) {
-                        val tag = FirebaseDB.instance.loadInfoTagById(tagId)
-                        tag ?: continue
-                        infoTags.add(tag)
-                    }
-                }
-            }
-
-            val pvMapList = map[personVisitsKey] as? ArrayList<HashMap<String, Any>>
-
-            if (pvMapList != null) {
-                personVisits.clear()
-                for (pvm in pvMapList) {
-                    val pv = PersonVisit().initFromHashMapAsync(pvm).await()
-                    personVisits.add(pv)
-                }
-            }
-
-            if (map.containsKey(placeModelKey)) {
-                place = Place()
-                place.initFromHashMap(map[placeModelKey] as HashMap<String, Any>)
-
-            } else {
-                val placeId = map[placeIdKey].toString()
-
-                val place3 = FirebaseDB.instance.loadPlaceById(placeId)
-                if (place3 != null) {
-                    place = place3
-                }
-            }
-
-            cont.resume(this@Visit)
-        }
-    }
+//    suspend fun initVisitFromHashMap(map: HashMap<String, Any>): Visit  = suspendCoroutine { cont ->
+//
+//        super.initFromHashMap(map)
+//        initSimpleDataFromHashMap(map)
+//
+//        GlobalScope.launch {
+//
+//            if (map.containsKey(placementsKey)) {
+//                // 冗長化済み
+//                placements.clear()
+//                val plcMapList = map[placementModelsKey] as ArrayList<HashMap<String, Any>>
+//                for (plcMap in plcMapList) {
+//                    val plc = Placement()
+//                    plc.initFromHashMap(plcMap)
+//                    placements.add(plc)
+//                }
+//
+//            } else {
+//                val plcIdList = map[placementIdsKey] as? ArrayList<String>
+//                if (plcIdList != null) {
+//                    placements.clear()
+//                    for (plcId in plcIdList) {
+//                        val plc = FirebaseDB.instance.loadPlacementById(plcId)
+//                        plc ?: continue
+//                        placements.add(plc)
+//                    }
+//                }
+//            }
+//
+//            if (map.containsKey(infoTagModelsKey)) {
+//                // 冗長化済み
+//                infoTags.clear()
+//
+//                val infoTagMapList = map[infoTagModelsKey] as ArrayList<HashMap<String, Any>>
+//                for (infoTagMap in infoTagMapList) {
+//                    val infoTag = InfoTag()
+//                    infoTag.initFromHashMap(infoTagMap)
+//                    infoTags.add(infoTag)
+//                }
+//
+//            } else {
+//                val tagIdList = map[infoTagIdsKey] as? ArrayList<String>
+//                if (tagIdList != null) {
+//                    infoTags.clear()
+//                    for (tagId in tagIdList) {
+//                        val tag = FirebaseDB.instance.loadInfoTagById(tagId)
+//                        tag ?: continue
+//                        infoTags.add(tag)
+//                    }
+//                }
+//            }
+//
+//            val pvMapList = map[personVisitsKey] as? ArrayList<HashMap<String, Any>>
+//
+//            if (pvMapList != null) {
+//                personVisits.clear()
+//                for (pvm in pvMapList) {
+//                    val pv = PersonVisit().initFromHashMapAsync(pvm).await()
+//                    personVisits.add(pv)
+//                }
+//            }
+//
+//            if (map.containsKey(placeModelKey)) {
+//                place = Place()
+//                place.initFromHashMap(map[placeModelKey] as HashMap<String, Any>)
+//
+//            } else {
+//                val placeId = map[placeIdKey].toString()
+//
+//                val place3 = FirebaseDB.instance.loadPlaceById(placeId)
+//                if (place3 != null) {
+//                    place = place3
+//                }
+//            }
+//
+//            cont.resume(this@Visit)
+//        }
+//    }
 
     override val hashMap: HashMap<String, Any>
         get() {

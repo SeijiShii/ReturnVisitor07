@@ -2,12 +2,9 @@ package work.ckogyo.returnvisitor.models
 
 import android.content.Context
 import org.json.JSONObject
-import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterNumberKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterPeriodEndKey
-import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterPeriodKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterPeriodStartKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterRatingsKey
-import work.ckogyo.returnvisitor.utils.SharedPrefKeys.filterUnitKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
 import work.ckogyo.returnvisitor.utils.cloneWith0Time
 import work.ckogyo.returnvisitor.utils.isDateBefore

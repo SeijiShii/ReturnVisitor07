@@ -9,19 +9,15 @@ const val googleSingInRequestCode = 6100
 const val debugTag = "RETURN_VISITOR_DEBUG"
 
 object FirebaseCollectionKeys {
-    const val placeModelKey = "place_model"     // 本来ならplaceKeyで良いがtypoしそうなのでModelを付ける。
     const val placesKey = "places"
-    const val personModelKey = "person_model"   // 本来ならpersonKeyで良いがtypoしそうなのでModelを付ける。
     const val personsKey = "persons"
     const val visitsKey = "visits"
     const val worksKey = "works"
-    const val placementModelsKey = "placement_models"
     const val placementsKey = "placements"
-    const val infoTagModelsKey = "info_tag_models"
     const val infoTagsKey = "info_tags"
     const val monthReportsKey = "month_reports"
-    const val placementIdsKey = "placement_ids"
-    const val infoTagIdsKey = "info_tag_ids"
+//    const val placementIdsKey = "placement_ids"
+//    const val infoTagIdsKey = "info_tag_ids"
     const val dailyReportsKey = "daily_reports"
     const val sortByDescendingDateTimeKey = "sort_by_descending_date_time"
     const val sortByDescendingRatingKey = "sort_by_descending_rating"
@@ -35,12 +31,12 @@ object SharedPrefKeys {
     const val longitudeKey = "longitude"
     const val isTimeCounting = "is_time_counting"
     const val weekStartKey = "week_start"
-    const val filterPeriodKey = "filter_period"
+//    const val filterPeriodKey = "filter_period"
     const val filterPeriodStartKey = "filter_period_start"
     const val filterPeriodEndKey = "filter_period_end"
     const val filterRatingsKey = "filter_ratings"
-    const val filterUnitKey = "filter_unit"
-    const val filterNumberKey = "filter_number"
+//    const val filterUnitKey = "filter_unit"
+//    const val filterNumberKey = "filter_number"
 }
 
 object DataModelKeys {
@@ -51,7 +47,7 @@ object DataModelKeys {
     const val descriptionKey = "description"
 
     const val addressKey = "address"
-    const val placeIdKey = "place_id"
+//    const val placeIdKey = "place_id"
     const val parentIdKey = "parent_id" // RoomからHousingComplexを指すID
 
     const val sexKey = "sex"
@@ -63,7 +59,7 @@ object DataModelKeys {
 
     const val dateTimeMillisKey = "date_time_millis"
     const val ratingKey = "rating"
-    const val personIdKey = "person_id"
+//    const val personIdKey = "person_id"
     const val personVisitsKey = "person_visits"
 
     const val startKey = "start"
@@ -88,6 +84,12 @@ object DataModelKeys {
 
     const val pastCarryOverKey = "past_carry_over"
     const val dayOfMonthKey = "day_of_month"
+
+    const val placeModelKey = "place_model"     // 本来ならplaceKeyで良いがtypoしそうなのでModelを付ける。
+    const val personModelKey = "person_model"   // 本来ならpersonKeyで良いがtypoしそうなのでModelを付ける。
+    const val placementModelsKey = "placement_models"
+    const val infoTagModelsKey = "info_tag_models"
+
 }
 
 
