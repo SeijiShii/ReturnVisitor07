@@ -55,7 +55,7 @@ class PlaceDialog(private val place: Place) :DialogFrameFragment() {
         }
 
         setTitle(titleId)
-        addressText.text = place.toString(context!!)
+        addressText.text = place.toString()
         placeMenuButton.setOnClick {
             showMenuPopup()
         }

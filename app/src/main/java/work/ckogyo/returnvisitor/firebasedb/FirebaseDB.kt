@@ -32,6 +32,8 @@ class FirebaseDB {
             auth = fAuth
         }
     }
+
+
     private val db = FirebaseFirestore.getInstance()
 
     private val placeColl = PlaceCollection()
@@ -44,6 +46,11 @@ class FirebaseDB {
 
     private val infoTagColl = InfoTagCollection()
     private val plcColl = PlacementCollection()
+
+    init {
+//        placeColl.copyParentNameToRoomAsync()
+    }
+
 
     val userDoc: DocumentReference?
         get(){

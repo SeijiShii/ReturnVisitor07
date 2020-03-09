@@ -30,15 +30,17 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
 
         val v = View.inflate(context, R.layout.visit_detail_dialog, null)
 
-        val handler = Handler()
+//        val handler = Handler()
 
-        GlobalScope.launch {
-            val placeStr = visit.place.toStringAsync().await()
+        v.placeText.text = visit.place.toString()
 
-            handler.post {
-                v?.placeText?.text = placeStr
-            }
-        }
+//        GlobalScope.launch {
+//            val placeStr = visit.place.toString()
+//
+//            handler.post {
+//                v?.placeText?.text = placeStr
+//            }
+//        }
 
         v.addressText.text = visit.place.address
         v.personsText.text = visit.toPersonVisitString(context!!)

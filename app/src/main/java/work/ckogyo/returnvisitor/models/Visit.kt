@@ -1,7 +1,9 @@
 package work.ckogyo.returnvisitor.models
 
 import android.content.Context
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.*
@@ -124,85 +126,6 @@ class Visit : BaseDataModel {
         dateTime.timeInMillis = map[dateTimeMillisKey].toString().toLong()
     }
 
-//    suspend fun initVisitFromHashMap(map: HashMap<String, Any>): Visit  = suspendCoroutine { cont ->
-//
-//        super.initFromHashMap(map)
-//        initSimpleDataFromHashMap(map)
-//
-//        GlobalScope.launch {
-//
-//            if (map.containsKey(placementsKey)) {
-//                // 冗長化済み
-//                placements.clear()
-//                val plcMapList = map[placementModelsKey] as ArrayList<HashMap<String, Any>>
-//                for (plcMap in plcMapList) {
-//                    val plc = Placement()
-//                    plc.initFromHashMap(plcMap)
-//                    placements.add(plc)
-//                }
-//
-//            } else {
-//                val plcIdList = map[placementIdsKey] as? ArrayList<String>
-//                if (plcIdList != null) {
-//                    placements.clear()
-//                    for (plcId in plcIdList) {
-//                        val plc = FirebaseDB.instance.loadPlacementById(plcId)
-//                        plc ?: continue
-//                        placements.add(plc)
-//                    }
-//                }
-//            }
-//
-//            if (map.containsKey(infoTagModelsKey)) {
-//                // 冗長化済み
-//                infoTags.clear()
-//
-//                val infoTagMapList = map[infoTagModelsKey] as ArrayList<HashMap<String, Any>>
-//                for (infoTagMap in infoTagMapList) {
-//                    val infoTag = InfoTag()
-//                    infoTag.initFromHashMap(infoTagMap)
-//                    infoTags.add(infoTag)
-//                }
-//
-//            } else {
-//                val tagIdList = map[infoTagIdsKey] as? ArrayList<String>
-//                if (tagIdList != null) {
-//                    infoTags.clear()
-//                    for (tagId in tagIdList) {
-//                        val tag = FirebaseDB.instance.loadInfoTagById(tagId)
-//                        tag ?: continue
-//                        infoTags.add(tag)
-//                    }
-//                }
-//            }
-//
-//            val pvMapList = map[personVisitsKey] as? ArrayList<HashMap<String, Any>>
-//
-//            if (pvMapList != null) {
-//                personVisits.clear()
-//                for (pvm in pvMapList) {
-//                    val pv = PersonVisit().initFromHashMapAsync(pvm).await()
-//                    personVisits.add(pv)
-//                }
-//            }
-//
-//            if (map.containsKey(placeModelKey)) {
-//                place = Place()
-//                place.initFromHashMap(map[placeModelKey] as HashMap<String, Any>)
-//
-//            } else {
-//                val placeId = map[placeIdKey].toString()
-//
-//                val place3 = FirebaseDB.instance.loadPlaceById(placeId)
-//                if (place3 != null) {
-//                    place = place3
-//                }
-//            }
-//
-//            cont.resume(this@Visit)
-//        }
-//    }
-
     override val hashMap: HashMap<String, Any>
         get() {
             val map = super.hashMap
@@ -231,18 +154,6 @@ class Visit : BaseDataModel {
                 infoTagMapList.add(tag.hashMap)
             }
             map[infoTagModelsKey] = infoTagMapList
-
-//            val plcIdList = ArrayList<String>()
-//            for (plc in placements) {
-//                plcIdList.add(plc.id)
-//            }
-//            map[placementIdsKey] = plcIdList
-//
-//            val tagIdList = ArrayList<String>()
-//            for (tag in infoTags) {
-//                tagIdList.add(tag.id)
-//            }
-//            map[infoTagIdsKey] = tagIdList
 
             return map
         }
@@ -287,8 +198,6 @@ class Visit : BaseDataModel {
     }
 
     fun toString(context: Context, withDateTime: Boolean = true, withLineBreak: Boolean = true):String {
-
-        // TODO: いろいろな情報
 
         val builder = StringBuilder()
         if (withDateTime) {
@@ -367,7 +276,7 @@ class Visit : BaseDataModel {
         }
 
         if (builder.isEmpty()) {
-            builder.append(place.toString(context))
+            builder.append(place.toString())
         }
 
         return builder.toString()

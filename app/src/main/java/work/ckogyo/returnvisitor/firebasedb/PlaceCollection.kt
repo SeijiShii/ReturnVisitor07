@@ -125,10 +125,35 @@ class PlaceCollection {
 
     suspend fun housingComplexHasRooms(hcId: String): Boolean = suspendCoroutine { cont ->
         GlobalScope.launch {
-            var rooms = loadRoomsByParentId(hcId)
+            val rooms = loadRoomsByParentId(hcId)
             cont.resume(rooms.size > 0)
         }
     }
 
+//    fun copyParentNameToRoomAsync(): Deferred<Unit> {
+//        return GlobalScope.async {
+//
+//            FirebaseDB.instance.userDoc!!.collection(placesKey)
+//                .get().addOnSuccessListener {
+//                    for (doc in it.documents) {
+//                        val place = Place()
+//                        place.initFromHashMap(doc.data as HashMap<String, Any>)
+//                        if (place.category == Place.Category.Room) {
+//                            GlobalScope.launch {
+//                                val parent = loadById(place.parentId)
+//                                parent ?: return@launch
+//
+//                                if (parent.name != null && parent.name != "null") {
+//                                    place.parentName = parent.name
+//                                    FirebaseDB.instance.savePlaceAsync(place)
+//                                }
+//                            }
+//
+//                        }
+//                    }
+//                }
+//            Unit
+//        }
+//    }
 
 }

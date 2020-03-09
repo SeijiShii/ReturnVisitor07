@@ -31,12 +31,9 @@ object SharedPrefKeys {
     const val longitudeKey = "longitude"
     const val isTimeCounting = "is_time_counting"
     const val weekStartKey = "week_start"
-//    const val filterPeriodKey = "filter_period"
     const val filterPeriodStartKey = "filter_period_start"
     const val filterPeriodEndKey = "filter_period_end"
     const val filterRatingsKey = "filter_ratings"
-//    const val filterUnitKey = "filter_unit"
-//    const val filterNumberKey = "filter_number"
 }
 
 object DataModelKeys {
@@ -47,8 +44,8 @@ object DataModelKeys {
     const val descriptionKey = "description"
 
     const val addressKey = "address"
-//    const val placeIdKey = "place_id"
     const val parentIdKey = "parent_id" // RoomからHousingComplexを指すID
+    const val parentNameKey = "parent_name"
 
     const val sexKey = "sex"
     const val ageKey = "age"

@@ -207,6 +207,7 @@ class HousingComplexFragment : Fragment() {
             val room = Place().also {
                 it.category = Place.Category.Room
                 it.parentId = hComplex.id
+                it.parentName = hComplex.name
                 it.address = hComplex.address
                 it.latLng = hComplex.latLng
                 it.name = searchText

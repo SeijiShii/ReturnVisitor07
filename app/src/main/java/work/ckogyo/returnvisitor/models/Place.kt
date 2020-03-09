@@ -3,9 +3,7 @@ package work.ckogyo.returnvisitor.models
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
@@ -15,6 +13,7 @@ import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.DataModelKeys.addressKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.categoryKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.parentIdKey
+import work.ckogyo.returnvisitor.utils.DataModelKeys.parentNameKey
 import work.ckogyo.returnvisitor.utils.DataModelKeys.ratingKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.latitudeKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.longitudeKey
@@ -51,6 +50,7 @@ class Place : BaseDataModel{
 
         if (category == Category.Room) {
             parentId = map[parentIdKey].toString()
+            parentName = map[parentNameKey]?.toString() ?: ""
         }
     }
 
@@ -65,6 +65,7 @@ class Place : BaseDataModel{
 
     // Roomだけ
     var parentId = ""
+    var parentName = ""
 
     override val hashMap: HashMap<String, Any>
         get() {
@@ -78,6 +79,7 @@ class Place : BaseDataModel{
 
             if (category == Category.Room) {
                 map[parentIdKey] = parentId
+                map[parentNameKey] = parentName
             }
 
             return map
@@ -94,28 +96,43 @@ class Place : BaseDataModel{
         return cloned
     }
 
-    fun toString(context: Context): String {
-        if (address.isNotEmpty()) return address
-        return "${context.getString(R.string.latitude)}: ${latLng.latitude}, ${context.getString(R.string.longitude)}: ${latLng.longitude}"
-    }
+    override fun toString(): String {
 
-    fun toStringAsync(): Deferred<String> {
+        val builder = StringBuilder()
 
-        return GlobalScope.async {
-
-            val builder = StringBuilder()
-
-            if (category == Category.Room) {
-                val parent = FirebaseDB.instance.loadPlaceById(parentId)
-                if (parent != null) {
-                    if (parent.name.isNotEmpty()) {
-                        builder.append(parent.name)
-                            .append(" - ")
-                    }
-                }
-            }
-            builder.append(name).toString()
+        if (address.isNotEmpty()) {
+            builder.append(address).append(" ")
         }
+
+        if (category == Category.Room && parentName.isNotEmpty()) {
+            builder.append(parentName)
+                .append(" - ")
+        }
+
+        if (name.isNotEmpty()) {
+            builder.append(name)
+        }
+
+        return builder.toString()
     }
+
+//    fun toStringAsync(): Deferred<String> {
+//
+//        return GlobalScope.async {
+//
+//            val builder = StringBuilder()
+//
+//            if (category == Category.Room) {
+//                val parent = FirebaseDB.instance.loadPlaceById(parentId)
+//                if (parent != null) {
+//                    if (parent.name.isNotEmpty()) {
+//                        builder.append(parent.name)
+//                            .append(" - ")
+//                    }
+//                }
+//            }
+//            builder.append(name).toString()
+//        }
+//    }
 
 }
