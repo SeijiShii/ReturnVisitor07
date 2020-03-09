@@ -249,6 +249,7 @@ class FirebaseDB {
         return GlobalScope.async {
             visitColl.setAsync(visit).await()
             refreshPlaceRatingAsync(visit.place).await()
+            placeColl.setAsync(visit.place).await()
 
             GlobalScope.launch {
                 // Personが書き換わっていることもあるので

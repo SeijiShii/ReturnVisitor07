@@ -401,7 +401,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 mainActivity?.switchProgressOverlay(true, getString(R.string.updating))
                 GlobalScope.launch {
 
-                    FirebaseDB.instance.saveVisitAsync(visit)
+                    FirebaseDB.instance.saveVisitAsync(visit).await()
                     handler.post{
                         placeMarkers.refreshMarker(context!!, visit.place)
                         mainActivity?.switchProgressOverlay(false)
