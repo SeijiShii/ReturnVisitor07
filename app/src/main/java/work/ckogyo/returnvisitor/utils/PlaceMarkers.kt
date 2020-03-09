@@ -1,6 +1,7 @@
 package work.ckogyo.returnvisitor.utils
 
 import android.content.Context
+import android.util.Log
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Marker
@@ -25,6 +26,9 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
     private val markers = ArrayList<Marker>()
 
     private fun addMarker(context: Context, place: Place, resId:Int):Marker? {
+
+//        Log.d(debugTag, "addMarker place.rating: ${place.id} ${place.category} ${place.rating}")
+
         val marker = googleMap.addMarker(MarkerOptions()
             .position(place.latLng)
             .icon(BitmapDescriptorFactory.fromBitmap(getBitmap(context, resId)))).also {
@@ -42,8 +46,11 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
 
     fun remove(place: Place) {
 
+//        Log.d(debugTag, "remove: ${place.id} ${place.category} ${place.rating}")
         val marker = getMarkerByTag(place.id)
+//        Log.d(debugTag, "getMarkerByTag remove: ${place.id} ${place.category} ${place.rating}")
         marker?.remove()
+//        Log.d(debugTag, "after remove: ${place.id} ${place.category} ${place.rating}")
     }
 
     private fun getMarkerByTag(tag: String):Marker? {
@@ -57,6 +64,7 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
     }
 
     fun refreshMarker(context: Context, place: Place) {
+//        Log.d(debugTag, "refreshMarker: ${place.id} ${place.category} ${place.rating}")
         remove(place)
         addMarker(context, place)
     }

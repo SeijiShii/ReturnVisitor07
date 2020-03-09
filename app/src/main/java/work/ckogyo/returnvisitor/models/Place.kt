@@ -66,7 +66,6 @@ class Place : BaseDataModel{
     // Roomだけ
     var parentId = ""
 
-
     override val hashMap: HashMap<String, Any>
         get() {
             val map = super.hashMap

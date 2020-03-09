@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -194,8 +195,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             val db = FirebaseDB.instance
             if (db.housingComplexHasRooms(hComplex.id)) {
-                db.refreshPlaceRatingAsync(hComplex).await()
-                db.savePlaceAsync(hComplex)
+                db.savePlaceAsync(hComplex).await()
                 handler.post {
                     placeMarkers.refreshMarker(context!!, hComplex)
                 }
@@ -206,9 +206,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     }
                     db.deletePlaceAsync(hComplex)
                 } else {
-                    db.refreshPlaceRatingAsync(hComplex).await()
-                    db.savePlaceAsync(hComplex)
+                    db.savePlaceAsync(hComplex).await()
+                    val rating = hComplex.rating
                     handler.post{
+                        hComplex.rating = rating
                         placeMarkers.refreshMarker(context!!, hComplex)
                     }
                 }
@@ -264,22 +265,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val handler = Handler()
         GlobalScope.launch {
             val db = FirebaseDB.instance
-            db.refreshPlaceRatingAsync(place).await()
+            db.savePlaceAsync(place).await()
 
             handler.post{
                 placeMarkers.refreshMarker(context!!, place)
             }
-            db.savePlaceAsync(place)
         }
     }
-
-//    private fun loadPlaces() {
-//
-//        runBlocking {
-//            places.clear()
-//            places.addAll(PlaceCollection.instance.loadPlacesForMap())
-//        }
-//    }
 
     private fun onClosePlaceDialog(place: Place, param: OnFinishEditParam) {
 
@@ -683,6 +675,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     val rating = visit.place.rating
                     handler.post {
                         visit.place.rating = rating
+                        Log.d(debugTag, "onFinishEditVisitInFragments, visit.place.rating = rating : ${visit.place.rating}")
                         placeMarkers.refreshMarker(context!!, visit.place)
                     }
                 }
@@ -694,6 +687,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     val rating = visit.place.rating
                     handler.post {
                         visit.place.rating = rating
+                        Log.d(debugTag, "onFinishEditVisitInFragments, visit.place.rating = rating : ${visit.place.rating}")
                         placeMarkers.refreshMarker(context!!, visit.place)
                     }
                 }
