@@ -46,29 +46,6 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
     var onDeleteWorkClicked: ((Work) -> Unit)? = null
     var onWorkTimeChanged: ((work: Work, category: WorkElement.Category, oldTime: Calendar, newTime: Calendar) -> Unit)? = null
 
-//    override val collapseHeight: Int
-//        get() = 0
-//    override val extractHeight: Int
-//        get() {
-//            dataElm ?: return context.toDP(60)
-//
-//            return when(dataElm!!.category) {
-//                WorkElement.Category.DateBorder -> context.toDP(30)
-//                else -> context.toDP(60)
-//            }
-//        }
-//    override val cellId: String
-//        get() {
-//            dataElm ?: return ""
-//
-//            return when(dataElm!!.category) {
-//                WorkElement.Category.DateBorder -> "date_border_${dataElm!!.dateTime.timeInMillis}"
-//                WorkElement.Category.WorkStart -> "${dataElm!!.work!!.id}_start_cell"
-//                WorkElement.Category.WorkEnd -> "${dataElm!!.work!!.id}_end_cell"
-//                else -> "${dataElm!!.visit!!.id}_cell"
-//            }
-//        }
-
     private fun onSetDateElm() {
 
         dataElm ?: return
@@ -258,8 +235,13 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
 
     private fun refreshVisitCellFrame() {
         dataElm ?: return
+
         visitCellFrame.visibility = View.VISIBLE
 
+        refreshInWorkBorders()
+    }
+
+    fun refreshInWorkBorders() {
         leftBorder.visibility = if (dataElm!!.isVisitInWork) {
             View.VISIBLE
         }  else {

@@ -1,10 +1,8 @@
 package work.ckogyo.returnvisitor.fragments
 
 import android.app.DatePickerDialog
-import android.content.Context
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,9 +18,6 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
 import work.ckogyo.returnvisitor.dialogs.VisitDetailDialog
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
-import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
-import work.ckogyo.returnvisitor.firebasedb.VisitCollection
-import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.models.WorkElement
@@ -732,7 +727,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             when(param) {
                 OnFinishEditParam.Canceled -> {}
                 OnFinishEditParam.Done -> {
-                    refreshVisitCell(visit)
+                    refreshAndMoveVisitCell(visit)
 
                     GlobalScope.launch {
 
@@ -750,15 +745,30 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             onVisitEdited?.invoke(visit, param)
         }
 
-        private fun refreshVisitCell(visit: Visit) {
+        private fun refreshAndMoveVisitCell(visit: Visit) {
 
-            val pos = getPositionByVisit(visit)
-            if (pos >= 0) {
+            val oldPos = getPositionByVisit(visit)
+            if (oldPos >= 0) {
 
-                dataElms[pos].visit = visit
+                dataElms[oldPos].visit = visit
 
-                val elmCell = workListView.findViewHolderForAdapterPosition(pos)?.itemView as? WorkElmCell
-                elmCell?.visitCell?.refresh(visit)
+                val elmCell = workListView.findViewHolderForAdapterPosition(oldPos)?.itemView as? WorkElmCell
+
+                elmCell ?: return
+
+                elmCell.visitCell?.refresh(visit)
+
+                dataElms.sortBy { elm -> elm.dateTime.timeInMillis }
+                WorkElmList.refreshIsVisitInWork(dataElms)
+
+                val newPos = getPositionByVisit(visit)
+                if (newPos < 0) return
+
+                if (oldPos != newPos) {
+                    notifyItemMoved(oldPos, newPos)
+                    elmCell.refreshInWorkBorders()
+                }
+
             }
         }
 

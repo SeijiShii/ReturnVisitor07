@@ -99,8 +99,6 @@ class Place : BaseDataModel{
         return "${context.getString(R.string.latitude)}: ${latLng.latitude}, ${context.getString(R.string.longitude)}: ${latLng.longitude}"
     }
 
-
-
     fun toStringAsync(): Deferred<String> {
 
         return GlobalScope.async {
