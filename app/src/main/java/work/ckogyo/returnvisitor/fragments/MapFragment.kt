@@ -49,8 +49,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     var onSignOutConfirmed: (() -> Unit)? = null
 
-//    private val places = ArrayList<Place>()
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.map_fragment, container, false)
     }
@@ -149,7 +147,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         showPlaceDialog(place)
                     }
                     Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
-                        onOk = this@MapFragment::onOkInHousingComplexFragment,
                         onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
                         onClose = this@MapFragment::onCloseHousingComplexFragment,
                         isNewHC = false)
@@ -172,14 +169,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             it.onClickButton = this::onClickButtonInPlacePopup
             it.onClickNotHomeButton = this::onNotHomeRecorded
             mapOuterFrame.addView(it)
-        }
-    }
-
-    private fun onOkInHousingComplexFragment(hComplex: Place) {
-        handler.post {
-            placeMarkers.refreshMarker(context!!, hComplex)
-            mainActivity ?: return@post
-            hideKeyboard(mainActivity!!)
         }
     }
 
@@ -245,7 +234,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 delay(30)
             }
 
-//            loadPlaces()
             handler.post {
                 showPlaceMarkers()
             }
@@ -296,7 +284,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 mainActivity?.showRecordVisitFragmentForNew(place, this::onFinishEditVisit)
             }
             Place.Category.HousingComplex -> mainActivity?.showHousingComplexFragment(place,
-                onOk = this::onOkInHousingComplexFragment,
                 onDeleted = this::onDeletedInHousingComplexFragment,
                 onClose = this::onCloseHousingComplexFragment,
                 isNewHC = true)
@@ -424,15 +411,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
         }
     }
-
-//    private fun getPlaceById(id: String):Place? {
-//        for (place in places) {
-//            if (place.id == id) {
-//                return place
-//            }
-//        }
-//        return null
-//    }
 
     private var isDrawerOpen = false
 

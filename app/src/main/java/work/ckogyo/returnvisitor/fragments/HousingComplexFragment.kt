@@ -29,7 +29,7 @@ class HousingComplexFragment : Fragment() {
 
     var onBackToMapFragment: (() -> Unit)? = null
 
-    var onOk: ((hComplex: Place) -> Unit)? = null
+//    var onOk: ((hComplex: Place) -> Unit)? = null
     var onClose: ((hComplex: Place, isNewHC: Boolean) -> Unit)? = null
     var onDeleted: ((hComplex: Place) -> Unit)? = null
 
@@ -61,7 +61,7 @@ class HousingComplexFragment : Fragment() {
             }
         }
 
-        okButton.setOnClickListener(this::onClickOk)
+//        okButton.setOnClickListener(this::onClickOk)
         closeButton.setOnClickListener(this::onClickClose)
 
         housingComplexMenuButton.setOnClick {
@@ -119,8 +119,23 @@ class HousingComplexFragment : Fragment() {
         }
     }
 
-    private fun onClickOk(v: View) {
+//    private fun onClickOk(v: View) {
+//
+//        hComplex.name = housingComplexNameText.text.toString()
+//
+//        backToMapFragment()
+//
+//        if(mainActivity != null) {
+//            hideKeyboard(mainActivity!!)
+//        }
+//
+//        GlobalScope.launch {
+//            FirebaseDB.instance.savePlaceAsync(hComplex).await()
+//            onOk?.invoke(hComplex)
+//        }
+//    }
 
+    private fun onClickClose(v: View) {
         hComplex.name = housingComplexNameText.text.toString()
 
         backToMapFragment()
@@ -131,14 +146,8 @@ class HousingComplexFragment : Fragment() {
 
         GlobalScope.launch {
             FirebaseDB.instance.savePlaceAsync(hComplex).await()
-            onOk?.invoke(hComplex)
+            onClose?.invoke(hComplex, isNewHC)
         }
-    }
-
-    private fun onClickClose(v: View) {
-        backToMapFragment()
-        onClose?.invoke(hComplex, isNewHC)
-        hideKeyboard(mainActivity!!)
     }
 
     private fun showMenuPopup() {
@@ -234,6 +243,7 @@ class HousingComplexFragment : Fragment() {
                 GlobalScope.launch {
 
                     FirebaseDB.instance.saveVisitAsync(visit).await()
+                    FirebaseDB.instance.savePlaceAsync(hComplex).await()
 
                     if (rooms.contains(visit.place)) {
                         // HousingComplexDialog -> PlaceDialog -> 訪問を記録　で帰ってきたパターン
@@ -258,7 +268,8 @@ class HousingComplexFragment : Fragment() {
                                 val pos = getPositionByRoom(visit.place)
 
                                 if (pos >= 0) {
-                                    roomListView.adapter?.notifyItemInserted(pos)
+                                    roomListView?.adapter?.notifyItemInserted(pos)
+                                    roomListView?.smoothScrollToPosition(pos)
                                 }
                             }
                             loadingRoomsProgressFrame.fadeVisibility(false)

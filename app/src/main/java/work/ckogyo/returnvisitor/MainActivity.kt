@@ -188,13 +188,13 @@ class MainActivity : AppCompatActivity() {
 
     // 新規集合住宅を追加後、「閉じる」の場合はキャンセルとみなし、部屋が1つもなければ集合住宅を削除する
     fun showHousingComplexFragment(hComplex: Place,
-                                   onOk: (hComplex: Place) -> Unit,
+//                                   onOk: (hComplex: Place) -> Unit,
                                    onDeleted: (hComplex: Place) -> Unit,
                                    onClose: (hComplex: Place, isNewHC: Boolean) -> Unit,
                                    isNewHC: Boolean) {
         val hcFragment = HousingComplexFragment().also {
             it.hComplex = hComplex
-            it.onOk = onOk
+//            it.onOk = onOk
             it.onClose = onClose
             it.onDeleted = onDeleted
             it.isNewHC = isNewHC
