@@ -29,8 +29,7 @@ class HousingComplexFragment : Fragment() {
 
     var onBackToMapFragment: (() -> Unit)? = null
 
-//    var onOk: ((hComplex: Place) -> Unit)? = null
-    var onClose: ((hComplex: Place, isNewHC: Boolean) -> Unit)? = null
+    var onClose: ((hComplex: Place, isDeleted: Boolean) -> Unit)? = null
     var onDeleted: ((hComplex: Place) -> Unit)? = null
 
     var isNewHC = false
@@ -119,22 +118,6 @@ class HousingComplexFragment : Fragment() {
         }
     }
 
-//    private fun onClickOk(v: View) {
-//
-//        hComplex.name = housingComplexNameText.text.toString()
-//
-//        backToMapFragment()
-//
-//        if(mainActivity != null) {
-//            hideKeyboard(mainActivity!!)
-//        }
-//
-//        GlobalScope.launch {
-//            FirebaseDB.instance.savePlaceAsync(hComplex).await()
-//            onOk?.invoke(hComplex)
-//        }
-//    }
-
     private fun onClickClose(v: View) {
         hComplex.name = housingComplexNameText.text.toString()
 
@@ -145,8 +128,14 @@ class HousingComplexFragment : Fragment() {
         }
 
         GlobalScope.launch {
-            FirebaseDB.instance.savePlaceAsync(hComplex).await()
-            onClose?.invoke(hComplex, isNewHC)
+
+            if (isNewHC && rooms.isEmpty()) {
+                FirebaseDB.instance.deletePlaceAsync(hComplex).await()
+                onClose?.invoke(hComplex, true)
+            } else {
+                FirebaseDB.instance.savePlaceAsync(hComplex).await()
+                onClose?.invoke(hComplex, false)
+            }
         }
     }
 

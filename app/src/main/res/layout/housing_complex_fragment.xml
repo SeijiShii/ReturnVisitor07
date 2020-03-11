@@ -22,8 +22,16 @@
             android:gravity="center_vertical|start"
             android:textColor="@color/colorPrimaryDark"/>
 
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            style="@style/DarkBlueButton"
+            android:text="@string/close"
+            android:id="@+id/closeButton"
+            android:layout_margin="5dp"/>
+
         <View
-            android:layout_width="40dp"
+            android:layout_width="50dp"
             android:layout_height="match_parent"
             android:id="@+id/housingComplexMenuButton"
             android:background="@drawable/horiz_dots_solid_dark_gray"/>
@@ -148,21 +156,5 @@
         </FrameLayout>
 
     </LinearLayout>
-
-    <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:orientation="horizontal">
-
-        <Button
-            android:layout_width="150dp"
-            android:layout_gravity="right"
-            android:layout_height="match_parent"
-            style="@style/DarkBlueButton"
-            android:text="@string/close"
-            android:id="@+id/closeButton"
-            android:layout_margin="5dp"/>
-
-    </FrameLayout>
 
 </LinearLayout>

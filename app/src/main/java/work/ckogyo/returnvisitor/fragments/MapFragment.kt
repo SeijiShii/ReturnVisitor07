@@ -178,30 +178,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    private fun onCloseHousingComplexFragment(hComplex: Place, isNewHC: Boolean) {
-
-        GlobalScope.launch {
-
-            val db = FirebaseDB.instance
-            if (db.housingComplexHasRooms(hComplex.id)) {
-                db.savePlaceAsync(hComplex).await()
-                handler.post {
-                    placeMarkers.refreshMarker(context!!, hComplex)
-                }
+    private fun onCloseHousingComplexFragment(hComplex: Place, isDeleted: Boolean) {
+        handler.post {
+            if (isDeleted) {
+                placeMarkers.remove(hComplex)
             } else {
-                if (isNewHC) {
-                    handler.post {
-                        placeMarkers.remove(hComplex)
-                    }
-                    db.deletePlaceAsync(hComplex)
-                } else {
-                    db.savePlaceAsync(hComplex).await()
-                    val rating = hComplex.rating
-                    handler.post{
-                        hComplex.rating = rating
-                        placeMarkers.refreshMarker(context!!, hComplex)
-                    }
-                }
+                placeMarkers.refreshMarker(context!!, hComplex)
             }
         }
     }

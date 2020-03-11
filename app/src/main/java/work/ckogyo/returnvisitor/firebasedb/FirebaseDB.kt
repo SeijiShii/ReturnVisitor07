@@ -200,6 +200,13 @@ class FirebaseDB {
         return GlobalScope.async {
             placeColl.deleteAsync(place).await()
             visitColl.deleteVisitsToPlace(place)
+
+            if (place.category == Place.Category.HousingComplex) {
+                val rooms = placeColl.loadRoomsByParentId(place.id)
+                for (room in rooms) {
+                    deletePlaceAsync(room).await()
+                }
+            }
         }
     }
 

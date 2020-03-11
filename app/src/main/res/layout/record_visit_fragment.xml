@@ -10,16 +10,41 @@
         android:orientation="vertical"
         android:background="@color/whiteSmoke">
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:id="@+id/recordPlaceTitle"
-            android:text="@string/record_visit"
-            style="@style/LargeTextView"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:gravity="center_vertical|start"
-            android:textColor="@color/colorPrimaryDark"/>
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="50dp"
+                android:id="@+id/recordPlaceTitle"
+                android:text="@string/record_visit"
+                style="@style/LargeTextView"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:gravity="center_vertical|start"
+                android:textColor="@color/colorPrimaryDark"/>
+
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                style="@style/DarkBlueButton"
+                android:text="@string/cancel"
+                android:id="@+id/cancelButton"
+                android:layout_margin="5dp"/>
+
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                style="@style/DarkGreenButton"
+                android:text="@string/ok"
+                android:id="@+id/okButton"
+                android:layout_margin="5dp"/>
+
+        </LinearLayout>
+
 
         <View
             android:layout_width="match_parent"
@@ -224,34 +249,6 @@
             </LinearLayout>
 
         </ScrollView>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                style="@style/DarkBlueButton"
-                android:text="@string/cancel"
-                android:id="@+id/cancelButton"
-                android:layout_margin="5dp"/>
-
-            <Button
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                style="@style/DarkGreenButton"
-                android:text="@string/ok"
-                android:id="@+id/okButton"
-                android:layout_margin="5dp"/>
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="10dp"/>
 
     </LinearLayout>
 
