@@ -20,7 +20,15 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.utils.*
 import java.lang.Exception
 
-abstract class PopupDialog(private val anchor: View, private val frameId: Int) : Fragment() {
+abstract class PopupDialog() : Fragment() {
+
+    private lateinit var anchor: View
+    private var frameId: Int = -1
+
+    constructor(anchor: View, frameId: Int):this(){
+        this.anchor = anchor
+        this.frameId = frameId
+    }
 
     abstract fun inflateContentView(): View
 

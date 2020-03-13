@@ -197,12 +197,15 @@ class FirebaseDB {
     }
 
     fun deletePlaceAsync(place: Place): Deferred<Unit> {
+
         return GlobalScope.async {
             placeColl.deleteAsync(place).await()
             visitColl.deleteVisitsToPlace(place)
 
             if (place.category == Place.Category.HousingComplex) {
+
                 val rooms = placeColl.loadRoomsByParentId(place.id)
+
                 for (room in rooms) {
                     deletePlaceAsync(room).await()
                 }
@@ -301,8 +304,14 @@ class FirebaseDB {
 
         return GlobalScope.async {
             visitColl.deleteAsync(visit).await()
-            refreshPlaceRatingAsync(visit.place).await()
-            placeColl.setAsync(visit.place)
+
+            val visitsToPlace = visitColl.loadVisitsOfPlace(visit.place)
+            if (visitsToPlace.isNotEmpty()) {
+                refreshPlaceRatingAsync(visit.place).await()
+                placeColl.setAsync(visit.place)
+            } else {
+                placeColl.deleteAsync(visit.place)
+            }
 
             updateReports(visit.dateTime)
             Unit

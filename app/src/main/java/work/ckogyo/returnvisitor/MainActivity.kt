@@ -65,7 +65,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.main_activity)
+        try {
+            setContentView(R.layout.main_activity)
+        } catch (e: Exception) {
+            Log.d(debugTag, e.localizedMessage)
+            startActivity(Intent(this, MainActivity::class.java))
+        }
+
         supportActionBar?.hide()
 
         MobileAds.initialize(this, getString(R.string.admob_id))
@@ -142,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                     it.onFinishEdit = onFinishEditVisit
                     it.mode = EditMode.Add
                     it.onBackToMapFragment = {
-                        mapFragment.enableMyLocation(true)
+                        mapFragment.beforeBackToMap()
                     }
                 }
 
@@ -170,7 +176,7 @@ class MainActivity : AppCompatActivity() {
             it.onBackToMapFragment = {
                 handler.post {
                     hideKeyboard(this)
-                    mapFragment.enableMyLocation(true)
+                    mapFragment.beforeBackToMap()
                 }
             }
         }
@@ -200,7 +206,7 @@ class MainActivity : AppCompatActivity() {
             it.onBackToMapFragment = {
                 handler.post {
                     hideKeyboard(this)
-                    mapFragment.enableMyLocation(true)
+                    mapFragment.beforeBackToMap()
                 }
             }
         }
@@ -226,7 +232,7 @@ class MainActivity : AppCompatActivity() {
             it.onBackToMapFragment = {
                 handler.post {
                     hideKeyboard(this)
-                    mapFragment.enableMyLocation(true)
+                    mapFragment.beforeBackToMap()
                 }
             }
         }
@@ -248,7 +254,7 @@ class MainActivity : AppCompatActivity() {
             it.onBackToMapFragment = {
                 handler.post {
                     hideKeyboard(this)
-                    mapFragment.enableMyLocation(true)
+                    mapFragment.beforeBackToMap()
                 }
             }
         }
@@ -270,7 +276,7 @@ class MainActivity : AppCompatActivity() {
             it.onBackToMapFragment = {
                 handler.post {
                     hideKeyboard(this)
-                    mapFragment.enableMyLocation(true)
+                    mapFragment.beforeBackToMap()
                 }
             }
         }

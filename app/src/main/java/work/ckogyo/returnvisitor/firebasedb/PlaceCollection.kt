@@ -60,9 +60,6 @@ class PlaceCollection {
      */
     fun deleteAsync(place: Place): Deferred<Boolean> {
         return GlobalScope.async {
-            if (place.category == Place.Category.HousingComplex) {
-                deleteRoomsByParentId(place.id)
-            }
             FirebaseDB.instance.delete(placesKey, place.id)
         }
     }
@@ -105,22 +102,6 @@ class PlaceCollection {
                     cont.resume(rooms)
                 }
         }
-    }
-
-    private suspend fun deleteRoomsByParentId(parentId: String) = suspendCoroutine<Unit> { cont ->
-
-        val userDoc = FirebaseDB.instance.userDoc
-        if (userDoc == null) {
-            cont.resume(Unit)
-            return@suspendCoroutine
-        }
-
-        userDoc.collection(placesKey).whereEqualTo(parentIdKey, parentId).get().addOnSuccessListener {
-            for (doc in it.documents) {
-                doc.reference.delete()
-            }
-        }
-        cont.resume(Unit)
     }
 
     suspend fun housingComplexHasRooms(hcId: String): Boolean = suspendCoroutine { cont ->

@@ -292,7 +292,7 @@ class HousingComplexFragment : Fragment() {
     private val roomsToShow = ArrayList<Place>()
 
     private fun refreshRoomsToShow() {
-        val searchWord = searchOrAddRoomNumText.text.toString()
+        val searchWord = searchOrAddRoomNumText?.text.toString()
         roomsToShow.clear()
         if (searchWord.isBlank()) {
             roomsToShow.addAll(rooms)

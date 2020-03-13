@@ -24,9 +24,6 @@ import work.ckogyo.returnvisitor.dialogs.AddWorkDialog
 import work.ckogyo.returnvisitor.dialogs.PlaceDialog
 import work.ckogyo.returnvisitor.dialogs.PlacePopup
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
-import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
-import work.ckogyo.returnvisitor.firebasedb.PlaceCollection
-import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
@@ -160,6 +157,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap.isMyLocationEnabled = enabled
     }
 
+    fun beforeBackToMap() {
+        refreshPlaceMarkers()
+        enableMyLocation(true)
+    }
+
     private fun showPlacePopup(place: Place, marker: Marker?) {
 
         PlacePopup(context!!, place).also {
@@ -217,7 +219,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
 
             handler.post {
-                showPlaceMarkers()
+                refreshPlaceMarkers()
             }
         }
     }
@@ -338,7 +340,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
 
-    private fun showPlaceMarkers() {
+    private fun refreshPlaceMarkers() {
 
         mainActivity?:return
 
@@ -347,6 +349,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         GlobalScope.launch {
             val places = FirebaseDB.instance.loadPlacesForMap()
             handler.post{
+                placeMarkers.clear()
                 for (place in places) {
                     placeMarkers.addMarker(context!!, place)
                 }

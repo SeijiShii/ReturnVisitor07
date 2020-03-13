@@ -19,7 +19,12 @@ import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.VisitCell
 
-class PlaceDialog(private val place: Place) :DialogFrameFragment() {
+class PlaceDialog() :DialogFrameFragment() {
+
+    lateinit var place: Place
+    constructor(place: Place):this() {
+        this.place = place
+    }
 
     private val handler = Handler()
 

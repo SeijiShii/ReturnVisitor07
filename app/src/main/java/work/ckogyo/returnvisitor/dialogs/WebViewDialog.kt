@@ -7,7 +7,12 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 
-class WebViewDialog(private val urlString: String) : DialogFrameFragment() {
+class WebViewDialog() : DialogFrameFragment() {
+
+    private var urlString = ""
+    constructor(urlString: String): this() {
+        this.urlString = urlString
+    }
 
     private lateinit var webView: WebView
 
@@ -25,8 +30,9 @@ class WebViewDialog(private val urlString: String) : DialogFrameFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         webView.webViewClient = WebViewClient()
-        webView.loadUrl(urlString)
-
         closeButtonStyle = CloseButtonStyle.CloseOnly
+
+        if (urlString.isEmpty()) return
+        webView.loadUrl(urlString)
     }
 }
