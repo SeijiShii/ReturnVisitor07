@@ -20,7 +20,7 @@ import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
 
-class MonthReportDialog(private val month: Calendar) : DialogFragment() {
+class MonthReportDialog(private var month: Calendar? = null) : DialogFragment() {
 
     private var isDialogClosed = false
 
@@ -30,7 +30,10 @@ class MonthReportDialog(private val month: Calendar) : DialogFragment() {
         val handler = Handler()
 
         GlobalScope.launch {
-            val report = FirebaseDB.instance.loadMonthReport(month)
+
+            month ?: return@launch
+
+            val report = FirebaseDB.instance.loadMonthReport(month!!)
 
             if (isDialogClosed) return@launch
 
@@ -50,9 +53,13 @@ class MonthReportDialog(private val month: Calendar) : DialogFragment() {
             }
         }
 
+
         return AlertDialog.Builder(context).also {
-            val title = context!!.resources.getString(R.string.month_report_title, month.toMonthTitleString(context!!))
-            it.setTitle(title)
+
+            if (month != null) {
+                val title = context!!.resources.getString(R.string.month_report_title, month!!.toMonthTitleString(context!!))
+                it.setTitle(title)
+            }
             it.setView(v)
             it.setPositiveButton(R.string.report_mail){ _, _ ->
                 isDialogClosed = true

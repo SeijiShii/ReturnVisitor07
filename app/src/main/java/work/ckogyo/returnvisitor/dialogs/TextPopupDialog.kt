@@ -20,12 +20,12 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.utils.*
 import java.lang.Exception
 
-class TextPopupDialog(private val anchor: View, private val frameId: Int) : Fragment() {
+class TextPopupDialog(private var anchor: View? = null, private var frameId: Int? = null) : Fragment() {
 
     private var isClosedBySelf = false
     private var isAlreadyClosed = false
 
-    private lateinit var frame: ViewGroup
+    private var frame: ViewGroup? = null
     private var textContent: String? = null
     private var textId = 0
 
@@ -40,7 +40,9 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        frame = (context as Activity).findViewById(frameId)
+        if (frameId != null) {
+            frame = (context as Activity).findViewById(frameId!!)
+        }
 
         textPopupOverlay.alpha = 0f
 
@@ -61,14 +63,18 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
             }
             Log.d(debugTag, "width: ${popupDialog.width}, height: ${popupDialog.height}")
 
-            val positionInFrame = anchor.getPositionInAncestor(frame)
-            Log.d(debugTag, "anchor x: ${positionInFrame.x}, y: ${positionInFrame.y}")
+            frame ?: return@launch
 
-            handler.post {
+            if (anchor != null) {
+                val positionInFrame = anchor!!.getPositionInAncestor(frame!!)
+                Log.d(debugTag, "anchor x: ${positionInFrame.x}, y: ${positionInFrame.y}")
 
-                decidePosition(positionInFrame)
+                handler.post {
 
-                textPopupOverlay.fadeVisibility(true)
+                    decidePosition(positionInFrame)
+
+                    textPopupOverlay.fadeVisibility(true)
+                }
             }
         }
 
@@ -103,11 +109,14 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
     }
 
     private fun showCore(fm: FragmentManager) {
+
+        frameId ?: return
+
         isAlreadyClosed = false
 
         fm.beginTransaction()
             .addToBackStack(null)
-            .add(frameId, this)
+            .add(frameId!!, this)
             .commit()
     }
 
@@ -129,19 +138,22 @@ class TextPopupDialog(private val anchor: View, private val frameId: Int) : Frag
 
     private fun decidePosition(anchorPos: Point) {
 
+        anchor ?: return
+        frame ?: return
+
         val margin = context!!.toDP(10)
         val x = when {
             // アンカーの左側と左揃えがデフォ
-            frame.width - anchorPos.x >= popupDialog.width + margin -> anchorPos.x
+            frame!!.width - anchorPos.x >= popupDialog.width + margin -> anchorPos.x
             // 右側に十分なスペースがなければ画面右端からマージンを開けた分
-            else -> frame.width - (popupDialog.width + margin)
+            else -> frame!!.width - (popupDialog.width + margin)
         }
 
         val y = when {
             // アンカーの下側がデフォ
-            frame.height - (anchorPos.y + anchor.height) > popupDialog.height + margin -> anchorPos.y + anchor.height
+            frame!!.height - (anchorPos.y + anchor!!.height) > popupDialog.height + margin -> anchorPos.y + anchor!!.height
             // 下側に十分なスペースがなければ画面下端からマージンを開けた分
-            else -> frame.height - (popupDialog.height + margin)
+            else -> frame!!.height - (popupDialog.height + margin)
         }
 
         popupDialog.layoutParams = FrameLayout.LayoutParams(popupDialog.width, popupDialog.height).also {

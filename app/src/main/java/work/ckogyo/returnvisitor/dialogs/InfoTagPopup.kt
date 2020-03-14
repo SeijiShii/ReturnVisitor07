@@ -24,10 +24,10 @@ import work.ckogyo.returnvisitor.views.InfoTagListCell
 import java.util.*
 import kotlin.collections.ArrayList
 
-class InfoTagPopup(private val anchor: View,
-                   private val frameId: Int,
-                   private val visit: Visit,
-                   private val infoTagJob: Deferred<ArrayList<InfoTag>>) : PopupDialog(anchor, frameId) {
+class InfoTagPopup(anchor: View? = null,
+                   frameId: Int?  = null,
+                   private val visit: Visit?  = null,
+                   private val infoTagJob: Deferred<ArrayList<InfoTag>>?  = null) : PopupDialog(anchor, frameId) {
 
     private val infoTags = ArrayList<InfoTag>()
 
@@ -41,11 +41,14 @@ class InfoTagPopup(private val anchor: View,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (infoTagJob.isActive && !infoTagJob.isCompleted) {
-            loadingInfoTagOverlay.alpha = 1f
-        } else {
-            loadingInfoTagOverlay.alpha = 0f
+        if (infoTagJob != null) {
+            if (infoTagJob.isActive && !infoTagJob.isCompleted) {
+                loadingInfoTagOverlay.alpha = 1f
+            } else {
+                loadingInfoTagOverlay.alpha = 0f
+            }
         }
+
 
         createInfoTagButton.setOnClick(this::onClickCreateInfoTagButton)
 
@@ -64,14 +67,15 @@ class InfoTagPopup(private val anchor: View,
         val handler = Handler()
 
         GlobalScope.launch {
-            val tags = infoTagJob.await()
-            infoTags.clear()
-            infoTags.addAll(tags)
+            if (infoTagJob != null) {
+                val tags = infoTagJob.await()
+                infoTags.clear()
+                infoTags.addAll(tags)
 
-            handler.post {
-                loadingInfoTagOverlay.fadeVisibility(false)
-
-                refreshInfoTagList()
+                handler.post {
+                    loadingInfoTagOverlay.fadeVisibility(false)
+                    refreshInfoTagList()
+                }
             }
         }
     }
@@ -90,6 +94,8 @@ class InfoTagPopup(private val anchor: View,
 
     private var searchedTags = ArrayList<InfoTag>()
     private fun refreshSearchedTags() {
+
+        visit ?: return
 
         // すでにVisitに追加されているものを除外する
         val filtered = ArrayList<InfoTag>()
@@ -178,7 +184,7 @@ class InfoTagPopup(private val anchor: View,
             notifyItemRemoved(pos)
 
             infoTags.remove(tag)
-            visit.infoTags.remove(tag)
+            visit?.infoTags?.remove(tag)
 
             refreshSearchedTags()
 

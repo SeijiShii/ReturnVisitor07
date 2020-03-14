@@ -33,7 +33,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.absoluteValue
 
-class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateSetListener {
+class WorkFragment() : Fragment(), DatePickerDialog.OnDateSetListener {
 
     var onBackToMapFragment: (() -> Unit)? = null
 
@@ -46,7 +46,11 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
     var onVisitEdited: ((Visit, OnFinishEditParam) -> Unit)? = null
 
-    private var date: Calendar = initialDate
+    private var date: Calendar? = null
+
+    constructor(initialDate: Calendar): this() {
+        date = initialDate
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -94,7 +98,10 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
 
         switchLoadingWorkOverlay(true)
         GlobalScope.launch {
-            val nearestDate = WorkElmList.instance.getNearestDateWithData(date)
+
+            date ?: return@launch
+
+            val nearestDate = WorkElmList.instance.getNearestDateWithData(date!!)
 
             if (nearestDate == null) {
                 handler.post {
@@ -111,7 +118,7 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
                 updateWorkDateText()
             }
 
-            val dates = arrayListOf(date)
+            val dates = arrayListOf(date!!)
 
 //            val start2 = System.currentTimeMillis()
 //            Log.d(debugTag, "Started loading dataElms for ${date.toJPDateText()}")
@@ -126,11 +133,12 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
             handler.post {
 
                 workListView ?: return@post
+                date ?: return@post
 
                 workListView?.adapter = adapter
                 workListView?.layoutManager = SmoothScrollingLayoutManager(context!!)
 
-                val position = adapter.getPositionByDate(date)
+                val position = adapter.getPositionByDate(date!!)
                 if (position > 0) {
                     workListView?.layoutManager!!.scrollToPosition(position)
                 }
@@ -246,18 +254,20 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
     }
 
     private fun updateWorkDateText() {
-        workDateText?.text = date.toDateText(context!!)
+        date ?: return
+        workDateText?.text = date!!.toDateText(context!!)
     }
 
 
     private fun showDatePicker() {
         context?:return
+        date ?: return
 
         DatePickerDialog(context!!,
             this,
-            date.get(Calendar.YEAR),
-            date.get(Calendar.MONTH),
-            date.get(Calendar.DAY_OF_MONTH)).show()
+            date!!.get(Calendar.YEAR),
+            date!!.get(Calendar.MONTH),
+            date!!.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
@@ -273,16 +283,16 @@ class WorkFragment(initialDate: Calendar) : Fragment(), DatePickerDialog.OnDateS
     private fun scrollByDateOrRefresh(date: Calendar) {
         if (adapter.hasElmsOfDate(date)) {
             this.date = date
-            val pos = adapter.getPositionByDate(this.date)
+            val pos = adapter.getPositionByDate(this.date!!)
             workListView.smoothScrollToPosition(pos)
             updateWorkDateText()
         } else {
             switchLoadingWorkOverlay(true)
             GlobalScope.launch {
                 this@WorkFragment.date = WorkElmList.instance.getNearestDateWithData(date)!!
-                if (adapter.hasElmsOfDate(this@WorkFragment.date)) {
+                if (adapter.hasElmsOfDate(this@WorkFragment.date!!)) {
                     handler.post {
-                        val pos = adapter.getPositionByDate(this@WorkFragment.date)
+                        val pos = adapter.getPositionByDate(this@WorkFragment.date!!)
                         workListView.smoothScrollToPosition(pos)
                         updateWorkDateText()
                         switchLoadingWorkOverlay(false)

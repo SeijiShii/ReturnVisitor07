@@ -25,13 +25,18 @@ import work.ckogyo.returnvisitor.utils.SharedPrefKeys.weekStartKey
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
+class CalendarPagerFragment() : Fragment() {
 
     var onBackToMapFragment: (() -> Unit)? = null
 
     enum class WeekStart{
         Sunday,
         Monday
+    }
+
+    private var monthToShow: Calendar? = null
+    constructor(monthToShow: Calendar): this() {
+        this.monthToShow = monthToShow
     }
 
     private val months = ArrayList<Calendar>()
@@ -103,7 +108,9 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
                 adapter = CalendarPagerAdapter(childFragmentManager)
                 calendarPager.adapter = adapter
 
-                val pos = adapter.getPositionByMonth(monthToShow)
+                monthToShow ?: return@post
+
+                val pos = adapter.getPositionByMonth(monthToShow!!)
                 if (pos >= 0) {
                     calendarPager.currentItem = pos
                 }
@@ -137,7 +144,8 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
     }
 
     private fun refreshMonthText() {
-        calendarMonthText.text = monthToShow.toMonthText()
+        monthToShow ?: return
+        calendarMonthText.text = monthToShow!!.toMonthText()
     }
 
     private fun refreshLeftButton() {
@@ -160,13 +168,16 @@ class CalendarPagerFragment(private var monthToShow: Calendar) : Fragment() {
             }
 
             it.setOnMenuItemClickListener { item ->
+
+                monthToShow ?: return@setOnMenuItemClickListener true
+
                 when (item.itemId) {
                     R.id.month_summary -> {
-                        mainActivity?.showMonthReportDialog(monthToShow)
+                        mainActivity?.showMonthReportDialog(monthToShow!!)
                     }
                     R.id.report_mail -> {
-                        Log.d(debugTag, monthToShow.toMonthTitleString(context!!))
-                        mainActivity?.prepareReportMail(monthToShow)
+                        Log.d(debugTag, monthToShow!!.toMonthTitleString(context!!))
+                        mainActivity?.prepareReportMail(monthToShow!!)
                     }
                     R.id.switch_week_start -> {
                         switchWeekStartDay()

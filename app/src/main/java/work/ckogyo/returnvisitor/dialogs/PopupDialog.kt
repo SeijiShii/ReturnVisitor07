@@ -20,15 +20,8 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.utils.*
 import java.lang.Exception
 
-abstract class PopupDialog() : Fragment() {
-
-    private lateinit var anchor: View
-    private var frameId: Int = -1
-
-    constructor(anchor: View, frameId: Int):this(){
-        this.anchor = anchor
-        this.frameId = frameId
-    }
+abstract class PopupDialog(private val anchor: View? = null,
+                           private val frameId: Int? = null) : Fragment() {
 
     abstract fun inflateContentView(): View
 
@@ -50,7 +43,7 @@ abstract class PopupDialog() : Fragment() {
     private var isClosedBySelf = false
     private var isAlreadyClosed = false
 
-    private lateinit var frame: ViewGroup
+    private var frame: ViewGroup? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,7 +56,9 @@ abstract class PopupDialog() : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        frame = (context as Activity).findViewById(frameId)
+        if (frameId != null) {
+            frame = (context as Activity).findViewById(frameId!!)
+        }
 
         val v = inflateContentView()
         viewFrame.addView(v)
@@ -86,19 +81,25 @@ abstract class PopupDialog() : Fragment() {
                 delay(50)
             }
 
-            oldFrameHeight = frame.height
+            if (frame == null) {
+                return@launch
+            }
+
+            oldFrameHeight = frame!!.height
 
             Log.d(debugTag, "width: ${popupDialog.width}, height: ${popupDialog.height}")
 
-            val positionInFrame = anchor.getPositionInAncestor(frame)
-            Log.d(debugTag, "anchor x: ${positionInFrame.x}, y: ${positionInFrame.y}")
+            if (anchor != null) {
+                val positionInFrame = anchor!!.getPositionInAncestor(frame!!)
+                Log.d(debugTag, "anchor x: ${positionInFrame.x}, y: ${positionInFrame.y}")
 
-            handler.post {
+                handler.post {
 
-                decidePosition(positionInFrame)
+                    decidePosition(positionInFrame)
 
-                popupOverlay.fadeVisibility(true)
-                watchFrameHeightChange()
+                    popupOverlay.fadeVisibility(true)
+                    watchFrameHeightChange()
+                }
             }
         }
 
@@ -126,11 +127,14 @@ abstract class PopupDialog() : Fragment() {
     }
 
     private fun showCore(fm: FragmentManager) {
+
+        frameId ?: return
+
         isAlreadyClosed = false
 
         fm.beginTransaction()
             .addToBackStack(null)
-            .add(frameId, this)
+            .add(frameId!!, this)
             .commit()
     }
 
@@ -154,22 +158,25 @@ abstract class PopupDialog() : Fragment() {
 
     private fun decidePosition(anchorPos: Point) {
 
+        frame ?: return
+        anchor ?: return
+
         val margin = context!!.toDP(10)
         val x = when (horizontalAnchorPosition) {
             HorizontalAnchorPosition.Left -> {
                 when {
                     // アンカーの左側と左揃え
-                    frame.width - anchorPos.x >= popupDialog.width + margin -> anchorPos.x
+                    frame!!.width - anchorPos.x >= popupDialog.width + margin -> anchorPos.x
                     // 右側に十分なスペースがなければ画面右端からマージンを開けた分
-                    else -> frame.width - (popupDialog.width + margin)
+                    else -> frame!!.width - (popupDialog.width + margin)
                 }
             }
             else -> {
                 when {
                     // アンカーの右側と左揃え
-                    frame.width - (anchorPos.x + anchor.width) >= popupDialog.width + margin -> anchorPos.x
+                    frame!!.width - (anchorPos.x + anchor!!.width) >= popupDialog.width + margin -> anchorPos.x
                     // 右側に十分なスペースがなければ画面右端からマージンを開けた分
-                    else -> frame.width - (popupDialog.width + margin)
+                    else -> frame!!.width - (popupDialog.width + margin)
                 }
             }
         }
@@ -178,17 +185,17 @@ abstract class PopupDialog() : Fragment() {
             VerticalAnchorPosition.Bottom -> {
                 when {
                     // アンカーの下側
-                    frame.height - (anchorPos.y + anchor.height) > popupDialog.height + margin -> anchorPos.y + anchor.height
+                    frame!!.height - (anchorPos.y + anchor!!.height) > popupDialog.height + margin -> anchorPos.y + anchor!!.height
                     // 下側に十分なスペースがなければ画面下端からマージンを開けた分
-                    else -> frame.height - (popupDialog.height + margin)
+                    else -> frame!!.height - (popupDialog.height + margin)
                 }
             }
             else -> {
                 when {
                     // アンカーの上側
-                    frame.height - anchorPos.y > popupDialog.height + margin -> anchorPos.y + anchor.height
+                    frame!!.height - anchorPos.y > popupDialog.height + margin -> anchorPos.y + anchor!!.height
                     // 下側に十分なスペースがなければ画面下端からマージンを開けた分
-                    else -> frame.height - (popupDialog.height + margin)
+                    else -> frame!!.height - (popupDialog.height + margin)
                 }
             }
         }
@@ -211,17 +218,18 @@ abstract class PopupDialog() : Fragment() {
                 delay(50)
 
                 context ?: return@launch
+                frame ?: return@launch
 
-                if (oldFrameHeight != frame.height) {
+                if (oldFrameHeight != frame!!.height) {
 
                     popupDialog ?: return@launch
 
                     var popupTop = 0
-                    val popupHeight = if (popupDialog.height > frame.height) {
+                    val popupHeight = if (popupDialog.height > frame!!.height) {
                         popupTop = context!!.toDP(10)
-                        frame.height - context!!.toDP(20)
+                        frame!!.height - context!!.toDP(20)
                     } else {
-                        popupTop = (frame.height - oldFrameHeight) + oldPopupTop
+                        popupTop = (frame!!.height - oldFrameHeight) + oldPopupTop
                         FrameLayout.LayoutParams.WRAP_CONTENT
                     }
 
@@ -235,7 +243,7 @@ abstract class PopupDialog() : Fragment() {
                         popupDialog.layoutParams.height = popupHeight
 
                         popupDialog.requestLayout()
-                        oldFrameHeight = frame.height
+                        oldFrameHeight = frame!!.height
                     }
                 }
             }

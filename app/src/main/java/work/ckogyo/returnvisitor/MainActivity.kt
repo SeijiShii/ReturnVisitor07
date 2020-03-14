@@ -65,12 +65,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        try {
-            setContentView(R.layout.main_activity)
-        } catch (e: Exception) {
-            Log.d(debugTag, e.localizedMessage)
-            startActivity(Intent(this, MainActivity::class.java))
-        }
+        setContentView(R.layout.main_activity)
+
+//        try {
+//            setContentView(R.layout.main_activity)
+//        } catch (e: Exception) {
+//            Log.d(debugTag, e.localizedMessage)
+//            startActivity(Intent(this, MainActivity::class.java))
+//        }
 
         supportActionBar?.hide()
 

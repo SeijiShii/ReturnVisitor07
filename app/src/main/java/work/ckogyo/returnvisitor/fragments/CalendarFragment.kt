@@ -24,7 +24,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CalendarFragment(val month: Calendar) :Fragment() {
+class CalendarFragment() :Fragment() {
+
+    var month: Calendar? = null
+        private set
+
+    constructor(month: Calendar):this() {
+        this.month = month
+    }
 
     private val dailyReports = ArrayList<DailyReport>()
 
@@ -116,10 +123,13 @@ class CalendarFragment(val month: Calendar) :Fragment() {
     }
 
     private fun prepareEmptyReports() {
+
+        month ?: return
+
         dailyReports.clear()
 
-        val first = month.getFirstDay()
-        val last = month.getLastDay()
+        val first = month!!.getFirstDay()
+        val last = month!!.getLastDay()
 
         val counter = first.clone() as Calendar
         while (counter.isDateBefore(last, true)) {
@@ -158,11 +168,13 @@ class CalendarFragment(val month: Calendar) :Fragment() {
             job?.cancel()
         }
 
+        month ?: return
+
         loadingCalendarOverlay.fadeVisibility(true)
         val handler = Handler()
 
-        val first = month.getFirstDay()
-        val last = month.getLastDay()
+        val first = month!!.getFirstDay()
+        val last = month!!.getLastDay()
 
         val counter = first.clone() as Calendar
 

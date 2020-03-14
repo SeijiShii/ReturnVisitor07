@@ -19,12 +19,12 @@ import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.VisitCell
 
-class PlaceDialog() :DialogFrameFragment() {
+class PlaceDialog(var place: Place? = null) :DialogFrameFragment() {
 
-    lateinit var place: Place
-    constructor(place: Place):this() {
-        this.place = place
-    }
+//    lateinit var place: Place
+//    constructor(place: Place):this() {
+//        this.place = place
+//    }
 
     private val handler = Handler()
 
@@ -52,22 +52,26 @@ class PlaceDialog() :DialogFrameFragment() {
 
         super.onViewCreated(view, savedInstanceState)
 
-        val titleId = when(place.category) {
-            Place.Category.Place -> R.string.place
-            Place.Category.House -> R.string.house
-            Place.Category.HousingComplex -> R.string.housing_complex
-            Place.Category.Room -> R.string.room
+        if (place != null) {
+            val titleId = when(place!!.category) {
+                Place.Category.Place -> R.string.place
+                Place.Category.House -> R.string.house
+                Place.Category.HousingComplex -> R.string.housing_complex
+                Place.Category.Room -> R.string.room
+            }
+
+            setTitle(titleId)
+            addressText.text = place.toString()
         }
 
-        setTitle(titleId)
-        addressText.text = place.toString()
         placeMenuButton.setOnClick {
             showMenuPopup()
         }
 
         recordVisitButton.setOnClickListener {
             close()
-            onRecordNewVisitInvoked?.invoke(place)
+            place ?: return@setOnClickListener
+            onRecordNewVisitInvoked?.invoke(place!!)
         }
 
         recordNotHomeButton.setOnClickListener {
@@ -80,7 +84,8 @@ class PlaceDialog() :DialogFrameFragment() {
     }
 
     private fun refreshColorMark() {
-        colorMark?.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place.rating), null))
+        place ?: return
+        colorMark?.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place!!.rating), null))
     }
 
     private fun refreshVisitList() {
@@ -90,7 +95,9 @@ class PlaceDialog() :DialogFrameFragment() {
 
         GlobalScope.launch {
 
-            val loadedVisitsToPlace = FirebaseDB.instance.loadVisitsToPlace(place)
+            place ?: return@launch
+
+            val loadedVisitsToPlace = FirebaseDB.instance.loadVisitsToPlace(place!!)
             mergeLoadedVisits(loadedVisitsToPlace)
 
             handler.post {
@@ -195,7 +202,8 @@ class PlaceDialog() :DialogFrameFragment() {
         GlobalScope.launch {
             FirebaseDB.instance.deleteVisitAsync(visit).await()
             handler.post {
-                onRefreshPlace?.invoke(place)
+                place ?: return@post
+                onRefreshPlace?.invoke(place!!)
                 refreshColorMark()
             }
         }
@@ -230,7 +238,8 @@ class PlaceDialog() :DialogFrameFragment() {
             .setMessage(R.string.delete_place_confirm)
             .setNegativeButton(R.string.cancel, null).
                 setPositiveButton(R.string.delete){_, _ ->
-                    onClose?.invoke(place, OnFinishEditParam.Deleted)
+                    place ?: return@setPositiveButton
+                    onClose?.invoke(place!!, OnFinishEditParam.Deleted)
                     close()
                 }.create().show()
     }
@@ -241,7 +250,8 @@ class PlaceDialog() :DialogFrameFragment() {
 
         loadingVisitsOfPlaceOverlay.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
         GlobalScope.launch {
-            val nhVisit = FirebaseDB.instance.generateNotHomeVisitAsync(place)
+            place ?: return@launch
+            val nhVisit = FirebaseDB.instance.generateNotHomeVisitAsync(place!!)
 
             // Workは30秒に一度の更新なのでVisitの更新に合わせてWorkも更新しないと、VisitがWork内に収まらないことがある
             TimeCountIntentService.saveWorkIfActive()

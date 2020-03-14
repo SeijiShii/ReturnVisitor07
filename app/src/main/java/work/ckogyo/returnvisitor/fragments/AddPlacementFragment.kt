@@ -14,14 +14,18 @@ import work.ckogyo.returnvisitor.dialogs.DialogFrameFragment
 import work.ckogyo.returnvisitor.models.Placement
 import java.util.*
 
-class AddPlacementFragment(private val dialog: DialogFrameFragment) : Fragment(){
+class AddPlacementFragment() : Fragment(){
 
     companion object {
         private const val maxYearCount = 10
         private const val maxNumber = 3
     }
 
-//    var onOk: ((Placement) -> Unit)? = null
+    private var dialog: DialogFrameFragment? = null
+
+    constructor(dialog: DialogFrameFragment): this() {
+        this.dialog = dialog
+    }
 
     private var placement = Placement()
 
@@ -151,7 +155,7 @@ class AddPlacementFragment(private val dialog: DialogFrameFragment) : Fragment()
     }
 
     private fun refreshOKButton() {
-        dialog.okButton.isEnabled = placement.category != Placement.Category.None
+        dialog?.okButton?.isEnabled = placement.category != Placement.Category.None
     }
 
     private fun refreshMagazineRows() {

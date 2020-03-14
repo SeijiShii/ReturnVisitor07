@@ -20,7 +20,7 @@ import work.ckogyo.returnvisitor.models.Visit
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.SmallTagView
 
-class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReadyCallback {
+class VisitDetailDialog(private var visit: Visit? = null) : DialogFragment(), OnMapReadyCallback {
 
     var onClickEditVisit: ((Visit) -> Unit)? = null
     var onDeleteVisitConfirmed: ((Visit) -> Unit)? = null
@@ -30,42 +30,35 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
 
         val v = View.inflate(context, R.layout.visit_detail_dialog, null)
 
-//        val handler = Handler()
+        if (visit != null) {
+            v.placeText.text = visit!!.place.toString()
 
-        v.placeText.text = visit.place.toString()
+            v.addressText.text = visit!!.place.address
+            v.personsText.text = visit!!.toPersonVisitString(context!!)
 
-//        GlobalScope.launch {
-//            val placeStr = visit.place.toString()
-//
-//            handler.post {
-//                v?.placeText?.text = placeStr
-//            }
-//        }
-
-        v.addressText.text = visit.place.address
-        v.personsText.text = visit.toPersonVisitString(context!!)
-
-        v.priorityMark.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(visit.rating), null))
-        v.priorityText.text = context!!.resources.getStringArray(R.array.raterArray)[visit.rating.ordinal]
+            v.priorityMark.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(visit!!.rating), null))
+            v.priorityText.text = context!!.resources.getStringArray(R.array.raterArray)[visit!!.rating.ordinal]
 
 
-        val plcTagViews = ArrayList<SmallTagView>()
-        for (plc in visit.placements) {
-            val tagView = SmallTagView(context!!, plc.toShortString(context!!)).also {
-                it.backgroundResourceId = R.drawable.border_round_dark_violet
+            val plcTagViews = ArrayList<SmallTagView>()
+            for (plc in visit!!.placements) {
+                val tagView = SmallTagView(context!!, plc.toShortString(context!!)).also {
+                    it.backgroundResourceId = R.drawable.border_round_dark_violet
+                }
+                plcTagViews.add(tagView)
             }
-            plcTagViews.add(tagView)
-        }
-        v.placementTagContainer.addTagViews(plcTagViews)
+            v.placementTagContainer.addTagViews(plcTagViews)
 
-        val infoTagViews = ArrayList<SmallTagView>()
-        for (tag in visit.infoTags) {
-            val tagView = SmallTagView(context!!, tag.name)
-            infoTagViews.add(tagView)
-        }
-        v.tagContainer.addTagViews(infoTagViews)
+            val infoTagViews = ArrayList<SmallTagView>()
+            for (tag in visit!!.infoTags) {
+                val tagView = SmallTagView(context!!, tag.name)
+                infoTagViews.add(tagView)
+            }
+            v.tagContainer.addTagViews(infoTagViews)
 
-        v.noteText.text = visit.description
+            v.noteText.text = visit!!.description
+        }
+
         v.visitDetailMenuButton.setOnClick {
             showMenuPopup()
         }
@@ -84,7 +77,10 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
         v.showInWideMapButton.setOnClick {
             // MapFragmentへ戻る。
             dismiss()
-            onClickShowInWideMap?.invoke(visit)
+
+            visit ?: return@setOnClick
+
+            onClickShowInWideMap?.invoke(visit!!)
         }
 
         return AlertDialog.Builder(context).also {
@@ -109,12 +105,14 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
         googleMap!!.uiSettings?.setAllGesturesEnabled(true)
 
         placeMarkers = PlaceMarkers(googleMap!!)
-        placeMarkers!!.addMarker(context!!, visit.place)
+
+        if (visit != null) {
+            placeMarkers!!.addMarker(context!!, visit!!.place)
+            googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(visit!!.place.latLng, 19f))
+        }
 
         context ?: return
         googleMap?.setPadding(0, 0, 0, context!!.toDP(50))
-
-        googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(visit.place.latLng, 19f))
     }
 
 
@@ -123,13 +121,16 @@ class VisitDetailDialog(private val visit: Visit) : DialogFragment(), OnMapReady
         val popup = PopupMenu(context!!, dialog.visitDetailMenuButton)
         popup.menuInflater.inflate(R.menu.visit_cell_menu, popup.menu)
         popup.setOnMenuItemClickListener {
+
+            visit ?: return@setOnMenuItemClickListener true
+
             when(it.itemId) {
                 R.id.edit_visit -> {
-                    onClickEditVisit?.invoke(visit)
+                    onClickEditVisit?.invoke(visit!!)
                 }
                 R.id.delete_visit -> {
-                    confirmDeleteVisit(context!!, visit){
-                        onDeleteVisitConfirmed?.invoke(visit)
+                    confirmDeleteVisit(context!!, visit!!){
+                        onDeleteVisitConfirmed?.invoke(visit!!)
                     }
                 }
             }

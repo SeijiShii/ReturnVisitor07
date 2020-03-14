@@ -25,7 +25,7 @@ class AddWorkDialog : DialogFragment(),
 
     private lateinit var dialog: AlertDialog
     private lateinit var contentView: View
-    private lateinit var work: Work
+    private var work: Work? = null
 
     var onWorkAdded: ((Work) -> Unit)? = null
 
@@ -40,9 +40,9 @@ class AddWorkDialog : DialogFragment(),
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         work = Work()
-        work.start = Calendar.getInstance()
-        work.end = Calendar.getInstance()
-        work.end.add(Calendar.MINUTE, 5)
+        work!!.start = Calendar.getInstance()
+        work!!.end = Calendar.getInstance()
+        work!!.end.add(Calendar.MINUTE, 5)
 
         contentView = View.inflate(context, R.layout.add_work_dialog, null)
         val handler = Handler()
@@ -52,9 +52,11 @@ class AddWorkDialog : DialogFragment(),
             .setView(contentView)
             .setPositiveButton(R.string.add){_, _ ->
                 GlobalScope.launch {
-                    FirebaseDB.instance.saveWorkAsync(work)
+                    work ?: return@launch
+                    FirebaseDB.instance.saveWorkAsync(work!!)
                     handler.post {
-                        onWorkAdded?.invoke(work)
+                        work ?: return@post
+                        onWorkAdded?.invoke(work!!)
                     }
                 }
             }
@@ -62,18 +64,18 @@ class AddWorkDialog : DialogFragment(),
             .create()
 
         updateDateText()
-        contentView.dateText.setOnClick {
+        contentView.dateText?.setOnClick {
             showDatePicker()
         }
 
         updateStartTimeText()
-        contentView.startTimeText.setOnClick {
+        contentView.startTimeText?.setOnClick {
             timeCategory = TimeCategory.Start
             showTimePicker()
         }
 
         updateEndTimeText()
-        contentView.endTimeText.setOnClick {
+        contentView.endTimeText?.setOnClick {
             timeCategory = TimeCategory.End
             showTimePicker()
         }
@@ -86,11 +88,13 @@ class AddWorkDialog : DialogFragment(),
     private fun showDatePicker() {
         context?:return
 
+        work ?: return
+
         DatePickerDialog(context!!,
             this,
-            work.start.get(Calendar.YEAR),
-            work.start.get(Calendar.MONTH),
-            work.start.get(Calendar.DAY_OF_MONTH)).show()
+            work!!.start.get(Calendar.YEAR),
+            work!!.start.get(Calendar.MONTH),
+            work!!.start.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
@@ -105,18 +109,19 @@ class AddWorkDialog : DialogFragment(),
             tmpDate.copyDateFrom(today)
         }
 
-        work.start.copyDateFrom(tmpDate)
-        work.end.copyDateFrom(tmpDate)
+        work?.start?.copyDateFrom(tmpDate)
+        work?.end?.copyDateFrom(tmpDate)
 
         updateDateText()
     }
 
     private fun showTimePicker() {
         context?:return
+        work ?: return
 
         val timeToSet = when(timeCategory) {
-            TimeCategory.Start -> work.start
-            TimeCategory.End -> work.end
+            TimeCategory.Start -> work!!.start
+            TimeCategory.End -> work!!.end
             else -> null
         }
 
@@ -135,21 +140,23 @@ class AddWorkDialog : DialogFragment(),
         tmpDate.set(Calendar.HOUR_OF_DAY, hourOfDay)
         tmpDate.set(Calendar.MINUTE, minute)
 
+        work ?: return
+
         when (timeCategory) {
             TimeCategory.Start -> {
-                if (tmpDate.isTimeAfter(work.end, true)) {
-                    tmpDate.copyTimeFrom(work.end)
+                if (tmpDate.isTimeAfter(work!!.end, true)) {
+                    tmpDate.copyTimeFrom(work!!.end)
                     tmpDate.add(Calendar.MINUTE, -1)
                 }
-                work.start = tmpDate
+                work!!.start = tmpDate
                 updateStartTimeText()
             }
             TimeCategory.End -> {
-                if (tmpDate.isTimeBefore(work.start, true)) {
-                    tmpDate.copyTimeFrom(work.start)
+                if (tmpDate.isTimeBefore(work!!.start, true)) {
+                    tmpDate.copyTimeFrom(work!!.start)
                     tmpDate.add(Calendar.MINUTE, 1)
                 }
-                work.end = tmpDate
+                work!!.end = tmpDate
                 updateEndTimeText()
             }
             else -> return
@@ -159,19 +166,23 @@ class AddWorkDialog : DialogFragment(),
     }
 
     private fun updateDateText() {
-        contentView.dateText.text = work.start.toDateText(context!!)
+        work ?: return
+        contentView.dateText.text = work!!.start.toDateText(context!!)
     }
 
     private fun updateStartTimeText() {
-        contentView.startTimeText.text = work.start.toTimeText(context!!)
+        work ?: return
+        contentView.startTimeText.text = work!!.start.toTimeText(context!!)
     }
 
     private fun updateEndTimeText() {
-        contentView.endTimeText.text = work.end.toTimeText(context!!)
+        work ?: return
+        contentView.endTimeText.text = work!!.end.toTimeText(context!!)
     }
 
     private fun updateDurationText() {
-        contentView.durationText.text = work.duration.toDurationText()
+        work ?: return
+        contentView.durationText.text = work!!.duration.toDurationText()
     }
 
 }
