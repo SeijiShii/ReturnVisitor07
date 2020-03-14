@@ -158,8 +158,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     fun beforeBackToMap() {
-        refreshPlaceMarkers()
         enableMyLocation(true)
+        handler.postDelayed({
+            refreshPlaceMarkers()
+        }, 300)
     }
 
     private fun showPlacePopup(place: Place, marker: Marker?) {
@@ -342,17 +344,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun refreshPlaceMarkers() {
 
-        mainActivity?:return
-
-//        Log.d(debugTag, "showPlaceMarkers")
-
         GlobalScope.launch {
             val places = FirebaseDB.instance.loadPlacesForMap()
             handler.post{
-                placeMarkers.clear()
-                for (place in places) {
-                    placeMarkers.addMarker(context!!, place)
-                }
+
+                context ?: return@post
+                placeMarkers.refreshAllMarkers(context!!, places)
                 markerShown = true
             }
         }

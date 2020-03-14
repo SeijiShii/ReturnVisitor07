@@ -70,5 +70,34 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
         markers.clear()
     }
 
+    fun refreshAllMarkers(context: Context, places: ArrayList<Place>){
+        removeUnusedMarkers(places)
+
+        for (place in places) {
+            refreshMarker(context, place)
+        }
+    }
+
+    private fun removeUnusedMarkers(places: ArrayList<Place>) {
+
+        val markersToRemove = ArrayList<Marker>()
+        for (marker in markers) {
+            var existsPlace = false
+            for (place in places) {
+                if (place.id == marker.tag) {
+                    existsPlace = true
+                    break
+                }
+            }
+            if (!existsPlace) {
+                markersToRemove.add(marker)
+            }
+        }
+
+        for (marker in markersToRemove) {
+            marker.remove()
+            markers.remove(marker)
+        }
+    }
 
 }
