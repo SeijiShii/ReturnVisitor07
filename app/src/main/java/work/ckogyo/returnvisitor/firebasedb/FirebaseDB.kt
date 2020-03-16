@@ -51,6 +51,7 @@ class FirebaseDB {
 //        placeColl.copyParentNameToRoomAsync()
     }
 
+    private var savingTaskCount = 0
 
     val userDoc: DocumentReference?
         get(){
@@ -176,6 +177,8 @@ class FirebaseDB {
      */
     fun savePlaceAsync(place: Place): Deferred<Unit> {
 
+        savingTaskCount++
+
         return GlobalScope.async {
             refreshPlaceRatingAsync(place).await()
             placeColl.setAsync(place).await()
@@ -187,11 +190,12 @@ class FirebaseDB {
                     val hc = placeColl.loadById(place.parentId)
                     if (hc != null) {
                         refreshPlaceRatingAsync(hc).await()
-                        placeColl.setAsync(hc)
+                        placeColl.setAsync(hc).await()
                     }
                 }
             }
 
+            savingTaskCount--
             Unit
         }
     }
@@ -263,6 +267,8 @@ class FirebaseDB {
 
     fun saveVisitAsync(visit: Visit): Deferred<Unit> {
 
+        savingTaskCount++
+
         return GlobalScope.async {
             visitColl.setAsync(visit).await()
             refreshPlaceRatingAsync(visit.place).await()
@@ -270,6 +276,7 @@ class FirebaseDB {
 
             GlobalScope.launch {
                 // Personが書き換わっていることもあるので
+                savingTaskCount++
                 for (pv in visit.personVisits) {
                     val visitsToPerson = visitColl.loadVisitsByPerson(pv.person)
                     for (visit2 in visitsToPerson) {
@@ -281,21 +288,25 @@ class FirebaseDB {
                         visitColl.setAsync(visit2).await()
                     }
                 }
+                savingTaskCount--
             }
 
             GlobalScope.launch {
                 // 保存する場所が部屋の場合
+                savingTaskCount++
                 if (visit.place.category == Place.Category.Room) {
                     val hc = placeColl.loadById(visit.place.parentId)
                     if (hc != null) {
                         refreshPlaceRatingAsync(hc).await()
-                        placeColl.setAsync(hc)
+                        placeColl.setAsync(hc).await()
                     }
                 }
+                savingTaskCount--
             }
 
             updateReports(visit.dateTime)
 
+            savingTaskCount--
             Unit
         }
     }
@@ -463,4 +474,7 @@ class FirebaseDB {
             cont.resume(months)
         }
     }
+
+    val savingTaskRunning: Boolean
+        get() = savingTaskCount > 0
 }

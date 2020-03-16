@@ -219,7 +219,6 @@ class VisitCollection {
     fun setAsync(visit: Visit): Deferred<Unit> {
         return GlobalScope.async{
             FirebaseDB.instance.set(visitsKey, visit.id, visit.hashMap)
-//            DailyReportCollection.instance.initAndSaveDailyReportAsync(visit.dateTime)
             Unit
         }
     }
@@ -528,7 +527,7 @@ class VisitCollection {
             val visits = loadVisitsOfPlace(place)
             for (visit in visits) {
                 visit.place = place
-                setAsync(visit)
+                setAsync(visit).await()
             }
         }
     }

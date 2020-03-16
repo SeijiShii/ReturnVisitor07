@@ -14,13 +14,6 @@ import kotlin.coroutines.suspendCoroutine
 
 class PlaceCollection {
 
-//    companion object {
-//
-//        private val innerInstance = PlaceCollection()
-//        val instance: PlaceCollection
-//            get() = innerInstance
-//    }
-
     suspend fun loadPlacesForMap(): ArrayList<Place> = suspendCoroutine { cont ->
         GlobalScope.launch {
             val mapList = FirebaseDB.instance.loadList(placesKey)

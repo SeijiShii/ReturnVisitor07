@@ -157,11 +157,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap.isMyLocationEnabled = enabled
     }
 
-    fun beforeBackToMap() {
+    fun beforeBackToMap(delayABit: Boolean = true) {
         enableMyLocation(true)
-        handler.postDelayed({
-            refreshPlaceMarkers()
-        }, 300)
+        refreshPlaceMarkers(delayABit)
     }
 
     private fun showPlacePopup(place: Place, marker: Marker?) {
@@ -221,7 +219,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
 
             handler.post {
-                refreshPlaceMarkers()
+                refreshPlaceMarkers(delayABit = false)
             }
         }
     }
@@ -278,7 +276,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onNotHomeRecorded(place: Place) {
-        // TODO: 留守宅ボタンが押されたとき
+        // 留守宅ボタンが押されたとき
 
         val visit = Visit()
         visit.place = place
@@ -288,7 +286,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             visit.place.address = requestAddressIfNeeded(visit.place, context!!)
 
-            FirebaseDB.instance.saveVisitAsync(visit).await()
+            val db = FirebaseDB.instance
+            db.saveVisitAsync(visit).await()
+
+            while (db.savingTaskRunning) {
+                delay(25)
+            }
+
             handler.post {
                 placeMarkers.refreshMarker(context!!, visit.place)
             }
@@ -342,10 +346,35 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
 
-    private fun refreshPlaceMarkers() {
+    private fun refreshPlaceMarkers(delayABit: Boolean) {
+
+//        val delay = if (delayABit) 500L else 0L
+//        handler.postDelayed({
+//            GlobalScope.launch {
+//
+//                val db = FirebaseDB.instance
+//                while (db.savingTaskRunning) {
+//                    delay(25)
+//                }
+//
+//                val places = db.loadPlacesForMap()
+//                handler.post{
+//
+//                    context ?: return@post
+//                    placeMarkers.refreshAllMarkers(context!!, places)
+//                    markerShown = true
+//                }
+//            }
+//        }, delay)
 
         GlobalScope.launch {
-            val places = FirebaseDB.instance.loadPlacesForMap()
+
+            val db = FirebaseDB.instance
+            while (db.savingTaskRunning) {
+                delay(25)
+            }
+
+            val places = db.loadPlacesForMap()
             handler.post{
 
                 context ?: return@post
