@@ -89,6 +89,10 @@ object DataModelKeys {
 
 }
 
+object savedInstanceStateKeys {
+    const val monthInLongKey = "month_in_long"
+    const val dateInLongKey = "date_in_long"
+}
 
 
 val pinMarkerIds = arrayOf(

@@ -49,7 +49,6 @@ class InfoTagPopup(anchor: View? = null,
             }
         }
 
-
         createInfoTagButton.setOnClick(this::onClickCreateInfoTagButton)
 
         infoTagSearchText.addTextChangedListener(object : TextWatcher {

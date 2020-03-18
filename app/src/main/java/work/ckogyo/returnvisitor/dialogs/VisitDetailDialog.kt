@@ -91,6 +91,12 @@ class VisitDetailDialog(private var visit: Visit? = null) : DialogFragment(), On
         }.create()
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        visit ?: dismiss()
+    }
+
     private var googleMap: GoogleMap? = null
     private var placeMarkers: PlaceMarkers? = null
 

@@ -20,18 +20,19 @@ import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.DailyReportCollection
 import work.ckogyo.returnvisitor.models.DailyReport
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.savedInstanceStateKeys.monthInLongKey
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CalendarFragment() :Fragment() {
+class CalendarFragment(var month: Calendar? = null) :Fragment() {
 
-    var month: Calendar? = null
-        private set
-
-    constructor(month: Calendar):this() {
-        this.month = month
-    }
+//    var month: Calendar? = null
+//        private set
+//
+//    constructor(month: Calendar):this() {
+//        this.month = month
+//    }
 
     private val dailyReports = ArrayList<DailyReport>()
 
@@ -49,6 +50,13 @@ class CalendarFragment() :Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val monthInLong = savedInstanceState?.getLong(monthInLongKey)
+        if (month == null && monthInLong != null) {
+            month = Calendar.getInstance()
+            month!!.timeInMillis = monthInLong
+        }
+
         prepareEmptyReports()
         refresh()
     }
@@ -335,5 +343,12 @@ class CalendarFragment() :Fragment() {
                 videoMark.visibility = if (dailyReport.hasShowVideo) View.VISIBLE else View.GONE
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        month ?: return
+        outState.putLong(monthInLongKey, month!!.timeInMillis)
     }
 }

@@ -56,6 +56,8 @@ abstract class PopupDialog(private val anchor: View? = null,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        frameId ?: close()
+
         if (frameId != null) {
             frame = (context as Activity).findViewById(frameId!!)
         }

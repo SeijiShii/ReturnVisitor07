@@ -50,8 +50,6 @@ class WhereToGoNextFragment : Fragment() {
     private var sortByDescendingDateTime = true
     private var sortByDescendingRating = true
 
-//    private var visitsLoaded = false
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

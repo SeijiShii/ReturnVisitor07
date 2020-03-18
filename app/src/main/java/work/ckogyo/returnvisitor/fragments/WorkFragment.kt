@@ -24,6 +24,7 @@ import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.models.WorkElmList
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.savedInstanceStateKeys.dateInLongKey
 import work.ckogyo.returnvisitor.views.VisitCell
 import work.ckogyo.returnvisitor.views.WorkElmCell
 import java.lang.IllegalStateException
@@ -33,7 +34,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.absoluteValue
 
-class WorkFragment() : Fragment(), DatePickerDialog.OnDateSetListener {
+class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerDialog.OnDateSetListener {
 
     var onBackToMapFragment: (() -> Unit)? = null
 
@@ -46,12 +47,6 @@ class WorkFragment() : Fragment(), DatePickerDialog.OnDateSetListener {
 
     var onVisitEdited: ((Visit, OnFinishEditParam) -> Unit)? = null
 
-    private var date: Calendar? = null
-
-    constructor(initialDate: Calendar): this() {
-        date = initialDate
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -62,6 +57,14 @@ class WorkFragment() : Fragment(), DatePickerDialog.OnDateSetListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val dateInLong = savedInstanceState?.getLong(dateInLongKey)
+        if (date == null && dateInLong != null) {
+            date = Calendar.getInstance()
+            date!!.timeInMillis = dateInLong
+        }
+
+        date ?: backToMapFragment()
 
         view.setOnTouchListener { _, _ -> true }
 
@@ -354,6 +357,14 @@ class WorkFragment() : Fragment(), DatePickerDialog.OnDateSetListener {
     private fun onShowInWideMapInVisitDetail(visit: Visit) {
         backToMapFragment()
         mainActivity?.mapFragment?.animateToLatLng(visit.place.latLng)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        date ?: return
+
+        outState.putLong(dateInLongKey, date!!.timeInMillis)
     }
 
     inner class WorkElmAdapter(private val dataElms: ArrayList<WorkElement>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {

@@ -18,6 +18,7 @@ import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
 import work.ckogyo.returnvisitor.models.MonthReport
 import work.ckogyo.returnvisitor.utils.*
+import work.ckogyo.returnvisitor.utils.savedInstanceStateKeys.monthInLongKey
 import java.util.*
 
 class MonthReportDialog(private var month: Calendar? = null) : DialogFragment() {
@@ -25,6 +26,12 @@ class MonthReportDialog(private var month: Calendar? = null) : DialogFragment() 
     private var isDialogClosed = false
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+
+        val monthInLong = savedInstanceState?.getLong(monthInLongKey)
+        if (month == null && monthInLong != null) {
+            month = Calendar.getInstance()
+            month!!.timeInMillis = monthInLong
+        }
 
         val v = View.inflate(context, R.layout.month_report_dialog, null)
         val handler = Handler()
@@ -76,6 +83,14 @@ class MonthReportDialog(private var month: Calendar? = null) : DialogFragment() 
 
 //        Log.d(debugTag, "MonthReportDialog dismissed!")
         isDialogClosed = true
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        month ?: return
+
+        outState.putLong(monthInLongKey, month!!.timeInMillis)
     }
 
 }

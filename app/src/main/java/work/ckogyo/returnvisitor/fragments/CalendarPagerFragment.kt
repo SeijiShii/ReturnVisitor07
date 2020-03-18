@@ -22,21 +22,17 @@ import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.returnVisitorPrefsKey
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys.weekStartKey
+import work.ckogyo.returnvisitor.utils.savedInstanceStateKeys.monthInLongKey
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CalendarPagerFragment() : Fragment() {
+class CalendarPagerFragment(private var monthToShow: Calendar? = null) : Fragment() {
 
     var onBackToMapFragment: (() -> Unit)? = null
 
     enum class WeekStart{
         Sunday,
         Monday
-    }
-
-    private var monthToShow: Calendar? = null
-    constructor(monthToShow: Calendar): this() {
-        this.monthToShow = monthToShow
     }
 
     private val months = ArrayList<Calendar>()
@@ -80,6 +76,14 @@ class CalendarPagerFragment() : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val monthInLong = savedInstanceState?.getLong(monthInLongKey)
+        if (monthToShow == null && monthInLong != null) {
+            monthToShow = Calendar.getInstance()
+            monthToShow!!.timeInMillis = monthInLong
+        }
+
+        monthToShow ?: backToMapFragment()
 
         view.setOnTouchListener { _, _ -> true }
 
@@ -244,6 +248,13 @@ class CalendarPagerFragment() : Fragment() {
             ?.commit()
 
         onBackToMapFragment?.invoke()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        monthToShow ?: return
+        outState.putLong(monthInLongKey, monthToShow!!.timeInMillis)
     }
 
 }
