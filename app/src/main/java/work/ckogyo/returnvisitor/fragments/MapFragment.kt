@@ -157,9 +157,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap.isMyLocationEnabled = enabled
     }
 
-    fun beforeBackToMap(delayABit: Boolean = true) {
+    fun beforeBackToMap() {
         enableMyLocation(true)
-        refreshPlaceMarkers(delayABit)
+        refreshPlaceMarkers()
     }
 
     private fun showPlacePopup(place: Place, marker: Marker?) {
@@ -219,7 +219,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
 
             handler.post {
-                refreshPlaceMarkers(delayABit = false)
+                refreshPlaceMarkers()
             }
         }
     }
@@ -320,6 +320,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun saveCameraPosition() {
         mainActivity?:return
 
+        if (!isMapReady) return
+
         val pos = googleMap.cameraPosition?:return
 
         mainActivity!!.getSharedPreferences(returnVisitorPrefsKey, Context.MODE_PRIVATE).edit()
@@ -346,7 +348,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
     }
 
-    private fun refreshPlaceMarkers(delayABit: Boolean) {
+    private fun refreshPlaceMarkers() {
 
 //        val delay = if (delayABit) 500L else 0L
 //        handler.postDelayed({

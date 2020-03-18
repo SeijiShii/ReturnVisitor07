@@ -56,7 +56,7 @@ class HousingComplexFragment : Fragment() {
         GlobalScope.launch {
             val address = requestAddressIfNeeded(hComplex, context!!)
             handler.post {
-                housingComplexAddressText.setText(address)
+                housingComplexAddressText?.setText(address)
             }
         }
 
@@ -106,7 +106,7 @@ class HousingComplexFragment : Fragment() {
                 refreshRoomListView()
                 isLoadingRooms = false
                 refreshAddRoomButton()
-                loadingRoomsProgressFrame.fadeVisibility(false, addTouchBlockerOnFadeIn = true)
+                loadingRoomsProgressFrame?.fadeVisibility(false, addTouchBlockerOnFadeIn = true)
             }
         }
 
@@ -222,7 +222,7 @@ class HousingComplexFragment : Fragment() {
         when(param) {
             OnFinishEditParam.Canceled -> {
                 handler.post {
-                    loadingRoomsProgressFrame.fadeVisibility(false)
+                    loadingRoomsProgressFrame?.fadeVisibility(false)
                 }
             }
             OnFinishEditParam.Done -> {
@@ -239,9 +239,9 @@ class HousingComplexFragment : Fragment() {
                         val pos = getPositionByRoom(visit.place)
                         if (pos >= 0) {
                             handler.post {
-                                val cell = roomListView.findViewHolderForAdapterPosition(pos)?.itemView as? RoomCell
+                                val cell = roomListView?.findViewHolderForAdapterPosition(pos)?.itemView as? RoomCell
                                 cell?.refresh(visit.place)
-                                loadingRoomsProgressFrame.fadeVisibility(false)
+                                loadingRoomsProgressFrame?.fadeVisibility(false)
                             }
                         }
                     } else {
@@ -261,7 +261,7 @@ class HousingComplexFragment : Fragment() {
                                     roomListView?.smoothScrollToPosition(pos)
                                 }
                             }
-                            loadingRoomsProgressFrame.fadeVisibility(false)
+                            loadingRoomsProgressFrame?.fadeVisibility(false)
                         }
                     }
 
@@ -280,12 +280,12 @@ class HousingComplexFragment : Fragment() {
         refreshRoomsToShow()
 
         if (roomsToShow.isEmpty()) {
-            noRoomFrame.fadeVisibility(true)
-            roomListView.fadeVisibility(false)
+            noRoomFrame?.fadeVisibility(true)
+            roomListView?.fadeVisibility(false)
         } else {
-            roomListView.adapter = RoomListAdapter()
-            noRoomFrame.fadeVisibility(false)
-            roomListView.fadeVisibility(true)
+            roomListView?.adapter = RoomListAdapter()
+            noRoomFrame?.fadeVisibility(false)
+            roomListView?.fadeVisibility(true)
         }
     }
 
@@ -342,10 +342,10 @@ class HousingComplexFragment : Fragment() {
                 val pos = getPositionByRoom(room)
 
                 if (pos >= 0) {
-                    val cell = roomListView.findViewHolderForAdapterPosition(pos)?.itemView as? RoomCell
+                    val cell = roomListView?.findViewHolderForAdapterPosition(pos)?.itemView as? RoomCell
                     cell?.refresh(room)
                 }
-                loadingRoomsProgressFrame.fadeVisibility(false)
+                loadingRoomsProgressFrame?.fadeVisibility(false)
             }
         }
     }

@@ -119,9 +119,9 @@ class MainActivity : AppCompatActivity() {
         restartTimeCountIfNeeded()
     }
 
-    override fun onStop() {
-        super.onStop()
 
+    override fun onPause() {
+        super.onPause()
         isAppVisible = false
         isWatchingForAdView = false
     }
@@ -145,6 +145,9 @@ class MainActivity : AppCompatActivity() {
             val visit = FirebaseDB.instance.prepareNextVisit(place)
 
             handler.post {
+
+                if (!isAppVisible) return@post
+
                 val rvFragment = RecordVisitFragment().also {
                     it.visit = visit ?: Visit(place)
                     it.onFinishEdit = onFinishEditVisit
