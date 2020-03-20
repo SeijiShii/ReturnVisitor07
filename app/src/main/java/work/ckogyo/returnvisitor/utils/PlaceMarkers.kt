@@ -3,6 +3,7 @@ package work.ckogyo.returnvisitor.utils
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -29,13 +30,32 @@ class PlaceMarkers(private val googleMap: GoogleMap) {
 
         val marker = googleMap.addMarker(MarkerOptions()
             .position(place.latLng)
-            .icon(BitmapDescriptorFactory.fromBitmap(getBitmap(context, resId)))).also {
-            it.isDraggable = true
-        }
+            .icon(getIconByResId(context, resId)))
+            .also{
+                it.isDraggable = true
+            }
+//            .icon(BitmapDescriptorFactory.fromBitmap(getBitmap(context, resId))))
+//            .also {
+//            it.isDraggable = true
+//        }
 
         markers.add(marker)
         marker.tag = place.id
         return marker
+    }
+
+    private val iconMap = HashMap<Int, BitmapDescriptor>()
+    private fun getIconByResId(context: Context, resId: Int): BitmapDescriptor {
+
+        val descriptor = iconMap[resId]
+
+        if (descriptor != null) {
+            return descriptor
+        }
+
+        val descriptor2 = BitmapDescriptorFactory.fromBitmap(getBitmap(context, resId))
+        iconMap[resId] = descriptor2
+        return descriptor2
     }
 
     fun addMarker(context: Context, place: Place): Marker? {
