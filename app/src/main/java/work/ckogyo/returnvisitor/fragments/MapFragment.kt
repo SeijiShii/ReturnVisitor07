@@ -16,6 +16,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import kotlinx.android.synthetic.main.main_activity.*
 import kotlinx.android.synthetic.main.map_fragment.*
 import kotlinx.coroutines.*
 import work.ckogyo.returnvisitor.MainActivity
@@ -69,6 +70,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         GlobalScope.launch {
             waitForMapReadyAndShowMarkers()
         }
+
+        mainActivity?.progressOverlay?.fadeVisibility(fadeIn = true, addTouchBlockerOnFadeIn = true)
+
     }
 
     override fun onMapReady(p0: GoogleMap?) {
@@ -209,7 +213,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     suspend fun waitForMapReadyAndShowMarkers() {
 
         // TODO: マーカーの再描画が確実でない。
-        if (markerShown) return
+        if (markerShown) {
+            handler.post {
+                mainActivity?.progressOverlay?.fadeVisibility(fadeIn = false)
+            }
+            return
+        }
 
         markerShown = true
 
@@ -220,6 +229,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             handler.post {
                 refreshPlaceMarkers()
+                mainActivity?.progressOverlay?.fadeVisibility(fadeIn = false)
             }
         }
     }
