@@ -331,7 +331,7 @@ class CalendarFragment(var month: Calendar? = null) :Fragment() {
                 if (dailyReport.hasData) {
                     setOnClick {
                         onTransitToWorkFragment?.invoke()
-                        (context as MainActivity).showWorkFragment(dailyReport.date)
+                        (context as MainActivity).showWorkFragmentWithDateToShow(dailyReport.date)
                     }
                 }
 

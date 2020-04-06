@@ -97,7 +97,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar? = null) : Fragmen
 
         val handler = Handler()
 
-        loadingCalendarOverlay2.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
+        loadingCalendarOverlay2?.fadeVisibility(true, addTouchBlockerOnFadeIn = true)
 
         GlobalScope.launch {
             months.clear()
@@ -105,7 +105,8 @@ class CalendarPagerFragment(private var monthToShow: Calendar? = null) : Fragmen
 
             handler.post {
 
-                loadingCalendarOverlay2.fadeVisibility(false)
+                loadingCalendarOverlay2?.fadeVisibility(false)
+                calendarPager ?: return@post
 
                 // Fragment内でViewPagerを使うときはchildFragmentManagerを渡すべし。
                 // https://phicdy.hatenablog.com/entry/fragmentmanager_to_fragmentpageradapter_in_fragment
@@ -124,7 +125,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar? = null) : Fragmen
             }
         }
 
-        calendarPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
+        calendarPager?.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
                 monthToShow = months[position]
 
@@ -133,7 +134,7 @@ class CalendarPagerFragment(private var monthToShow: Calendar? = null) : Fragmen
                 refreshRightButton()
             }
         })
-        calendarPager.offscreenPageLimit = 10
+        calendarPager?.offscreenPageLimit = 10
 
         leftButton.setOnClick {
             calendarPager.currentItem -= 1

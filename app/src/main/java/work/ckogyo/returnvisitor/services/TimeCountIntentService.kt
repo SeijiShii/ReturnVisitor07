@@ -6,20 +6,15 @@ import android.app.PendingIntent
 import android.content.Intent.ACTION_DELETE
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import android.content.IntentFilter
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.models.Work
-import work.ckogyo.returnvisitor.firebasedb.MonthReportCollection
-import work.ckogyo.returnvisitor.firebasedb.WorkCollection
 import work.ckogyo.returnvisitor.utils.SharedPrefKeys
 import work.ckogyo.returnvisitor.utils.toDurationText
 import java.util.*
@@ -30,7 +25,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
     private val timeNotifyId = 100
 
     private var broadcastManager: LocalBroadcastManager? = null
-    private var receiver: BroadcastReceiver? = null
+//    private var receiver: BroadcastReceiver? = null
 
     companion object {
         val startCountingToService = TimeCountIntentService::class.java.name + "_start_counting_to_service"
@@ -41,7 +36,7 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
         val endTime = TimeCountIntentService::class.java.name + "end_time"
         val duration = TimeCountIntentService::class.java.name + "_duration"
         val timeCountingWorkId = TimeCountIntentService::class.java.name + "_time_counting_work_id"
-        val changeStartTimeToService = TimeCountIntentService::class.java.name + "_change_start_time_to_service"
+//        val changeStartTimeToService = TimeCountIntentService::class.java.name + "_change_start_time_to_service"
 
         var isTimeCounting: Boolean = false
 
@@ -87,6 +82,23 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
             }
         }
 
+        fun updateStartTime(startTime: Calendar) {
+
+            work?.start = startTime
+
+            GlobalScope.launch {
+                work ?: return@launch
+                FirebaseDB.instance.saveWorkAsync(work!!)
+            }
+        }
+
+//        fun updateEndTime(endTime: Calendar) {
+//            work?.end = endTime
+//
+//            GlobalScope.launch {
+//                FirebaseDB.instance.saveWorkAsync(work!!)
+//            }
+//        }
     }
 
     override fun onCreate() {
@@ -104,21 +116,21 @@ class TimeCountIntentService : IntentService("TimeCountIntentService") {
     private fun initBroadcasting() {
         broadcastManager = LocalBroadcastManager.getInstance(this)
 
-        receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                if (intent.action == changeStartTimeToService) {
-
-                    val startTime = intent.getLongExtra(startTime, work!!.start.timeInMillis)
-                    work!!.start.timeInMillis = startTime
-
-//                    WorkList.getInstance().setOrAdd(mWork)
-
-//                    RVCloudSync.getInstance().requestDataSyncIfLoggedIn(this@TimeCountIntentService)
-                }
-            }
-        }
-
-        broadcastManager!!.registerReceiver(receiver!!, IntentFilter(changeStartTimeToService))
+//        receiver = object : BroadcastReceiver() {
+//            override fun onReceive(context: Context, intent: Intent) {
+//                if (intent.action == changeStartTimeToService) {
+//
+//                    val startTime = intent.getLongExtra(startTime, work!!.start.timeInMillis)
+//                    work!!.start.timeInMillis = startTime
+//
+////                    WorkList.getInstance().setOrAdd(mWork)
+//
+////                    RVCloudSync.getInstance().requestDataSyncIfLoggedIn(this@TimeCountIntentService)
+//                }
+//            }
+//        }
+//
+//        broadcastManager!!.registerReceiver(receiver!!, IntentFilter(changeStartTimeToService))
     }
 
     override fun onHandleIntent(intent: Intent?) {

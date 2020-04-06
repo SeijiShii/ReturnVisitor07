@@ -121,6 +121,22 @@
                 <Button
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:id="@+id/whereToGoNextButton"
+                    android:text="@string/where_to_go_next"
+                    android:drawableStart="@drawable/ic_lightbulb_outline_dark_green_24dp"
+                    android:paddingStart="10dp"
+                    style="@style/DarkGreenButton"/>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorPrimaryDark"/>
+
+
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
                     android:id="@+id/workButton"
                     android:text="@string/work"
                     android:paddingStart="10dp"
@@ -180,20 +196,6 @@
                     android:id="@+id/reportMailButton"
                     android:text="@string/report_mail"
                     android:drawableStart="@drawable/ic_mail_outline_dark_green_24dp"
-                    android:paddingStart="10dp"
-                    style="@style/DarkGreenButton"/>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/colorPrimaryDark"/>
-
-                <Button
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:id="@+id/whereToGoNextButton"
-                    android:text="@string/where_to_go_next"
-                    android:drawableStart="@drawable/ic_lightbulb_outline_dark_green_24dp"
                     android:paddingStart="10dp"
                     style="@style/DarkGreenButton"/>
 

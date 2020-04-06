@@ -19,6 +19,11 @@ import java.util.*
 
 class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener {
 
+    companion object {
+        val changeStartTimeToTimeCountButton = TimeCountButton::class.java.name + "_change_start_time_to_time_count_button"
+        val startTimeTag = TimeCountButton::class.java.name + "_start_time"
+    }
+
     private var isCountingTime = false
 
     private lateinit var startTime: Calendar
@@ -77,6 +82,7 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
 
         refreshStartTimeText()
 
+        TimeCountIntentService.updateStartTime(startTime)
     }
 
     private fun refreshStartTimeText() {
@@ -121,11 +127,22 @@ class TimeCountButton : HeightAnimationView, TimePickerDialog.OnTimeSetListener 
                         isExtracted = false
                         refreshUIs()
                     }
+                    changeStartTimeToTimeCountButton -> {
+
+                        if (!isCountingTime) return
+
+                        val startTimeLong = intent.getLongExtra(startTimeTag, 0)
+                        if (startTimeLong > 0) {
+                            startTime.timeInMillis = startTimeLong
+                            refreshStartTimeText()
+                        }
+                    }
                 }
             }
         }
         LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, IntentFilter(TimeCountIntentService.timeCountingToActivity))
         LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, IntentFilter(TimeCountIntentService.stopTimeCountingToActivity))
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, IntentFilter(changeStartTimeToTimeCountButton))
     }
 
     private fun refreshDurationText(duration: Long = 0) {

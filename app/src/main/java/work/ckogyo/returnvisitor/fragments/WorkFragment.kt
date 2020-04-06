@@ -34,7 +34,27 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.math.absoluteValue
 
-class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerDialog.OnDateSetListener {
+class WorkFragment() : Fragment(), DatePickerDialog.OnDateSetListener {
+
+    private var date: Calendar? = null
+
+    constructor(date: Calendar? = null):this() {
+        this.date = date
+    }
+
+    private var hasAdapterInitialized = false
+    constructor(addedWork: Work) :this() {
+        this.date = addedWork.start
+
+        GlobalScope.launch {
+            while (!hasAdapterInitialized) {
+                delay(50)
+            }
+            handler.post {
+                adapter.onWorkTimeChanged(addedWork)
+            }
+        }
+    }
 
     var onBackToMapFragment: (() -> Unit)? = null
 
@@ -146,6 +166,7 @@ class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerD
                     workListView?.layoutManager!!.scrollToPosition(position)
                 }
                 switchLoadingWorkOverlay(false)
+                hasAdapterInitialized = true
             }
 
             // 指定した日の最近日を中心に前後2日(最大5日)分のデータを取得する
@@ -336,6 +357,7 @@ class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerD
                             if (index >= 1) {
                                 this@WorkFragment.workListView.smoothScrollToPosition(index)
                             }
+                            adapter.onWorkTimeChanged(work)
                         }
                     }.show(mainActivity!!.supportFragmentManager, AddWorkDialog::class.java.simpleName)
                 }
@@ -373,7 +395,7 @@ class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerD
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             return WorkElmViewHolder(WorkElmCell(context!!).apply {
-                onWorkTimeChanged = this@WorkElmAdapter::onWorkTimeChangedInCell
+                onWorkTimeChanged = this@WorkElmAdapter::onWorkTimeChanged
                 onDeleteWorkClicked = this@WorkElmAdapter::onDeleteWorkClickedInCell
             })
         }
@@ -493,23 +515,27 @@ class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerD
             return getPositionByDate(date) >= 0
         }
 
-        private fun onWorkTimeChangedInCell(work: Work, category: WorkElement.Category, oldTime: Calendar, newTime: Calendar) {
+        fun onWorkTimeChanged(work: Work /*, category: WorkElement.Category, oldTime: Calendar, newTime: Calendar*/) {
 
-            if (category == WorkElement.Category.WorkEnd) {
-                val startCellPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
-                val startCell = workListView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
-                startCell?.updateDurationText()
-            }
+            val startCellPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
+            val startCell = workListView.findViewHolderForLayoutPosition(startCellPos)?.itemView as? WorkElmCell
+            startCell?.updateDurationText()
 
 //            Log.d(debugTag, "Work time changed oldTime: ${oldTime.toTimeText(context)}, newTime: ${newTime.toTimeText(context)}")
 
             // 時間変更後、カブリが発生したら調整する
-            val ownCurrPos = getPositionByWorkAndCategory(work, category)
+            val currStartPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkStart)
+            val currEndPos = getPositionByWorkAndCategory(work, WorkElement.Category.WorkEnd)
             dataElms.sortBy { e -> e.dateTime.timeInMillis }
-            val nextPos = getPositionByDateTime(newTime)
 
-            if (ownCurrPos != nextPos) {
-                notifyItemMoved(ownCurrPos, nextPos)
+            val nextStartPos = getPositionByDateTime(work.start)
+            if (currStartPos != nextStartPos) {
+                notifyItemMoved(currStartPos, nextStartPos)
+            }
+
+            val nextEndPos = getPositionByDateTime(work.end)
+            if (currEndPos != nextEndPos) {
+                notifyItemMoved(currEndPos, nextEndPos)
             }
 
             // 読み込み済みのWorkを抽出する
@@ -517,14 +543,14 @@ class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerD
             for(elm in dataElms) {
                 if (elm.work != null
                     && !sameDayWorksInElms.contains(elm.work!!)
-                    && elm.work!!.start.isSameDate(newTime)) {
+                    && elm.work!!.start.isSameDate(work.start)) {
                     sameDayWorksInElms.add(elm.work!!)
                 }
             }
 
             val worksToRemove = ArrayList<Work>()
 
-            for (work2 in sameDayWorksInElms) {
+            loop@for (work2 in sameDayWorksInElms) {
                 if (work == work2) continue
                 when {
                     work2.start.isTimeBetween(work.start, work.end, true)
@@ -551,6 +577,12 @@ class WorkFragment(private var date: Calendar? = null) : Fragment(), DatePickerD
                                 cell?.refresh()
                             }
                         }
+                    }
+                    work.start.isTimeBetween(work2.start, work2.end, true)
+                            || work.end.isTimeBetween(work2.start, work2.end, true) -> {
+                        // 自分自身が他のWorkにすっぽり包まれているなら自分を削除
+                        worksToRemove.add(work)
+                        break@loop
                     }
                 }
             }

@@ -35,6 +35,7 @@ import work.ckogyo.returnvisitor.firebasedb.VisitCollection
 import work.ckogyo.returnvisitor.fragments.*
 import work.ckogyo.returnvisitor.models.Place
 import work.ckogyo.returnvisitor.models.Visit
+import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import java.util.*
@@ -228,11 +229,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showWorkFragment(dateToShow: Calendar) {
+    fun showWorkFragmentWithDateToShow(dateToShow: Calendar) {
+        val wf = WorkFragment(dateToShow)
+        showWorkFragmentCore(wf)
+    }
+
+    fun showWorkFragmentWithAddedWork(addedWork: Work) {
+        val wf = WorkFragment(addedWork)
+        showWorkFragmentCore(wf)
+    }
+
+    private fun showWorkFragmentCore(wf: WorkFragment) {
 
 //        switchProgressOverlay(true, getString(R.string.loading_works))
 
-        val workFragment = WorkFragment(dateToShow).also {
+        wf.also {
             it.onVisitEdited = mapFragment::onFinishEditVisitInFragments
             it.onBackToMapFragment = {
                 handler.post {
@@ -243,7 +254,7 @@ class MainActivity : AppCompatActivity() {
         }
         supportFragmentManager.beginTransaction().let {
             it.addToBackStack(null)
-            it.add(R.id.fragmentContainer, workFragment, WorkFragment::class.java.simpleName)
+            it.add(R.id.fragmentContainer, wf, WorkFragment::class.java.simpleName)
             it.commit()
         }
 

@@ -16,7 +16,10 @@ import android.widget.TimePicker
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.work_elm_cell.view.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
+import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
 import work.ckogyo.returnvisitor.models.Work
 import work.ckogyo.returnvisitor.models.WorkElement
 import work.ckogyo.returnvisitor.services.TimeCountIntentService
@@ -44,7 +47,7 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
      * WorkCellにおいて削除ボタンが押されたときに呼ばれる。これが発火した時点ではFirebaseDBに対する操作はされていない。
      */
     var onDeleteWorkClicked: ((Work) -> Unit)? = null
-    var onWorkTimeChanged: ((work: Work, category: WorkElement.Category, oldTime: Calendar, newTime: Calendar) -> Unit)? = null
+    var onWorkTimeChanged: ((work: Work /*, category: WorkElement.Category, oldTime: Calendar, newTime: Calendar*/) -> Unit)? = null
 
     private fun onSetDateElm() {
 
@@ -205,6 +208,12 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
                 timeToSet.add(Calendar.MINUTE, -1)
             }
             work.start = timeToSet
+            TimeCountIntentService.updateStartTime(work.start)
+
+            val changeStartTimeIntent = Intent(TimeCountButton.changeStartTimeToTimeCountButton)
+            changeStartTimeIntent.putExtra(TimeCountButton.startTimeTag, work.start.timeInMillis)
+            LocalBroadcastManager.getInstance(context).sendBroadcast(changeStartTimeIntent)
+
 
         } else {
             if (timeToSet.isTimeBefore(work.start, true)) {
@@ -221,8 +230,13 @@ class WorkElmCell(context: Context) : FrameLayout(context), TimePickerDialog.OnT
         }
 
         // WorkEndのセルで時間が変更されたときWorkStart側のdurationTextが更新される必要がある。
-        onWorkTimeChanged?.invoke(work, dataElm!!.category, oldTime!!, timeToSet)
+        onWorkTimeChanged?.invoke(work /*, dataElm!!.category, oldTime!!, timeToSet*/)
         oldTime = null
+
+        GlobalScope.launch {
+            FirebaseDB.instance.saveWorkAsync(work)
+        }
+
     }
 
     private fun updateTimeText(withSecond: Boolean = false) {

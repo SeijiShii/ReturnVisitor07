@@ -136,6 +136,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun onMarkerClick(marker: Marker): Boolean {
+        mainActivity?.switchProgressOverlay(true)
         val id = marker.tag as? String
         if (id != null) {
             GlobalScope.launch {
@@ -151,6 +152,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         onDeleted = this@MapFragment::onDeletedInHousingComplexFragment,
                         onClose = this@MapFragment::onCloseHousingComplexFragment,
                         isNewHC = false)
+                }
+                handler.post {
+                    mainActivity?.switchProgressOverlay(false)
                 }
             }
         }
@@ -592,7 +596,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun initWorkButton() {
         workButton.setOnClickListener {
             switchDrawer()
-            mainActivity?.showWorkFragment(Calendar.getInstance())
+            mainActivity?.showWorkFragmentWithDateToShow(Calendar.getInstance())
         }
     }
 
@@ -606,7 +610,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             AddWorkDialog().apply {
                 onWorkAdded = {work ->
-                    mainActivity?.showWorkFragment(work.start)
+                    mainActivity?.showWorkFragmentWithAddedWork(work)
+
                 }
             }.show(fm, AddWorkDialog::class.java.simpleName)
         }

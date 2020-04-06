@@ -10,6 +10,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.place_dialog.*
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import work.ckogyo.returnvisitor.R
 import work.ckogyo.returnvisitor.firebasedb.FirebaseDB
@@ -19,12 +20,18 @@ import work.ckogyo.returnvisitor.services.TimeCountIntentService
 import work.ckogyo.returnvisitor.utils.*
 import work.ckogyo.returnvisitor.views.VisitCell
 
-class PlaceDialog(var place: Place? = null) :DialogFrameFragment() {
+class PlaceDialog() :DialogFrameFragment() {
 
-//    lateinit var place: Place
-//    constructor(place: Place):this() {
-//        this.place = place
-//    }
+    var place: Place? = null
+    constructor(place: Place):this() {
+        this.place = place
+    }
+
+    constructor(placeId: String): this() {
+        GlobalScope.launch {
+            place = FirebaseDB.instance.loadPlaceById(placeId)
+        }
+    }
 
     private val handler = Handler()
 
@@ -52,18 +59,6 @@ class PlaceDialog(var place: Place? = null) :DialogFrameFragment() {
 
         super.onViewCreated(view, savedInstanceState)
 
-        if (place != null) {
-            val titleId = when(place!!.category) {
-                Place.Category.Place -> R.string.place
-                Place.Category.House -> R.string.house
-                Place.Category.HousingComplex -> R.string.housing_complex
-                Place.Category.Room -> R.string.room
-            }
-
-            setTitle(titleId)
-            addressText.text = place.toString()
-        }
-
         placeMenuButton.setOnClick {
             showMenuPopup()
         }
@@ -78,14 +73,35 @@ class PlaceDialog(var place: Place? = null) :DialogFrameFragment() {
             addNotHomeVisit()
         }
 
-        refreshColorMark()
-
-        refreshVisitList()
+        waitForPlaceLoadedAndInitialize()
     }
 
     private fun refreshColorMark() {
         place ?: return
         colorMark?.setImageDrawable(ResourcesCompat.getDrawable(context!!.resources, ratingToColorButtonResId(place!!.rating), null))
+    }
+
+    private fun waitForPlaceLoadedAndInitialize() {
+
+        GlobalScope.launch {
+            while (place == null) {
+                delay(50)
+            }
+            handler.post {
+                val titleId = when(place!!.category) {
+                    Place.Category.Place -> R.string.place
+                    Place.Category.House -> R.string.house
+                    Place.Category.HousingComplex -> R.string.housing_complex
+                    Place.Category.Room -> R.string.room
+                }
+
+                setTitle(titleId)
+                addressText.text = place.toString()
+
+                refreshColorMark()
+                refreshVisitList()
+            }
+        }
     }
 
     private fun refreshVisitList() {
