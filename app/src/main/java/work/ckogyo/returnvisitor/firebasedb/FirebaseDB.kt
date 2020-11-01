@@ -426,8 +426,12 @@ class FirebaseDB {
             val firstWork = workColl.loadWorkAtEnd(first = true)
             val lastWork = workColl.loadWorkAtEnd(first = false)
 
+//            Log.d(debugTag, "lastWork date: ${lastWork?.start?.toDateString()}")
+
             val firstVisit = visitColl.loadVisitAtEnd(first = true)
             val lastVisit = visitColl.loadVisitAtEnd(first = false)
+
+//            Log.d(debugTag, "lastVisit date: ${lastVisit?.dateTime?.toDateString()}")
 
             val firstDate = when {
                 firstWork == null && firstVisit == null -> null
@@ -440,8 +444,11 @@ class FirebaseDB {
                 lastWork == null && lastVisit == null -> null
                 lastWork == null -> lastVisit!!.dateTime
                 lastVisit == null -> lastWork.start
-                else -> if (lastWork.start.isDateBefore(lastVisit.dateTime)) lastWork.start else lastVisit.dateTime
+                else -> if (lastWork.end.isDateAfter(lastVisit.dateTime)) lastWork.end else lastVisit.dateTime
             }
+
+//            Log.d(debugTag, "firstDate with work: ${firstDate?.toDateString()}")
+//            Log.d(debugTag, "lastDate with work: ${lastDate?.toDateString()}")
 
             val months = ArrayList<Calendar>()
 

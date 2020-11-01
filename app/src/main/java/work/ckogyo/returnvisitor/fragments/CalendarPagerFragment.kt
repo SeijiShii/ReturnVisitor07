@@ -103,6 +103,10 @@ class CalendarPagerFragment(private var monthToShow: Calendar? = null) : Fragmen
             months.clear()
             months.addAll(FirebaseDB.instance.loadMonthList())
 
+//            months.forEach{m ->
+//                Log.d(debugTag, m.toDateString());
+//            }
+
             handler.post {
 
                 loadingCalendarOverlay2?.fadeVisibility(false)
